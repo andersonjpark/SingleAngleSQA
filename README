@@ -1,0 +1,33 @@
+# README #
+
+* sqa is developed by James Kneller. This version is edited by Yonglin Zhu for neutrino oscillation calculation with matter and neutrino density profile from simualtions. Sherwood and Yonglin Zhu implemented some other physics (scattering, etc.) on the fly. 
+
+### What is this repository for? ###
+
+* This 
+
+### How do I get set up? ###
+
+* sqa need to be compiled with mstl library()
+1. Get mstl ready:
+- On HPC@NC State: 
+
+- On /physics: 
+- Some where else: mstl need to be compiled again if it is used somewhere else. 
+2. Get sqa ready: 
+- With icc
+- With gcc
+3. Run sqa
+- On HPC@NC State
+- On reines/cowan
+
+### Contribution guidelines ###
+
+* Writing tests
+* Code review
+* Other guidelines
+
+### Who do I talk to? ###
+
+* Repo owner or admin
+* Other community or team contact

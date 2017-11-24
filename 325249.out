@@ -1,0 +1,209 @@
+
+
+*********************************************************
+
+rho	/gpfs_common/share01/jpknelle/yzhu14/nucap/	Ye	/gpfs_common/share01/jpknelle/yzhu14/nucap/	output	/gpfs_common/share01/jpknelle/yzhu14/albino/output/
+xmin	200000	xmax	1.8e+07
+Factor	1
+VfFactor	1
+
+NE	16
+constVe	0
+t	0
+
+m1	0	dm21^2	0.00243
+thetaV	8.9
+alpha1V	0	alpha2V	0	betaV	0
+GF	1.43584e-49
+pow(cgs::constants::hbarc,4))	9.9905e-67
+accuracy	1.01e-06
+step size limiter	1000
+id	17090
+nt	56
+
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/rho_potential56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/Ye_potential56log1.txt200000	7.8361e+0616Ye	0.364633	0.33368	
+16
+
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/potential1_1_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/potential2_1_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/potential3_1_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/density1_1_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/density2_1_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/density3_1_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/potential1_2_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/potential2_2_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/potential3_2_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/density1_2_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/density2_2_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/density3_2_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/potential1_3_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/potential2_3_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/potential3_3_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/density1_3_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/density2_3_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/density3_3_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/potential1_4_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/potential2_4_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/potential3_4_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/density1_4_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/density2_4_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/density3_4_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/potential1_5_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/potential2_5_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/potential3_5_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/density1_5_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/density2_5_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/density3_5_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/potential1_6_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/potential2_6_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/potential3_6_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/density1_6_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/density2_6_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/density3_6_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/potential1_7_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/potential2_7_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/potential3_7_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/density1_7_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/density2_7_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/density3_7_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/potential1_8_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/potential2_8_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/potential3_8_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/density1_8_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/density2_8_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/density3_8_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/potential1_9_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/potential2_9_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/potential3_9_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/density1_9_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/density2_9_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/density3_9_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/potential1_10_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/potential2_10_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/potential3_10_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/density1_10_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/density2_10_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/density3_10_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/potential1_11_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/potential2_11_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/potential3_11_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/density1_11_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/density2_11_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/density3_11_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/potential1_12_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/potential2_12_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/potential3_12_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/density1_12_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/density2_12_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/density3_12_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/potential1_13_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/potential2_13_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/potential3_13_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/density1_13_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/density2_13_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/density3_13_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/potential1_14_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/potential2_14_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/potential3_14_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/density1_14_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/density2_14_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/density3_14_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/potential1_15_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/potential2_15_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/potential3_15_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/density1_15_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/density2_15_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/density3_15_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/potential1_16_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/potential2_16_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/potential3_16_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/density1_16_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/density2_16_56log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/nucap/17090/56/density3_16_56log1.txtOpenenergybin(NE)NE162
+2.43154
+2.95619
+3.59405
+4.36953
+5.31235
+6.45859
+7.85216
+9.54642
+11.6062
+14.1105
+17.1551
+20.8567
+25.3569
+30.8282
+37.48
+NE/NE	1
+E[0]	2
+E[1]	2.43154
+E[2]	2.95619
+E[3]	3.59405
+E[4]	4.36953
+E[5]	5.31235
+E[6]	6.45859
+E[7]	7.85216
+E[8]	9.54642
+E[9]	11.6062
+E[10]	14.1105
+E[11]	17.1551
+E[12]	20.8567
+E[13]	25.3569
+E[14]	30.8282
+E[15]	37.48
+
+
+Normal hierarchyeAPotential[0]	5.42076e-20Vf0	(1.66542e-20,0)	eAPotential[1]	9.83091e-20Vf0	(5.03772e-20,0)	eAPotential[2]	1.67419e-19Vf0	(1.11294e-19,0)	eAPotential[3]	2.98609e-19Vf0	(2.30914e-19,0)	eAPotential[4]	5.08984e-19Vf0	(4.47288e-19,0)	eAPotential[5]	8.39565e-19Vf0	(8.12916e-19,0)	eAPotential[6]	1.34971e-18Vf0	(1.40781e-18,0)	eAPotential[7]	1.8463e-18Vf0	(2.11852e-18,0)	eAPotential[8]	2.26807e-18Vf0	(2.7299e-18,0)	eAPotential[9]	2.51278e-18Vf0	(3.03795e-18,0)	eAPotential[10]	2.19798e-18Vf0	(2.65962e-18,0)	eAPotential[11]	1.63217e-18Vf0	(1.47638e-18,0)	eAPotential[12]	1.20271e-18Vf0	(2.6754e-19,0)	eAPotential[13]	4.612e-19Vf0	(-8.62004e-19,0)	eAPotential[14]	3.25842e-19Vf0	(-1.72754e-18,0)	eAPotential[15]	4.89863e-20Vf0	(-2.02935e-18,0)	beforeinitial	Y	0
+Output(fout,x,Y)200000
+
+Finished
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@n2k2-3>
+Subject: Job 325249: <#!/bin/csh;#BSUB -R rusage[mem=2048] ;#BSUB -o /home/yzhu14/nucleosyn/nucap/outerr/%J.out ;#BSUB -e /home/yzhu14/nucleosyn/nucap/outerr/%J.err;#BSUB -W 500;#BSUB -q nucastro;#BSUB -n 1;#BSUB -R span[hosts=1]; ./Sf2one.x Sf2one56.run> Done
+
+Job <#!/bin/csh;#BSUB -R rusage[mem=2048] ;#BSUB -o /home/yzhu14/nucleosyn/nucap/outerr/%J.out ;#BSUB -e /home/yzhu14/nucleosyn/nucap/outerr/%J.err;#BSUB -W 500;#BSUB -q nucastro;#BSUB -n 1;#BSUB -R span[hosts=1]; ./Sf2one.x Sf2one56.run> was submitted from host <login02.hpc.ncsu.edu> by user <yzhu14> in cluster <henry2>.
+Job was executed on host(s) <n2k2-3>, in queue <nucastro>, as user <yzhu14> in cluster <henry2>.
+</home/yzhu14> was used as the home directory.
+</home/yzhu14/nucleosyn/nucap/tmp> was used as the working directory.
+Started at Tue Nov 21 00:21:06 2017
+Results reported at Tue Nov 21 00:52:25 2017
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/csh
+#BSUB -R rusage[mem=2048] 
+#BSUB -o /home/yzhu14/nucleosyn/nucap/outerr/%J.out 
+#BSUB -e /home/yzhu14/nucleosyn/nucap/outerr/%J.err
+#BSUB -W 500
+#BSUB -q nucastro
+#BSUB -n 1
+#BSUB -R span[hosts=1]
+
+./Sf2one.x Sf2one56.run
+
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time   :   1860.32 sec.
+    Max Memory :         9 MB
+    Max Swap   :       269 MB
+
+    Max Processes  :         4
+    Max Threads    :         5
+
+The output (if any) is above this job summary.
+
+
+
+PS:
+
+Read file </home/yzhu14/nucleosyn/nucap/outerr/325249.err> for stderr output of this job.
+

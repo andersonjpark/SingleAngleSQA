@@ -1,0 +1,14 @@
+#!/bin/csh
+
+INCLUDE  = -I//home/jpknelle/mstl/include/ -I//home/jpknelle/mstl/include/physics/ -I//home/jpknelle/mstl/include/math2/ -I//home/jpknelle/mstl/include/math2/algebra -I//home/jpknelle/mstl/include/math2/analysis -I//home/jpknelle/mstl/include/math2/data -I//home/jpknelle/mstl/include/math2/geometry -I//home/jpknelle/mstl/include/math2/group -I//home/jpknelle/mstl/include/math2/spline -I"//home/jpknelle/mstl/include/math2/probability and statistics"
+
+LIBRARY = -L//home/jpknelle/mstl/lib/
+
+WHICHCODE = Sqa2.psma
+
+COMP = g++ ${INCLUDE} ${LIBRARY} 
+
+OPTIONS = -O -lmstl.g++ -fopenmp -pg -g -O3 -funit-at-a-time -funroll-loops -std=gnu++0x 
+
+${WHICHCODE}.o: ${WHICHCODE}.cpp
+	${COMP} ${INCLUDE} ${LIBRARY} ${WHICHCODE}.cpp -o ${WHICHCODE}.x ${OPTIONS}
