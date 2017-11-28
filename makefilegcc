@@ -1,8 +1,10 @@
 #!/bin/csh
 
-INCLUDE  = -I//home/jpknelle/mstl/include/ -I//home/jpknelle/mstl/include/physics/ -I//home/jpknelle/mstl/include/math2/ -I//home/jpknelle/mstl/include/math2/algebra -I//home/jpknelle/mstl/include/math2/analysis -I//home/jpknelle/mstl/include/math2/data -I//home/jpknelle/mstl/include/math2/geometry -I//home/jpknelle/mstl/include/math2/group -I//home/jpknelle/mstl/include/math2/spline -I"//home/jpknelle/mstl/include/math2/probability and statistics"
+MSTL_LOC = /physics/jpknelle/mstl
 
-LIBRARY = -L//home/jpknelle/mstl/lib/
+INCLUDE  = -I${MSTL_LOC}/include/ -I${MSTL_LOC}/include/physics/ -I${MSTL_LOC}/include/math2/ -I${MSTL_LOC}/include/math2/algebra -I${MSTL_LOC}/include/math2/analysis -I${MSTL_LOC}/include/math2/data -I${MSTL_LOC}/include/math2/geometry -I${MSTL_LOC}/include/math2/group -I${MSTL_LOC}/include/math2/spline -I"${MSTL_LOC}/include/math2/probability and statistics"
+
+LIBRARY = -L${MSTL_LOC}/lib/
 
 WHICHCODE = sqa2.psma
 
