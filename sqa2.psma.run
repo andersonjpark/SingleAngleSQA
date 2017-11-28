@@ -1,13 +1,11 @@
-/gpfs_common/share01/jpknelle/yzhu14/nucap/
-/gpfs_common/share01/jpknelle/yzhu14/nucap/
+/gpfs_common/share01/jpknelle/yzhu14/albino/albinoDens16/
+/gpfs_common/share01/jpknelle/yzhu14/albino/albinoDens16/
 /gpfs_common/share01/jpknelle/yzhu14/albino/output/
-50e5
-180e5
+2e5
+300e5
 16
-2	37.48
--2.43E-003      9       1.01E-008
+2       37.48
+-2.43E-003      9       1.01E-0010
 log1
-0
-442
-17090
-56
+3
+100

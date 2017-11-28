@@ -2,9 +2,9 @@
 #BSUB -R rusage[mem=2048] 
 #BSUB -o ./outerr/%J.out 
 #BSUB -e ./outerr/%J.err
-#BSUB -W 10 
+#BSUB -W 50 
 #BSUB -q nucastro
-#BSUB -n 16
+#BSUB -n 4 
 #BSUB -R span[hosts=1]
 
 ./sqa2.psma.x sqa2.psma.run

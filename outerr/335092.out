@@ -1,0 +1,69 @@
+
+
+*********************************************************
+
+rho	/gpfs_common/share01/jpknelle/yzhu14/albino/albinoDens16/
+Ye	/gpfs_common/share01/jpknelle/yzhu14/albino/albinoDens16/
+output	/gpfs_common/share01/jpknelle/yzhu14/albino/output/
+rmin	5e+06	rmax	1.8e+07
+
+NE	16	Emin	2	Emax	37.48
+
+m1	0	dm21^2	-0.00243
+theta12V	9
+alpha1V	0	alpha2V	0
+beta1V	0
+accuracy	1.01e-08
+
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/albino/albinoDens16/rho_v_potential3log1.txt
+Loading a file Thrown in the function Open by the object /gpfs_common/share01/jpknelle/yzhu14/albino/albinoDens16/Ye_v_potential3log1.txt
+std::exception Thrown in Open In object /gpfs_common/share01/jpknelle/yzhu14/albino/albinoDens16//v_potential1_1_56log1.txt At line Unknown
+Finished
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@n3l2-14>
+Subject: Job 335092: <#!/bin/csh;#BSUB -R rusage[mem=2048] ;#BSUB -o ./outerr/%J.out ;#BSUB -e ./outerr/%J.err;#BSUB -W 10 ;#BSUB -q nucastro;#BSUB -n 4;#BSUB -R span[hosts=1]; ./sqa2.psma.x sqa2.psma.run> Done
+
+Job <#!/bin/csh;#BSUB -R rusage[mem=2048] ;#BSUB -o ./outerr/%J.out ;#BSUB -e ./outerr/%J.err;#BSUB -W 10 ;#BSUB -q nucastro;#BSUB -n 4;#BSUB -R span[hosts=1]; ./sqa2.psma.x sqa2.psma.run> was submitted from host <login02.hpc.ncsu.edu> by user <yzhu14> in cluster <henry2>.
+Job was executed on host(s) <4*n3l2-14>, in queue <nucastro>, as user <yzhu14> in cluster <henry2>.
+</home/yzhu14> was used as the home directory.
+</home/yzhu14/nucleosyn/sqa/sqa> was used as the working directory.
+Started at Mon Nov 27 19:49:06 2017
+Results reported at Mon Nov 27 19:49:06 2017
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/csh
+#BSUB -R rusage[mem=2048] 
+#BSUB -o ./outerr/%J.out 
+#BSUB -e ./outerr/%J.err
+#BSUB -W 10 
+#BSUB -q nucastro
+#BSUB -n 4
+#BSUB -R span[hosts=1]
+
+./sqa2.psma.x sqa2.psma.run
+
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time   :      0.19 sec.
+    Max Memory :         2 MB
+    Max Swap   :        35 MB
+
+    Max Processes  :         1
+    Max Threads    :         1
+
+The output (if any) is above this job summary.
+
+
+
+PS:
+
+Read file <./outerr/335092.err> for stderr output of this job.
+

@@ -44,7 +44,7 @@ vector<double> predictProbability(double totalNu,double totalANu,double Ve,vecto
 	{
 //predicted Probability at each energy level,to get <P()>.
 	Delta[i]=dm21/(2*E[i])*cgs::constants::c4;      	
-	epsilon[i]=2*Delta[i]*cos(2*thetaV)/(Ve+Delta[i]*cos(2*thetaV));
+	epsilon[i]=2*Delta[i]*cos(2*theta12V)/(Ve+Delta[i]*cos(2*theta12V));
         sume+=epsilon[i];
 	predP[i+1]=(1+(alpha*alpha-(Ve/mu)*(Ve/mu)-(1-epsilon[i])*(1-epsilon[i]))/(2*(Ve/mu)*(1-epsilon[i])))/2;
         predP[(NE+1)+i+1]=(1+(alpha*alpha+(Ve/mu)*(Ve/mu)-(1-epsilon[i])*(1-epsilon[i]))/(2*alpha*(Ve/mu)))/2;
