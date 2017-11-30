@@ -667,33 +667,34 @@ int main(int argc, char *argv[]){
 	    A=A0;
 	  }
 	  
-	}while(repeat==true);
+	}while(repeat==true); // end of RK section
 
-	// end of RK section
+	// interact with the matter
+	// SHERWOOD TO WRITE
+	// interact(pmatrixf0);
 
 	// check S matrices are diagonal dominated, if not then accumulate S and reset variables
 	for(state m=matter;m<=antimatter;m++){
 	  for(int i=0;i<=NE-1;i++){
-	    SSMSW=W(Y[m][i][msw])*B(Y[m][i][msw]);
-	    SSSI=W(Y[m][i][si])*B(Y[m][i][si]);
+	    SSMSW = W(Y[m][i][msw])*B(Y[m][i][msw]);
+	    SSSI  = W(Y[m][i][si ])*B(Y[m][i][si ]);
 	      
-	    resetflag=false;
+	    resetflag=true;
 
 	    // test that the MSW S matrix is close to diagonal
-	    if(norm(SSMSW[0][0])+0.1 < norm(SSMSW[0][1])) resetflag=true;
-	    
+	    //if(norm(SSMSW[0][0])+0.1 < norm(SSMSW[0][1])) resetflag=true;
 	    // test the SI S matrix is close to diagonal
-	    if(norm(SSSI[0][0])+0.1 < norm(SSSI[0][1])) resetflag=true;
+	    //if(norm(SSSI[0][0])+0.1 < norm(SSSI[0][1])) resetflag=true;
 
-	    if(resetflag!=false){
+	    if(resetflag==true){
 	      // reset the MSW AND the SI S matrices
+	      //cout<<"reSet"<<endl;
+	      //cout.flush();
 	      Scumulative[m][i]=MATRIX<complex<double>,NF,NF>( SSMSW*SSSI*Scumulative[m][i] );
-	      cout<<"reSet"<<endl;
-	      cout.flush();
-	      P0[matter][e][i]=eP[i](r);
-	      P0[antimatter][e][i]=eBarP[i](r);
-	      P0[antimatter][mu][i]=xP[i](r);
-	      P0[matter][mu][i]=xP[i](r);
+	      P0[matter    ][e ][i] =    eP[i](r);
+	      P0[antimatter][e ][i] = eBarP[i](r);
+	      P0[antimatter][mu][i] =    xP[i](r);
+	      P0[matter    ][mu][i] =    xP[i](r);
 	      for(flavour f=e;f<=mu;f++) pmatrixf0[m][i][f][f]=P0[m][f][i];
 
 	      pmatrixm0[m][i] = Scumulative[m][i]
@@ -713,15 +714,14 @@ int main(int argc, char *argv[]){
 	      Y[m][i][si][4]=Y[m][i][si][5]=0.;
 	    }
 	    else{ // take modulo 2 pi of phase angles
-	      Y[m][i][msw][2]=fmod(Y[m][i][msw][2],M_2PI);
-	      Y[m][i][si ][2]=fmod(Y[m][i][si ][2],M_2PI);
-
-	      double ipart;
-	      Y[m][i][msw][4]=modf(Y[m][i][msw][4],&ipart);
-	      Y[m][i][msw][5]=modf(Y[m][i][msw][5],&ipart);
-
-	      Y[m][i][si][4]=modf(Y[m][i][si][4],&ipart);
-	      Y[m][i][si][5]=modf(Y[m][i][si][5],&ipart);
+	      abort(); // should not do this if resetting each time.
+	      //double ipart;
+	      //Y[m][i][msw][2]=fmod(Y[m][i][msw][2],M_2PI);
+	      //Y[m][i][si ][2]=fmod(Y[m][i][si ][2],M_2PI);
+	      //Y[m][i][msw][4]=modf(Y[m][i][msw][4],&ipart);
+	      //Y[m][i][msw][5]=modf(Y[m][i][msw][5],&ipart);
+	      //Y[m][i][si ][4]=modf(Y[m][i][si ][4],&ipart);
+	      //Y[m][i][si ][5]=modf(Y[m][i][si ][5],&ipart);
 	    }
 	  }
 	}
