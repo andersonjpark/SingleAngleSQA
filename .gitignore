@@ -1,5 +1,5 @@
 # ignore out/err files
 outerr/
-sqa2/psma.x
+sqa2.psma.x
 *~
 Makefile
