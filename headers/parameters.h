@@ -1,6 +1,3 @@
-
-
-
 const int NM=2;
 enum state { matter,antimatter};
 state operator++(state &n,int){ state tmp=n; n=(state)( (int)n+1 ); return tmp;};

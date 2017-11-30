@@ -20,47 +20,58 @@
   %3 citations counted in INSPIRE as of 29 Jul 2016
 **************************************************************************/
 //prediction without considering the hierarchy
-vector<double> predictProbability(double totalNu,double totalANu,double Ve)
-{	vector<double> predP(2);
-	double alpha(totalANu/totalNu);
-	double mu(totalNu);
-	predP[0]=(1+(alpha*alpha-(Ve/mu)*(Ve/mu)-1)/(2*(Ve/mu)))/2;
-	predP[1]=(1+(alpha*alpha+(Ve/mu)*(Ve/mu)-1)/(2*alpha*(Ve/mu)))/2;
-		
-	return predP;
+vector<double> 
+predictProbability(double totalNu,
+		   double totalANu,
+		   double Ve){
+
+  vector<double> predP(2);
+  double alpha(totalANu/totalNu);
+  double mu(totalNu);
+  predP[0]=(1+(alpha*alpha-(Ve/mu)*(Ve/mu)-1)/(2*(Ve/mu)))/2;
+  predP[1]=(1+(alpha*alpha+(Ve/mu)*(Ve/mu)-1)/(2*alpha*(Ve/mu)))/2;
+  
+  return predP;
 }
 
 //prediction considering the hierarchy
-vector<double> predictProbability(double totalNu,double totalANu,double Ve,vector<double> E, vector<double> ebarPotentialSum,vector<double> ePotentialSum,vector<double> heavyPotentialSum)
-{
-        int NE=E.size();
-	vector<double> predP((NE+2)*(2));
-        double alpha(totalANu/totalNu);
-        double mu(totalNu);
-	vector<double> Delta(NE);
-	vector<double> epsilon(NE);
-	double sume(0.0);
-	for (int i=0;i<=NE-1;i++)
-	{
-//predicted Probability at each energy level,to get <P()>.
-	Delta[i]=dm21/(2*E[i])*cgs::constants::c4;      	
-	epsilon[i]=2*Delta[i]*cos(2*theta12V)/(Ve+Delta[i]*cos(2*theta12V));
-        sume+=epsilon[i];
-	predP[i+1]=(1+(alpha*alpha-(Ve/mu)*(Ve/mu)-(1-epsilon[i])*(1-epsilon[i]))/(2*(Ve/mu)*(1-epsilon[i])))/2;
-        predP[(NE+1)+i+1]=(1+(alpha*alpha+(Ve/mu)*(Ve/mu)-(1-epsilon[i])*(1-epsilon[i]))/(2*alpha*(Ve/mu)))/2;
-//to get <Pee()>*totalNu, <Pebarebar()>*totalANu
-	predP[0]+=predP[i+1]*ePotentialSum[i];
-	predP[NE+1]+=predP[(NE+1)+i+1]*ebarPotentialSum[i];
-	}
-	double meane = sume / epsilon.size();
-//to get <Pee()>, <Pebarebar()>
-	predP[0]/=totalNu;
-	predP[1+NE]/=totalANu;
-//to get Pee(<>),Pebarebar(<>)
-	predP[(NE+1)*2]=(1+(alpha*alpha-(Ve/mu)*(Ve/mu)-(1-meane)*(1-meane))/(2*(Ve/mu)*(1-meane)))/2;
-	predP[(NE+1)*2+1]=(1+(alpha*alpha+(Ve/mu)*(Ve/mu)-(1-meane)*(1-meane))/(2*alpha*(Ve/mu)))/2;
+vector<double>
+predictProbability(double totalNu,
+		   double totalANu,
+		   double Ve,
+		   vector<double> E,
+		   vector<double> ebarPotentialSum,
+		   vector<double> ePotentialSum,
+		   vector<double> heavyPotentialSum){
+  
+  int NE = E.size();
+  vector<double> predP((NE+2)*(2));
+  double alpha(totalANu/totalNu);
+  double mu(totalNu);
+  vector<double> Delta(NE);
+  vector<double> epsilon(NE);
+  double sume(0.0);
 
+  for (int i=0;i<=NE-1;i++){
+    //predicted Probability at each energy level,to get <P()>.
+    Delta[i] = dm21 / (2*E[i]) * cgs::constants::c4;      	
+    epsilon[i] = 2. * Delta[i] * cos(2.*theta12V) / (Ve + Delta[i]*cos(2.*theta12V));
+    sume += epsilon[i];
+    predP[       i+1] = 0.5 * (1. + (alpha*alpha - (Ve/mu)*(Ve/mu) - (1.-epsilon[i])*(1.-epsilon[i])) / (2.*(Ve/mu)*(1.-epsilon[i])));
+    predP[(NE+1)+i+1] = 0.5 * (1. + (alpha*alpha + (Ve/mu)*(Ve/mu) - (1.-epsilon[i])*(1.-epsilon[i])) / (2.*alpha*(Ve/mu)));
+    //to get <Pee()>*totalNu, <Pebarebar()>*totalANu
+    predP[0] += predP[i+1] * ePotentialSum[i];
+    predP[NE+1] += predP[(NE+1)+i+1] * ebarPotentialSum[i];
+  }
 
-return predP;
+  double meane = sume / epsilon.size();
+  //to get <Pee()>, <Pebarebar()>
+  predP[0] /= totalNu;
+  predP[1+NE] /= totalANu;
+  //to get Pee(<>),Pebarebar(<>)
+  predP[(NE+1)*2]   = (1.+(alpha*alpha-(Ve/mu)*(Ve/mu)-(1.-meane)*(1.-meane))/(2.*(Ve/mu)*(1.-meane)))/2.;
+  predP[(NE+1)*2+1] = (1.+(alpha*alpha+(Ve/mu)*(Ve/mu)-(1.-meane)*(1.-meane))/(2.*alpha*(Ve/mu)))/2.;
+  
+  return predP;
 }
 
