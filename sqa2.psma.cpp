@@ -46,6 +46,7 @@ using interpolation::DISCONTINUOUS;
 
 // global variables
 DISCONTINUOUS rho, lnrho, Ye; // rho is the mass density
+//DISCONTINUOUS temperature; // UNCOMMENT
 double NSI;
 int NEP(8);
 
@@ -102,6 +103,7 @@ int main(int argc, char *argv[]){
     string inputfilename;
     ofstream fout,foutC,foutP,foutS;
     string outputfilename,rhofilename, Yefilename, vfilename, spectrapath;
+    // string temperaturefilename; //UNCOMMENT
     string outputfilenamestem;
     string nt, note;
     
@@ -110,6 +112,7 @@ int main(int argc, char *argv[]){
     
     fin>>rhofilename;
     fin>>Yefilename;
+    //fin>>temperaturefilename;//UNCOMMENT
     //fin>>spectrapath;
     fin>>outputfilename;
     
@@ -141,7 +144,10 @@ int main(int argc, char *argv[]){
     fin>>nt;
     
     cout<<"\n\n*********************************************************\n";
-    cout<<"\nrho\t"<<rhofilename<<"\nYe\t"<<Yefilename<<"\noutput\t"<<outputfilename;
+    cout<<"\nrho\t"<<rhofilename;
+    cout<<"\nYe\t"<<Yefilename;
+    //cout<<"\nT\t"<<temperaturefilename; // UNCOMMENT
+    cout<<"\noutput\t"<<outputfilename;
     cout<<"\nrmin\t"<<rmin<<"\trmax\t"<<rmax;
     //cout<<"\nRnu\t"<<Rnu<<"\nt\t"<<t;
     
@@ -158,9 +164,12 @@ int main(int argc, char *argv[]){
     // load rho and Ye data
     rho.Open(rhofilename+"rho_v_potential3log1.txt",'#');
     Ye.Open(Yefilename+"Ye_v_potential3log1.txt",'#');
+    //temperature.Open(Yefilename+"temp_v_potential3log1.txt",'#'); // UNCOMMENT
     rmin=max(rmin,max(rho.XMin(),Ye.XMin()) );
+    // rmin = max(rmin, temperature.Xmin() ); //UNCOMMENT
     rmax=min(rmax,min(rho.XMax(),Ye.XMax()) );
-    
+    // rmax = min(rmax, temperature.XMax() );
+
     lnrho=rho;
     lnrho.TransformX(log);
     lnrho.TransformY(log);
@@ -671,7 +680,7 @@ int main(int argc, char *argv[]){
 
 	// interact with the matter
 	// SHERWOOD TO WRITE
-	// interact(pmatrixf0);
+	// interact(pmatrixf0, rho(r), Ye(r), temperature(r));
 
 	// check S matrices are diagonal dominated, if not then accumulate S and reset variables
 	for(state m=matter;m<=antimatter;m++){
