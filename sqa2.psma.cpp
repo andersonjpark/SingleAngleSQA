@@ -62,6 +62,7 @@ int NEP(8);
 #include "headers/jacobians.h"
 #include "headers/multiEnergy.h"
 #include "headers/MNR.h"
+#include "headers/nulib_interface.h"
 
 //vector<vector<MATRIX<complex<double>,NF,NF> > > rhomatrixf0(NM), rhomatrixm0(NM);
 vector<vector<MATRIX<complex<double>,NF,NF> > > pmatrixf0(NM), pmatrixm0(NM);
@@ -102,7 +103,7 @@ int main(int argc, char *argv[]){
     int in=1;
     string inputfilename;
     ofstream fout,foutC,foutP,foutS;
-    string outputfilename,rhofilename, Yefilename, vfilename, spectrapath;
+    string outputfilename,rhofilename, Yefilename, vfilename, spectrapath, nulibfilename;
     // string temperaturefilename; //UNCOMMENT
     string outputfilenamestem;
     string nt, note;
@@ -110,6 +111,11 @@ int main(int argc, char *argv[]){
     inputfilename=string(argv[in]);
     ifstream fin(inputfilename.c_str());
     
+    // load the nulib table
+    fin>>nulibfilename;
+    cout << nulibfilename << endl;
+    nulib_init(nulibfilename, 0);
+
     fin>>rhofilename;
     fin>>Yefilename;
     //fin>>temperaturefilename;//UNCOMMENT
