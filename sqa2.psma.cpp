@@ -239,12 +239,12 @@ int main(int argc, char *argv[]){
     foutP.flush();
     foutf.open((outputfilename+"/"+"f.dat").c_str());
     foutf.precision(12);
-    foutf << "# ";
+    foutf << "# 1:r ";
     for(int i=0; i<NE; i++)
       for(state m=matter; m<=antimatter; m++)
 	for(flavour f1=e; f1<=mu; f1++)
 	  for(flavour f2=e; f2<=mu; f2++) {
-	    int istart = 2*( f2 + f1*2 + m*2*2 + i*2*2*2) + 1;
+	    int istart = 2*( f2 + f1*2 + m*2*2 + i*2*2*2) + 2;
 	    foutf << istart   << ":ie"<<i<<"m"<<m<<"f"<<f1<<f2<<"R\t";
 	    foutf << istart+1 << ":ie"<<i<<"m"<<m<<"f"<<f1<<f2<<"I\t";
     }
@@ -421,10 +421,10 @@ int main(int argc, char *argv[]){
     // yzhu14 density/potential matrices art rmin
     getP(rmin);
     for(int i=0;i<=NE-1;i++){
-      fmatrixf[matter    ][i][e ][e ]=eD[i](rmin);
-      fmatrixf[antimatter][i][e ][e ]=eBarD[i](rmin);
-      fmatrixf[antimatter][i][mu][mu]=xD[i](rmin);
-      fmatrixf[matter    ][i][mu][mu]=xD[i](rmin);
+      fmatrixf[matter    ][i][e ][e ]=0;//eD[i](rmin);
+      fmatrixf[antimatter][i][e ][e ]=0;//eBarD[i](rmin);
+      fmatrixf[antimatter][i][mu][mu]=0;//xD[i](rmin);
+      fmatrixf[matter    ][i][mu][mu]=0;//xD[i](rmin);
     }
 
     // ***************************************
@@ -673,10 +673,9 @@ int main(int argc, char *argv[]){
 	}while(repeat==true); // end of RK section
 
 	// interact with the matter
-	// SHERWOOD TO WRITE
-	// interact(pmatrixf0, rho(r), Ye(r), temperature(r));
+	interact(fmatrixf, rho(r), 5.0/*temperature(r)*/, Ye(r), dr);
 
-	// check S matrices are diagonal dominated, if not then accumulate S and reset variables
+	// accumulate S and reset variables
 	for(state m=matter;m<=antimatter;m++){
 	  for(int i=0;i<=NE-1;i++){
 	    SSMSW = W(Y[m][i][msw])*B(Y[m][i][msw]);
@@ -1322,6 +1321,7 @@ void Outputvsr(ofstream &fout,
   foutP.flush();
   fout.flush();
 
+  foutf << r << "\t";
   for(int i=0; i<NE; i++)
     for(state m=matter; m<=antimatter; m++)
       for(flavour f1=e; f1<=mu; f1++)
@@ -1329,5 +1329,6 @@ void Outputvsr(ofstream &fout,
 	  foutf << real( fmatrixf[m][i][f1][f2] ) << "\t";
 	  foutf << imag( fmatrixf[m][i][f1][f2] ) << "\t";
 	}
+  foutf << endl;
   foutf.flush();
 }
