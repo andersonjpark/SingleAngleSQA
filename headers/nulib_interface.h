@@ -124,15 +124,15 @@ class EAS{
     return is + ig*ns + iv*ns*ng;
   }
 
-  void fix_units(){
-    for(int ig=0; ig<ng; ig++){
-      double Emid = __nulibtable_MOD_nulibtable_energies[ig]*MeV_to_ergs;
-      double dE = __nulibtable_MOD_nulibtable_ewidths[ig]*MeV_to_ergs;
-      double tmp = hplanck*hplanck*hplanck * clight*clight /  (Emid*Emid*Emid * dE);
-      for(int is=0; is<ns; is++)
-	storage[index(is,ig,0)] *= tmp;
-    }
-  }
+  /* void fix_units(){ */
+  /*   for(int ig=0; ig<ng; ig++){ */
+  /*     double Emid = __nulibtable_MOD_nulibtable_energies[ig]*MeV_to_ergs; */
+  /*     double dE = __nulibtable_MOD_nulibtable_ewidths[ig]*MeV_to_ergs; */
+  /*     double tmp = hplanck*hplanck*hplanck * clight*clight /  (Emid*Emid*Emid * dE); */
+  /*     for(int is=0; is<ns; is++) */
+  /* 	storage[index(is,ig,0)] *= tmp; */
+  /*   } */
+  /* } */
 
   double emis(int is,int ig){
     return storage[index(is,ig,0)];
@@ -142,6 +142,9 @@ class EAS{
   }
   double scat(int is,int ig){
     return storage[index(is,ig,2)];
+  }
+  double Bnu(int is, int ig){
+    return emis(is,ig) / abs(is,ig);
   }
 };
 EAS eas;
@@ -174,6 +177,33 @@ void nulib_init(string filename, int use_scattering_kernels){
 
 }
 
+void initialize(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
+	      double rho, double T, double Ye){
+
+  // don't do anything if too sparse
+  if(log10(rho) <= __nulibtable_MOD_nulibtable_logrho_min)
+    abort();
+
+  // T should be MeV
+  // nspecies, ngroups, nvars
+  nulibtable_range_species_range_energy_(&rho, &T, &Ye, &eas.storage.front(),
+					 &__nulibtable_MOD_nulibtable_number_species,
+					 &__nulibtable_MOD_nulibtable_number_groups,
+					 &__nulibtable_MOD_nulibtable_number_easvariables);
+  //eas.fix_units();
+
+  for(int i=0; i<NE; i++){
+    for(state m=matter; m<=antimatter; m++)
+      for(flavour f1=e; f1<=mu; f1++)
+	for(flavour f2=e; f2<=mu; f2++) 
+	  fmatrixf[m][i][f1][f2] = 0;
+
+    fmatrixf[    matter][i][e ][e ] = eas.Bnu(0,i);
+    fmatrixf[    matter][i][mu][mu] = eas.Bnu(2,i);
+    fmatrixf[antimatter][i][e ][e ] = eas.Bnu(1,i);
+    fmatrixf[antimatter][i][mu][mu] = eas.Bnu(2,i);
+  }
+}
 void interact(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
 	      double rho, double T, double Ye, double dr){
 
@@ -187,7 +217,8 @@ void interact(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
 					 &__nulibtable_MOD_nulibtable_number_species,
 					 &__nulibtable_MOD_nulibtable_number_groups,
 					 &__nulibtable_MOD_nulibtable_number_easvariables);
-  eas.fix_units();
+  //eas.fix_units();
+
 
   double tmp = 0;
   for(int i=0; i<NE; i++){
@@ -202,17 +233,10 @@ void interact(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
     fmatrixf[antimatter][i][mu][e] = fmatrixf[antimatter][i][e][mu];
 
     // scale the diagonal components
-    fmatrixf[matter][i][e][e] *= exp(-eas.abs(0,i)*dr);
-    fmatrixf[matter][i][e][e] += eas.emis(0,i)*dr;
-    
-    fmatrixf[matter][i][mu][mu] *= exp(-eas.abs(2,i)*dr);
-    fmatrixf[matter][i][mu][mu] += eas.emis(2,i)*dr;
-
-    fmatrixf[antimatter][i][e][e] *= exp(-eas.abs(1,i)*dr);
-    fmatrixf[antimatter][i][e][e] += eas.emis(1,i)*dr;
-    
-    fmatrixf[antimatter][i][mu][mu] *= exp(-eas.abs(2,i)*dr);
-    fmatrixf[antimatter][i][mu][mu] += eas.emis(2,i)*dr;
+    fmatrixf[    matter][i][e ][e ] += (eas.emis(0,i) - eas.abs(0,i)*fmatrixf[    matter][i][e ][e ]) * dr;
+    fmatrixf[    matter][i][mu][mu] += (eas.emis(2,i) - eas.abs(2,i)*fmatrixf[    matter][i][mu][mu]) * dr;
+    fmatrixf[antimatter][i][e ][e ] += (eas.emis(1,i) - eas.abs(1,i)*fmatrixf[antimatter][i][e ][e ]) * dr;
+    fmatrixf[antimatter][i][mu][mu] += (eas.emis(2,i) - eas.abs(2,1)*fmatrixf[antimatter][i][mu][mu]) * dr;
   }
 }
 

@@ -420,12 +420,10 @@ int main(int argc, char *argv[]){
 
     // yzhu14 density/potential matrices art rmin
     getP(rmin);
-    for(int i=0;i<=NE-1;i++){
-      fmatrixf[matter    ][i][e ][e ]=0;//eD[i](rmin);
-      fmatrixf[antimatter][i][e ][e ]=0;//eBarD[i](rmin);
-      fmatrixf[antimatter][i][mu][mu]=0;//xD[i](rmin);
-      fmatrixf[matter    ][i][mu][mu]=0;//xD[i](rmin);
-    }
+    double rho0 = rho(rmin);
+    double T0 = 5.0;//temperature(rmin);
+    double ye0 = Ye(rmin);
+    initialize(fmatrixf,rho0,T0,ye0);
 
     // ***************************************
     // quantities needed for the calculation *
@@ -507,7 +505,9 @@ int main(int argc, char *argv[]){
       if(d==ND-1) rmax=rs.back();
       else rmax=rs[d+1]-1.*cgs::units::cm;
       
-      cout<<"\n"<<d<<"\t"<<rmin<<"\t"<<rmax; 
+      cout<<"\n"<<d<<"\t"<<rmin<<"\t"<<rmax << endl;
+      cout << endl;
+      cout << "r(km)  dr(cm)" << endl;
       cout.flush();
       
       // oscillate pmatrix for background potential
@@ -554,6 +554,12 @@ int main(int argc, char *argv[]){
       // start the loop over r *
       // ***********************
       do{ 
+	double intkm = int(r/1e5)*1e5;
+	if(r - intkm <= dr){
+	  cout << r/1e5 << " " << dr << endl;
+	  cout.flush();
+	}
+
 	if(r+dr>rmax){
 	  dr=rmax-r;
 	  finish=true;
@@ -673,7 +679,7 @@ int main(int argc, char *argv[]){
 	}while(repeat==true); // end of RK section
 
 	// interact with the matter
-	interact(fmatrixf, rho(r), 5.0/*temperature(r)*/, Ye(r), dr);
+	interact(fmatrixf, rho0/*rho(r)*/, T0/*temperature(r)*/, ye0/*Ye(r)*/, dr);
 
 	// accumulate S and reset variables
 	for(state m=matter;m<=antimatter;m++){
@@ -681,6 +687,7 @@ int main(int argc, char *argv[]){
 	    SSMSW = W(Y[m][i][msw])*B(Y[m][i][msw]);
 	    SSSI  = W(Y[m][i][si ])*B(Y[m][i][si ]);
 	    SThisStep = SSMSW*SSSI;
+	    Scumulative[m][i] *= SThisStep;
 	      
 	    // convert fmatrix from flavor basis to mass basis
 	    // oscillate fmatrix in mass basis
@@ -1301,7 +1308,7 @@ void Outputvsr(ofstream &fout,
   fout <<real(VfSI[    matter][e ][e ])<<"\t"<<imag(VfSI[    matter][e ][e ])<<"\t";
   fout <<real(VfSI[    matter][mu][mu])<<"\t"<<imag(VfSI[    matter][mu][mu]);
   fout <<real(VfSI[antimatter][e ][e ])<<"\t"<<imag(VfSI[antimatter][e ][e ])<<"\t";
-  fout <<real(VfSI[antimatter][mu][mu])<<"\t"<<imag(VfSI[    matter][mu][mu]);
+  fout <<real(VfSI[antimatter][mu][mu])<<"\t"<<imag(VfSI[antimatter][mu][mu]);
 
   Pvalues = averageProbability(Pe,Pebar,Pheavy,ebarPotentialSum,ePotentialSum,heavyPotentialSum);
   totalNuFlux = Pvalues[3];
