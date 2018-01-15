@@ -48,7 +48,7 @@ using interpolation::DISCONTINUOUS;
 DISCONTINUOUS rho, lnrho, Ye; // rho is the mass density
 //DISCONTINUOUS temperature; // UNCOMMENT
 double NSI;
-int NEP(8);
+int NEP(30);
 
 // headers
 #include "headers/parameters.h"
@@ -115,7 +115,7 @@ int main(int argc, char *argv[]){
     fin>>nulibfilename;
     cout << nulibfilename << endl;
     nulib_init(nulibfilename, 0);
-
+    fin>>inputfilename;
     fin>>rhofilename;
     fin>>Yefilename;
     //fin>>temperaturefilename;//UNCOMMENT
@@ -125,7 +125,8 @@ int main(int argc, char *argv[]){
     double rmin, rmax;
     fin>>rmin>>rmax; // cm
     
-    fin>>NE>>Emin>>Emax; // MeV
+    fin>>NE;
+//>>Emin>>Emax; // MeV
     
     //fin>>Rnu; // cm
     //fin>>t;   // s
@@ -168,8 +169,8 @@ int main(int argc, char *argv[]){
     cout.flush();
     
     // load rho and Ye data
-    rho.Open(rhofilename+"rho_v_potential3log1.txt",'#');
-    Ye.Open(Yefilename+"Ye_v_potential3log1.txt",'#');
+    rho.Open(rhofilename,'#');
+    Ye.Open(Yefilename,'#');
     //temperature.Open(Yefilename+"temp_v_potential3log1.txt",'#'); // UNCOMMENT
     rmin=max(rmin,max(rho.XMin(),Ye.XMin()) );
     // rmin = max(rmin, temperature.Xmin() ); //UNCOMMENT
@@ -189,8 +190,7 @@ int main(int argc, char *argv[]){
     xD.resize(NE);
     
     // load and compute spectral data
-    for(int i=0;i<=NE-1;i++){
-      //eDensity[i].Open("/gpfs_common/share01/jpknelle/yzhu14/albino/albinoDens16/v_density1_"+patch::to_string(i+1)+"_"+patch::to_string(nf)+note+".txt",'#');
+ /*   for(int i=0;i<=NE-1;i++){
       //
       eP   [i].Open(Yefilename+"/v_potential1_"+patch::to_string(i+1)+"_"+patch::to_string(nt)+note+".txt",'#');
       eBarP[i].Open(Yefilename+"/v_potential2_"+patch::to_string(i+1)+"_"+patch::to_string(nt)+note+".txt",'#');
@@ -199,24 +199,17 @@ int main(int argc, char *argv[]){
       eD   [i].Open(Yefilename+"/v_density1_"+patch::to_string(i+1)+"_"+patch::to_string(nt)+note+".txt",'#');
       eBarD[i].Open(Yefilename+"/v_density2_"+patch::to_string(i+1)+"_"+patch::to_string(nt)+note+".txt",'#');
       xD   [i].Open(Yefilename+"/v_density3_"+patch::to_string(i+1)+"_"+patch::to_string(nt)+note+".txt",'#');
-      /*
-	eP[i].Open(Yefilename+patch::to_string(id)+"/"+patch::to_string(nt)+"/potential1_"+patch::to_string(i+1)+"_"+patch::to_string(nt)+note+".txt",'#');
-	eBarP[i].Open(Yefilename+patch::to_string(id)+"/"+patch::to_string(nt)+"/potential2_"+patch::to_string(i+1)+"_"+patch::to_string(nt)+note+".txt",'#');
-	xP[i].Open(Yefilename+patch::to_string(id)+"/"+patch::to_string(nt)+"/potential3_"+patch::to_string(i+1)+"_"+patch::to_string(nt)+note+".txt",'#');
-	
-	eD[i].Open(Yefilename+patch::to_string(id)+"/"+patch::to_string(nt)+"/density1_"+patch::to_string(i+1)+"_"+patch::to_string(nt)+note+".txt",'#');
-	eBarD[i].Open(Yefilename+patch::to_string(id)+"/"+patch::to_string(nt)+"/density2_"+patch::to_string(i+1)+"_"+patch::to_string(nt)+note+".txt",'#');
-	xD[i].Open(Yefilename+patch::to_string(id)+"/"+patch::to_string(nt)+"/density3_"+patch::to_string(i+1)+"_"+patch::to_string(nt)+note+".txt",'#');
-      */
-    }
-    /*        F0[matter][e]=Fnue0;      F0[matter][mu]=Fnumu0;
-	      F0[antimatter][e]=Fanue0; F0[antimatter][mu]=Fanumu0;
-	      
-	      Initialize_Luminosities(spectrapath,t);
-	      Initialize_MeanEnergies(spectrapath,t);
-	      Initialize_PinchParameters(spectrapath,t);
-    */
+         }
+   */ 
+for( int i=0;i<NE;i++){
+                eP[i].Open(inputfilename+"vnue-0"+patch::to_string(i+1)+"-nsnssc03-000Mo-022deg.dat",'#');
+                eBarP[i].Open(inputfilename+"vnua-0"+patch::to_string(i+1)+"-nsnssc03-000Mo-022deg.dat",'#');
+                xP[i].Open(inputfilename+"vnux-0"+patch::to_string(i+1)+"-nsnssc03-000Mo-022deg.dat",'#');
 
+                eD[i].Open(inputfilename+"nnue-0"+patch::to_string(i+1)+"-nsnssc03-000Mo-022deg.dat",'#');
+                eBarD[i].Open(inputfilename+"nnua-0"+patch::to_string(i+1)+"-nsnssc03-000Mo-022deg.dat",'#');
+                xD[i].Open(inputfilename+"nnux-0"+patch::to_string(i+1)+"-nsnssc03-000Mo-022deg.dat",'#');
+                }
     // output filestreams: the arrays of ofstreams cannot use the vector container - bug in g++
     foutS.open((outputfilename+"/"
 		+  "S"+patch::to_string(rmin)
@@ -273,8 +266,6 @@ int main(int argc, char *argv[]){
     }
     
     // unit conversion to cgs
-    Emin *= 1.*mega*cgs::units::eV;
-    Emax *= 1.*mega*cgs::units::eV;
     m1   *= 1.*cgs::units::eV/cgs::constants::c2;
     dm21 *= 1.*cgs::units::eV*cgs::units::eV/cgs::constants::c4;
     theta12V *= M_PI/180.;
@@ -303,7 +294,8 @@ int main(int argc, char *argv[]){
       kV[i][0] = m1*m1 * cgs::constants::c4 /2./E[i];
       kV[i][1] = (m1*m1 + dm21) * cgs::constants::c4 /2./E[i];
     }
-    
+ Emax=E[NE-1];
+        Emin=E[0];   
     // determine eigenvalue ordering
     ordering[0]=0; ordering[1]=1;
     vector<double> tempkV(kV[0]);
@@ -1091,11 +1083,13 @@ void K(double r,
 //=======//
 // Ebins //
 //=======//
+
 vector<double> Ebins(int NE){
   vector<double> energybin(NE);
-  for(int i=0;i<NE;i++)
-    energybin[i]=exp(log(2*1000000) + i*(log(37.48*1000000) - log(2*1000000))/(NE-1))/1000000;
-  return energybin;
+     float deltaE(100/30);
+     for(int i=0;i<NE;i++){
+     energybin[i]=(deltaE/2+deltaE*i)*1.e6*cgs::units::eV;
+       } 
 }
 
 //===========//

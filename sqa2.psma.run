@@ -1,11 +1,10 @@
 /physics/sricher/tables/NuLib_version1.0_20170919_SFHo_standard.h5
-/physics/shared/yonglin/albino/input/
-/physics/shared/yonglin/albino/input/
+/physics/shared/yonglin/testsf2/data/rho-nsnssc03-000Mo-022deg.dat
+/physics/shared/yonglin/testsf2/data/ye-nsnssc03-000Mo-022deg.dat
 ./output
-2e5
-300e5
-16
-2       37.48
+136e5
+800e5
+30
 -2.43E-003      9       1.01E-0010
 log1
 3
