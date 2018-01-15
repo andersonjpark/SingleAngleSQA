@@ -4,6 +4,12 @@
 #include "H5Cpp.h"
 #include <string>
 #include <cstdlib>
+#include "mstl.h"
+
+// physical constants
+const double clight = 2.99792458e10;
+const double hplanck = 1.0545716e-27;
+const double MeV_to_ergs = 1.60217646e-6;
 
 inline bool hdf5_dataset_exists(const char* filename, const char* datasetname){
   bool exists = true;
@@ -61,7 +67,7 @@ extern double  __nulibtable_MOD_nulibtable_logieta_min;
 extern double  __nulibtable_MOD_nulibtable_logieta_max;
 extern int     __nulib_MOD_total_eos_variables;
 
-// These are fortran functions and module variables in nulib.a                                                                   
+// These are fortran functions and module variables in nulib.a                                                                  
 extern "C"{
   void nulibtable_range_species_range_energy_(
 		  double*, //rho
@@ -102,6 +108,48 @@ extern "C"{
   void nulibtable_reader_(char*,int*,int*,int*,int);
 }
 
+class EAS{
+ public:
+  int ns, ng, nv;
+  vector<double> storage;
+
+  void resize(int ns_in, int ng_in, int nv_in){
+    ns = ns_in;
+    ng = ng_in;
+    nv = nv_in;
+    storage.resize(ns*ng*nv);
+  }
+
+  int index(int is,int ig,int iv){
+    return is + ig*ns + iv*ns*ng;
+  }
+
+  /* void fix_units(){ */
+  /*   for(int ig=0; ig<ng; ig++){ */
+  /*     double Emid = __nulibtable_MOD_nulibtable_energies[ig]*MeV_to_ergs; */
+  /*     double dE = __nulibtable_MOD_nulibtable_ewidths[ig]*MeV_to_ergs; */
+  /*     double tmp = hplanck*hplanck*hplanck * clight*clight /  (Emid*Emid*Emid * dE); */
+  /*     for(int is=0; is<ns; is++) */
+  /* 	storage[index(is,ig,0)] *= tmp; */
+  /*   } */
+  /* } */
+
+  double emis(int is,int ig){
+    return storage[index(is,ig,0)];
+  }
+  double abs(int is,int ig){
+    return storage[index(is,ig,1)];
+  }
+  double scat(int is,int ig){
+    return storage[index(is,ig,2)];
+  }
+  double Bnu(int is, int ig){
+    return emis(is,ig) / abs(is,ig);
+  }
+};
+EAS eas;
+
+
 /**************/
 /* nulib_init */
 /**************/
@@ -122,7 +170,74 @@ void nulib_init(string filename, int use_scattering_kernels){
   cout << "#   n_T     = " << __nulibtable_MOD_nulibtable_ntemp << endl;
   cout << "#   n_Ye    = " << __nulibtable_MOD_nulibtable_nye << endl;
   cout << "#   n_E     = " << __nulibtable_MOD_nulibtable_number_groups << endl;
+
+  eas.resize(__nulibtable_MOD_nulibtable_number_species,
+	     __nulibtable_MOD_nulibtable_number_groups,
+	     __nulibtable_MOD_nulibtable_number_easvariables);
+
 }
 
+void initialize(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
+	      double rho, double T, double Ye){
+
+  // don't do anything if too sparse
+  if(log10(rho) <= __nulibtable_MOD_nulibtable_logrho_min)
+    abort();
+
+  // T should be MeV
+  // nspecies, ngroups, nvars
+  nulibtable_range_species_range_energy_(&rho, &T, &Ye, &eas.storage.front(),
+					 &__nulibtable_MOD_nulibtable_number_species,
+					 &__nulibtable_MOD_nulibtable_number_groups,
+					 &__nulibtable_MOD_nulibtable_number_easvariables);
+  //eas.fix_units();
+
+  for(int i=0; i<NE; i++){
+    for(state m=matter; m<=antimatter; m++)
+      for(flavour f1=e; f1<=mu; f1++)
+	for(flavour f2=e; f2<=mu; f2++) 
+	  fmatrixf[m][i][f1][f2] = 0;
+
+    fmatrixf[    matter][i][e ][e ] = eas.Bnu(0,i);
+    fmatrixf[    matter][i][mu][mu] = eas.Bnu(2,i);
+    fmatrixf[antimatter][i][e ][e ] = eas.Bnu(1,i);
+    fmatrixf[antimatter][i][mu][mu] = eas.Bnu(2,i);
+  }
+}
+void interact(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
+	      double rho, double T, double Ye, double dr){
+
+  // don't do anything if too sparse
+  if(log10(rho) <= __nulibtable_MOD_nulibtable_logrho_min)
+    return;
+
+  // T should be MeV
+  // nspecies, ngroups, nvars
+  nulibtable_range_species_range_energy_(&rho, &T, &Ye, &eas.storage.front(),
+					 &__nulibtable_MOD_nulibtable_number_species,
+					 &__nulibtable_MOD_nulibtable_number_groups,
+					 &__nulibtable_MOD_nulibtable_number_easvariables);
+  //eas.fix_units();
+
+
+  double tmp = 0;
+  for(int i=0; i<NE; i++){
+    //cout << i << " " << eas.emis(0,i) << " " << eas.abs(0,i) << endl;
+    // scale the off-diagonal components
+    tmp = (eas.abs(0,i) + eas.abs(2,i)) * 0.5;
+    fmatrixf[    matter][i][e][mu] *= exp(-tmp * dr);
+    fmatrixf[    matter][i][mu][e] = fmatrixf[matter][i][e][mu];
+
+    tmp = (eas.abs(1,i) + eas.abs(2,i)) * 0.5;
+    fmatrixf[antimatter][i][e][mu] *= exp(-tmp * dr);
+    fmatrixf[antimatter][i][mu][e] = fmatrixf[antimatter][i][e][mu];
+
+    // scale the diagonal components
+    fmatrixf[    matter][i][e ][e ] += (eas.emis(0,i) - eas.abs(0,i)*fmatrixf[    matter][i][e ][e ]) * dr;
+    fmatrixf[    matter][i][mu][mu] += (eas.emis(2,i) - eas.abs(2,i)*fmatrixf[    matter][i][mu][mu]) * dr;
+    fmatrixf[antimatter][i][e ][e ] += (eas.emis(1,i) - eas.abs(1,i)*fmatrixf[antimatter][i][e ][e ]) * dr;
+    fmatrixf[antimatter][i][mu][mu] += (eas.emis(2,i) - eas.abs(2,1)*fmatrixf[antimatter][i][mu][mu]) * dr;
+  }
+}
 
 #endif

@@ -45,8 +45,7 @@ using namespace prefixes;
 using interpolation::DISCONTINUOUS;
 
 // global variables
-DISCONTINUOUS rho, lnrho, Ye; // rho is the mass density
-//DISCONTINUOUS temperature; // UNCOMMENT
+DISCONTINUOUS rho, lnrho, Ye, temperature; // rho is the mass density
 double NSI;
 int NEP(30);
 
@@ -66,6 +65,7 @@ int NEP(30);
 
 //vector<vector<MATRIX<complex<double>,NF,NF> > > rhomatrixf0(NM), rhomatrixm0(NM);
 vector<vector<MATRIX<complex<double>,NF,NF> > > pmatrixf0(NM), pmatrixm0(NM);
+vector<vector<MATRIX<complex<double>,NF,NF> > > fmatrixf(NM), fmatrixm(NM);
 vector<DISCONTINUOUS> eP,eBarP,xP;
 vector<DISCONTINUOUS> eD,eBarD,xD;
 MATRIX<complex<double>,NF,NF> B(vector<double> y);
@@ -80,6 +80,7 @@ void K(double r,
 
 void Outputvsr(ofstream &fout, 
 	       ofstream &foutP,
+	       ofstream &foutf,
 	       ofstream *foutPvsr,
 	       ofstream *foutFvsr,
 	       double r,
@@ -88,7 +89,7 @@ void Outputvsr(ofstream &fout,
 	       vector<vector<vector<vector<double> > > > A0,
 	       vector<vector<MATRIX<complex<double>,NF,NF> > > Scumulative);
 
-vector<vector<MATRIX<complex<double>,NF,NF> > > getP(double r);
+void getP(double r);
 
 vector<double> Ebins(int NE);
 // **********************************************************************
@@ -102,9 +103,8 @@ int main(int argc, char *argv[]){
   try{ 
     int in=1;
     string inputfilename;
-    ofstream fout,foutC,foutP,foutS;
-    string outputfilename,rhofilename, Yefilename, vfilename, spectrapath, nulibfilename;
-    // string temperaturefilename; //UNCOMMENT
+    ofstream fout,foutC,foutP,foutS, foutf;
+    string outputfilename,rhofilename, Yefilename, vfilename, spectrapath, nulibfilename, temperaturefilename;
     string outputfilenamestem;
     string nt, note;
     
@@ -118,9 +118,10 @@ int main(int argc, char *argv[]){
     fin>>inputfilename;
     fin>>rhofilename;
     fin>>Yefilename;
-    //fin>>temperaturefilename;//UNCOMMENT
+    fin>>temperaturefilename;
     //fin>>spectrapath;
     fin>>outputfilename;
+    outputfilenamestem = outputfilename+"/";
     
     double rmin, rmax;
     fin>>rmin>>rmax; // cm
@@ -153,7 +154,7 @@ int main(int argc, char *argv[]){
     cout<<"\n\n*********************************************************\n";
     cout<<"\nrho\t"<<rhofilename;
     cout<<"\nYe\t"<<Yefilename;
-    //cout<<"\nT\t"<<temperaturefilename; // UNCOMMENT
+    cout<<"\nT\t"<<temperaturefilename;
     cout<<"\noutput\t"<<outputfilename;
     cout<<"\nrmin\t"<<rmin<<"\trmax\t"<<rmax;
     //cout<<"\nRnu\t"<<Rnu<<"\nt\t"<<t;
@@ -173,9 +174,9 @@ int main(int argc, char *argv[]){
     Ye.Open(Yefilename,'#');
     //temperature.Open(Yefilename+"temp_v_potential3log1.txt",'#'); // UNCOMMENT
     rmin=max(rmin,max(rho.XMin(),Ye.XMin()) );
-    // rmin = max(rmin, temperature.Xmin() ); //UNCOMMENT
+    //rmin = max(rmin, temperature.XMin() ); //UNCOMMENT
     rmax=min(rmax,min(rho.XMax(),Ye.XMax()) );
-    // rmax = min(rmax, temperature.XMax() );
+    //rmax = min(rmax, temperature.XMax() ); //UNCOMMENT
 
     lnrho=rho;
     lnrho.TransformX(log);
@@ -229,6 +230,20 @@ for( int i=0;i<NE;i++){
 		+ note+".txt").c_str());
     foutP.precision(12);
     foutP.flush();
+    foutf.open((outputfilename+"/"+"f.dat").c_str());
+    foutf.precision(12);
+    foutf << "# 1:r ";
+    for(int i=0; i<NE; i++)
+      for(state m=matter; m<=antimatter; m++)
+	for(flavour f1=e; f1<=mu; f1++)
+	  for(flavour f2=e; f2<=mu; f2++) {
+	    int istart = 2*( f2 + f1*2 + m*2*2 + i*2*2*2) + 2;
+	    foutf << istart   << ":ie"<<i<<"m"<<m<<"f"<<f1<<f2<<"R\t";
+	    foutf << istart+1 << ":ie"<<i<<"m"<<m<<"f"<<f1<<f2<<"I\t";
+    }
+    foutf << endl;
+    foutf.flush();
+    
     fout.open((outputfilename+"/"
 	       +      patch::to_string(rmin)
 	       +  "-"+patch::to_string(rmax)
@@ -387,43 +402,20 @@ for( int i=0;i<NE;i++){
     }
     
     vector<vector<vector<double> > > P0 (NM,vector<vector<double> >(NF,vector <double>(NE)));
-    vector<vector<vector<double> > > D0 (NM,vector<vector<double> >(NF,vector <double>(NE)));
 
     // density matrices at initial point, rhomatrixm0 - but not rhomatrixf0
     // will be updated whenever discontinuities are crossed and/or S is reset
     pmatrixf0[matter]=pmatrixf0[antimatter]=vector<MATRIX<complex<double>,NF,NF> >(NE);
     pmatrixm0[matter]=pmatrixm0[antimatter]=vector<MATRIX<complex<double>,NF,NF> >(NE);
+    fmatrixf[matter]=fmatrixf[antimatter]=vector<MATRIX<complex<double>,NF,NF> >(NE);
+    fmatrixm[matter]=fmatrixm[antimatter]=vector<MATRIX<complex<double>,NF,NF> >(NE);
 
     // yzhu14 density/potential matrices art rmin
-    for(int i=0;i<=NE-1;i++){
-      P0[matter][e][i]=eP[i](rmin);
-      P0[antimatter][e][i]=eBarP[i](rmin);
-      P0[antimatter][mu][i]=xP[i](rmin);
-      P0[matter][mu][i]=xP[i](rmin);
-      
-      D0[matter][e][i]=eD[i](rmin);
-      D0[antimatter][e][i]=eBarD[i](rmin);
-      D0[matter][mu][i]=xD[i](rmin);
-      D0[antimatter][mu][i]=xD[i](rmin);
-    }
-
-    for(state m=matter;m<=antimatter;m++)
-      for(int i=0;i<=NE-1;i++)
-	for(flavour f=e;f<=mu;f++)
-	  pmatrixf0[m][i][f][f]=P0[m][f][i];
-    
-    // density matrices at initial point, rhomatrixm0 - but not rhomatrixf0
-    // will be updated whenever discontinuities are crossed and/or S is reset
-    /*   rhomatrixf0[matter]=rhomatrixf0[antimatter]=vector<MATRIX<complex<double>,NF,NF> >(NE);
-	 rhomatrixm0[matter]=rhomatrixm0[antimatter]=vector<MATRIX<complex<double>,NF,NF> >(NE);
-	 
-	 for(state m=matter;m<=antimatter;m++)
-	 { for(int i=0;i<=NE-1;i++)
-	 { for(flavour f=e;f<=mu;f++)
-	 { rhomatrixf0[m][i][f][f]=(*F0[m][f])(E[i])*L[m][f]/meanE[m][f]/(2.*M_PI*cgs::constants::c*Rnu*Rnu);}
-	 }
-	 }
-    */
+    getP(rmin);
+    double rho0 = rho(rmin);
+    double T0 = 5.0;//temperature(rmin);
+    double ye0 = Ye(rmin);
+    initialize(fmatrixf,rho0,T0,ye0);
 
     // ***************************************
     // quantities needed for the calculation *
@@ -476,7 +468,7 @@ for( int i=0;i<NE;i++){
 	 (NM,vector<vector<vector<double> > >(NE,vector<vector<double> >(NS,vector<double>(NY)))));
     
     // temporaries
-    MATRIX<complex<double>,NF,NF> SSMSW,SSSI;
+    MATRIX<complex<double>,NF,NF> SSMSW,SSSI,SThisStep;
     
     // *********************
     // integration domians *
@@ -505,16 +497,12 @@ for( int i=0;i<NE;i++){
       if(d==ND-1) rmax=rs.back();
       else rmax=rs[d+1]-1.*cgs::units::cm;
       
-      cout<<"\n"<<d<<"\t"<<rmin<<"\t"<<rmax; 
+      cout<<"\n"<<d<<"\t"<<rmin<<"\t"<<rmax << endl;
+      cout << endl;
+      cout << "r(km)  dr(cm)" << endl;
       cout.flush();
       
-      // evolve rhomatrixm0 matrices from original rmin to present rmin
-      /* for(int i=0;i<=NE-1;i++){
-	 rhomatrixm0[matter][i] = Scumulative[matter][i] * Adjoint(U0[matter][i])*rhomatrixf0[matter][i]*U0[matter][i] *Adjoint(Scumulative[matter][i]);
-	 rhomatrixm0[antimatter][i]=Scumulative[antimatter][i] * Adjoint(U0[antimatter][i])*rhomatrixf0[antimatter][i]*U0[antimatter][i] *Adjoint(Scumulative[antimatter][i]);
-	 }
-      */
-      
+      // oscillate pmatrix for background potential
       for(int i=0;i<=NE-1;i++){
 	pmatrixm0[matter][i] = Scumulative[matter][i]
 	  * Adjoint(U0[matter][i])
@@ -552,16 +540,22 @@ for( int i=0;i<NE;i++){
 	
       finish=output=false;
       counterout=1;
-      Outputvsr(fout,foutP,foutPvsr,foutFvsr,r,Y,C,A,Scumulative);
-	
-      // pmatrixmm=pmatrixmmbar=vector<MATRIX<complex<double>,NF,NF> >(NE);
+      Outputvsr(fout,foutP,foutf,foutPvsr,foutFvsr,r,Y,C,A,Scumulative);
 	
       // ***********************
       // start the loop over r *
       // ***********************
       do{ 
+	double intkm = int(r/1e5)*1e5;
+	if(r - intkm <= dr){
+	  cout << r/1e5 << " " << dr << endl;
+	  cout.flush();
+	}
+
 	if(r+dr>rmax){
-	  dr=rmax-r; finish=true; output=true;
+	  dr=rmax-r;
+	  finish=true;
+	  output=true;
 	}
 	  
 	r0=r;
@@ -677,59 +671,39 @@ for( int i=0;i<NE;i++){
 	}while(repeat==true); // end of RK section
 
 	// interact with the matter
-	// SHERWOOD TO WRITE
-	// interact(pmatrixf0, rho(r), Ye(r), temperature(r));
+	interact(fmatrixf, rho0/*rho(r)*/, T0/*temperature(r)*/, ye0/*Ye(r)*/, dr);
 
-	// check S matrices are diagonal dominated, if not then accumulate S and reset variables
+	// accumulate S and reset variables
 	for(state m=matter;m<=antimatter;m++){
 	  for(int i=0;i<=NE-1;i++){
 	    SSMSW = W(Y[m][i][msw])*B(Y[m][i][msw]);
 	    SSSI  = W(Y[m][i][si ])*B(Y[m][i][si ]);
+	    SThisStep = SSMSW*SSSI;
+	    Scumulative[m][i] *= SThisStep;
 	      
-	    resetflag=true;
-
-	    // test that the MSW S matrix is close to diagonal
-	    //if(norm(SSMSW[0][0])+0.1 < norm(SSMSW[0][1])) resetflag=true;
-	    // test the SI S matrix is close to diagonal
-	    //if(norm(SSSI[0][0])+0.1 < norm(SSSI[0][1])) resetflag=true;
-
-	    if(resetflag==true){
-	      // reset the MSW AND the SI S matrices
-	      //cout<<"reSet"<<endl;
-	      //cout.flush();
-	      Scumulative[m][i]=MATRIX<complex<double>,NF,NF>( SSMSW*SSSI*Scumulative[m][i] );
-	      P0[matter    ][e ][i] =    eP[i](r);
-	      P0[antimatter][e ][i] = eBarP[i](r);
-	      P0[antimatter][mu][i] =    xP[i](r);
-	      P0[matter    ][mu][i] =    xP[i](r);
-	      for(flavour f=e;f<=mu;f++) pmatrixf0[m][i][f][f]=P0[m][f][i];
-
-	      pmatrixm0[m][i] = Scumulative[m][i]
-		* Adjoint(U0[m][i])
-		* pmatrixf0[m][i]
-		* U0[m][i]
-		* Adjoint( Scumulative[m][i] );
-	      
-	      Y[m][i][msw][0]=Y[m][i][msw][1]=M_PI/2.;
-	      Y[m][i][msw][2]=0.;
-	      Y[m][i][msw][3]=1.;
-	      Y[m][i][msw][4]=Y[m][i][msw][5]=0.;
-
-	      Y[m][i][si][0]=Y[m][i][si][1]=M_PI/2.;
-	      Y[m][i][si][2]=0.;
-	      Y[m][i][si][3]=1.;
-	      Y[m][i][si][4]=Y[m][i][si][5]=0.;
-	    }
-	    else{ // take modulo 2 pi of phase angles
-	      abort(); // should not do this if resetting each time.
-	      //double ipart;
-	      //Y[m][i][msw][2]=fmod(Y[m][i][msw][2],M_2PI);
-	      //Y[m][i][si ][2]=fmod(Y[m][i][si ][2],M_2PI);
-	      //Y[m][i][msw][4]=modf(Y[m][i][msw][4],&ipart);
-	      //Y[m][i][msw][5]=modf(Y[m][i][msw][5],&ipart);
-	      //Y[m][i][si ][4]=modf(Y[m][i][si ][4],&ipart);
-	      //Y[m][i][si ][5]=modf(Y[m][i][si ][5],&ipart);
-	    }
+	    // convert fmatrix from flavor basis to mass basis
+	    // oscillate fmatrix in mass basis
+	    // convert back to flavor basis.
+	    // don't need to modify pmatrix since it's re-read at each timestep
+	    fmatrixm[m][i] = SThisStep
+	      * Adjoint( U0[m][i] ) 
+	      * fmatrixf[m][i] 
+	      * U0[m][i]
+	      * Adjoint( SThisStep );
+	    fmatrixf[m][i] = U0[m][i]
+	      * fmatrixm[m][i] 
+	      * Adjoint(  U0[m][i] );
+	    
+	    // reset the evolution matrix to identity
+	    Y[m][i][msw][0]=Y[m][i][msw][1]=M_PI/2.;
+	    Y[m][i][msw][2]=0.;
+	    Y[m][i][msw][3]=1.;
+	    Y[m][i][msw][4]=Y[m][i][msw][5]=0.;
+	    
+	    Y[m][i][si][0]=Y[m][i][si][1]=M_PI/2.;
+	    Y[m][i][si][2]=0.;
+	    Y[m][i][si][3]=1.;
+	    Y[m][i][si][4]=Y[m][i][si][5]=0.;
 	  }
 	}
 
@@ -741,7 +715,7 @@ for( int i=0;i<NE;i++){
 	else counterout++;
 	
 	if(output==true || finish==true){
-	  Outputvsr(fout,foutP,foutPvsr,foutFvsr,r,Y,C,A,Scumulative);
+	  Outputvsr(fout,foutP,foutf,foutPvsr,foutFvsr,r,Y,C,A,Scumulative);
 	  output=false;
 	}
 
@@ -764,7 +738,7 @@ for( int i=0;i<NE;i++){
 	A=UpdateA(C,C0,A0);
       }
       else{ // output at the end of the code
-	Outputvsr(fout,foutP,foutPvsr,foutFvsr,rs[d+1],Y,C,A,Scumulative);
+	Outputvsr(fout,foutP,foutf,foutPvsr,foutFvsr,rs[d+1],Y,C,A,Scumulative);
 	//OutputvsE(fPvsE,fFvsE,rs[d+1],Y,C,A,Scumulative);
       }
 
@@ -812,21 +786,18 @@ MATRIX<complex<double>,NF,NF> B(vector<double> y){
 //======//
 // getP //
 //======//
-vector<vector<MATRIX<complex<double>,NF,NF> > > getP(double r)
+void getP(double r)
 {
-  vector<vector<vector<double> > > P0 (NM,vector<vector<double> >(NF,vector <double>(NE)));
-  vector<vector<vector<double> > > D0 (NM,vector<vector<double> >(NF,vector <double>(NE)));
-  // pmatrixf0[matter]=pmatrixf0[antimatter]=vector<MATRIX<complex<double>,NF,NF> >(NE);
   for(int i=0;i<=NE-1;i++){
-    P0[matter][e][i]=eP[i](r);
-    P0[antimatter][e][i]=eBarP[i](r);
-    P0[antimatter][mu][i]=xP[i](r);
-    P0[matter][mu][i]=xP[i](r);
-    for(state m=matter;m<=antimatter;m++)
-      for(flavour f=e;f<=mu;f++)
-	pmatrixf0[m][i][f][f]=P0[m][f][i];
+    for(flavour f=e;f<=mu;f++) for(flavour fp=e; fp<=mu; fp++){
+	pmatrixf0[matter    ][i][f][fp] = 0;
+	pmatrixf0[antimatter][i][f][fp] = 0;
+      }
+    pmatrixf0[matter    ][i][e ][e ]=eP[i](r);
+    pmatrixf0[antimatter][i][e ][e ]=eBarP[i](r);
+    pmatrixf0[antimatter][i][mu][mu]=xP[i](r);
+    pmatrixf0[matter    ][i][mu][mu]=xP[i](r);
   }
-  return pmatrixf0;
 }
 
 //===//
@@ -874,7 +845,6 @@ void K(double r,
   dVfMSWbardr=-Conjugate(dVfMSWdr);
 
   vector<vector<vector<double> > > P0 (NM,vector<vector<double> >(NF,vector <double>(NE)));
-  vector<vector<vector<double> > > D0 (NM,vector<vector<double> >(NF,vector <double>(NE)));
   //    pmatrixf0[matter]=pmatrixf0[antimatter]=vector<MATRIX<complex<double>,NF,NF> >(NE);
   //  pmatrixm0[matter]=pmatrixm0[antimatter]=vector<MATRIX<complex<double>,NF,NF> >(NE);
   //
@@ -1097,6 +1067,7 @@ vector<double> Ebins(int NE){
 //===========//
 void Outputvsr(ofstream &fout,
 	       ofstream &foutP,
+	       ofstream &foutf,
 	       ofstream *foutPvsr,
 	       ofstream *foutFvsr,
 	       double r,
@@ -1149,7 +1120,6 @@ void Outputvsr(ofstream &fout,
   vector<double> predP((NE+2)*(2));
 
   vector<vector<vector<double> > > P0 (NM,vector<vector<double> >(NF,vector <double>(NE)));
-  vector<vector<vector<double> > > D0 (NM,vector<vector<double> >(NF,vector <double>(NE)));
   // pmatrixf0[matter]=pmatrixf0[antimatter]=vector<MATRIX<complex<double>,NF,NF> >(NE);
   // pmatrixm0[matter]=pmatrixm0[antimatter]=vector<MATRIX<complex<double>,NF,NF> >(NE);
   for(int i=0;i<=NE-1;i++){
@@ -1332,18 +1302,17 @@ void Outputvsr(ofstream &fout,
   fout <<real(VfSI[    matter][e ][e ])<<"\t"<<imag(VfSI[    matter][e ][e ])<<"\t";
   fout <<real(VfSI[    matter][mu][mu])<<"\t"<<imag(VfSI[    matter][mu][mu]);
   fout <<real(VfSI[antimatter][e ][e ])<<"\t"<<imag(VfSI[antimatter][e ][e ])<<"\t";
-  fout <<real(VfSI[antimatter][mu][mu])<<"\t"<<imag(VfSI[    matter][mu][mu]);
+  fout <<real(VfSI[antimatter][mu][mu])<<"\t"<<imag(VfSI[antimatter][mu][mu]);
 
   Pvalues = averageProbability(Pe,Pebar,Pheavy,ebarPotentialSum,ePotentialSum,heavyPotentialSum);
   totalNuFlux = Pvalues[3];
   totalANuFlux =Pvalues[4];
   totalHeavyFlux = Pvalues[5];
-
   foutP<<totalNuFlux<<"\t";//Nu,7
   foutP<<totalANuFlux<<"\t";//ANu,8
-
   foutP<<Pvalues[5]<<"\t";//Heavy,9
   foutP<<Pvalues[0]<<"\t"<<Pvalues[1]<<"\t"<<Pvalues[2]<<"\t";//Pe,Pebar,Pheavy;10,11,12
+
   predP=predictProbability(Pvalues[3],Pvalues[4],Ve(rrho,YYe),E,ebarPotentialSum,ePotentialSum,heavyPotentialSum);
   foutP<<predP[0]<<"\t"<<predP[1+NE]<<"\t";//13,14
   for(int i=0;i<NE;i++) foutP<<predP[1+i]<<"\t"<<predP[(NE+1)+i+1]<<"\t";//15,16,...2*(NE-1)+15,
@@ -1351,5 +1320,16 @@ void Outputvsr(ofstream &fout,
   fout<<endl;
   foutP<<endl;
   foutP.flush();
-  fout.flush();       
+  fout.flush();
+
+  foutf << r << "\t";
+  for(int i=0; i<NE; i++)
+    for(state m=matter; m<=antimatter; m++)
+      for(flavour f1=e; f1<=mu; f1++)
+	for(flavour f2=e; f2<=mu; f2++) {
+	  foutf << real( fmatrixf[m][i][f1][f2] ) << "\t";
+	  foutf << imag( fmatrixf[m][i][f1][f2] ) << "\t";
+	}
+  foutf << endl;
+  foutf.flush();
 }
