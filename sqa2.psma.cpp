@@ -67,7 +67,6 @@ int NEP(8);
 vector<vector<MATRIX<complex<double>,NF,NF> > > pmatrixf0(NM), pmatrixm0(NM);
 vector<vector<MATRIX<complex<double>,NF,NF> > > fmatrixf(NM), fmatrixm(NM);
 vector<DISCONTINUOUS> eP,eBarP,xP;
-vector<DISCONTINUOUS> eD,eBarD,xD;
 MATRIX<complex<double>,NF,NF> B(vector<double> y);
 
 // function headers
@@ -186,38 +185,13 @@ int main(int argc, char *argv[]){
     eP.resize(NE);
     eBarP.resize(NE);
     xP.resize(NE);
-    eD.resize(NE);
-    eBarD.resize(NE);
-    xD.resize(NE);
     
     // load and compute spectral data
     for(int i=0;i<=NE-1;i++){
-      //eDensity[i].Open("/gpfs_common/share01/jpknelle/yzhu14/albino/albinoDens16/v_density1_"+patch::to_string(i+1)+"_"+patch::to_string(nf)+note+".txt",'#');
-      //
       eP   [i].Open(potential_directory+"/v_potential1_"+patch::to_string(i+1)+"_"+patch::to_string(nt)+note+".txt",'#');
       eBarP[i].Open(potential_directory+"/v_potential2_"+patch::to_string(i+1)+"_"+patch::to_string(nt)+note+".txt",'#');
       xP   [i].Open(potential_directory+"/v_potential3_"+patch::to_string(i+1)+"_"+patch::to_string(nt)+note+".txt",'#');
-      
-      eD   [i].Open(potential_directory+"/v_density1_"+patch::to_string(i+1)+"_"+patch::to_string(nt)+note+".txt",'#');
-      eBarD[i].Open(potential_directory+"/v_density2_"+patch::to_string(i+1)+"_"+patch::to_string(nt)+note+".txt",'#');
-      xD   [i].Open(potential_directory+"/v_density3_"+patch::to_string(i+1)+"_"+patch::to_string(nt)+note+".txt",'#');
-      /*
-	eP[i].Open(Yefilename+patch::to_string(id)+"/"+patch::to_string(nt)+"/potential1_"+patch::to_string(i+1)+"_"+patch::to_string(nt)+note+".txt",'#');
-	eBarP[i].Open(Yefilename+patch::to_string(id)+"/"+patch::to_string(nt)+"/potential2_"+patch::to_string(i+1)+"_"+patch::to_string(nt)+note+".txt",'#');
-	xP[i].Open(Yefilename+patch::to_string(id)+"/"+patch::to_string(nt)+"/potential3_"+patch::to_string(i+1)+"_"+patch::to_string(nt)+note+".txt",'#');
-	
-	eD[i].Open(Yefilename+patch::to_string(id)+"/"+patch::to_string(nt)+"/density1_"+patch::to_string(i+1)+"_"+patch::to_string(nt)+note+".txt",'#');
-	eBarD[i].Open(Yefilename+patch::to_string(id)+"/"+patch::to_string(nt)+"/density2_"+patch::to_string(i+1)+"_"+patch::to_string(nt)+note+".txt",'#');
-	xD[i].Open(Yefilename+patch::to_string(id)+"/"+patch::to_string(nt)+"/density3_"+patch::to_string(i+1)+"_"+patch::to_string(nt)+note+".txt",'#');
-      */
     }
-    /*        F0[matter][e]=Fnue0;      F0[matter][mu]=Fnumu0;
-	      F0[antimatter][e]=Fanue0; F0[antimatter][mu]=Fanumu0;
-	      
-	      Initialize_Luminosities(spectrapath,t);
-	      Initialize_MeanEnergies(spectrapath,t);
-	      Initialize_PinchParameters(spectrapath,t);
-    */
 
     // output filestreams: the arrays of ofstreams cannot use the vector container - bug in g++
     foutS.open((outputfilename+"/"
