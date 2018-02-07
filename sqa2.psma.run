@@ -1,10 +1,13 @@
-/physics/sricher/tables/NuLib_version1.0_20170919_SFHo_standard.h5
-/physics/shared/yonglin/testsf2/data/rho-nsnssc03-000Mo-022deg.dat
-/physics/shared/yonglin/testsf2/data/ye-nsnssc03-000Mo-022deg.dat
+/mnt/scratch/tables/NuLib/NuLib_rho82_temp65_ye51_ng18_ns3_version1.0_20180128.h5
+/mnt/scratch/sqa/input_data/albino/input/
+/mnt/scratch/sqa/input_data/albino/input/rho_v_potential3log1.txt
+/mnt/scratch/sqa/input_data/albino/input/Ye_v_potential3log1.txt
+/mnt/scratch/sqa/input_data/albino/input/temp_v_potential3log1.txt
 ./output
-136e5
-800e5
-30
+2e5
+300e5
+16
+2       37.48
 -2.43E-003      9       1.01E-0010
 log1
 3
