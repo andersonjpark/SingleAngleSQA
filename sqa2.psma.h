@@ -68,7 +68,6 @@ vector<vector<MATRIX<complex<double>,NF,NF> > > pmatrixf0(NM), pmatrixm0(NM);
 vector<vector<MATRIX<complex<double>,NF,NF> > > fmatrixf(NM), fmatrixm(NM);
 vector<DISCONTINUOUS> eP,eBarP,xP;
 
-
 //===//
 // B //
 //===//
@@ -90,19 +89,27 @@ MATRIX<complex<double>,NF,NF> B(vector<double> y){
 //======//
 // getP //
 //======//
-void getP(double r)
+double MU(const double r, const double E){ // erg
+  double dV = deltaV(E);
+  return 1e5 * dV*cgs::constants::hbarc*2.*M_PI * exp(-r*dV / 10.)  / (double)NE;
+}
+double ALPHA(const double r){
+  return 4./3.;
+}
+void getP(const double r)
 {
   for(int i=0;i<=NE-1;i++){
     for(flavour f=e;f<=mu;f++) for(flavour fp=e; fp<=mu; fp++){
 	pmatrixf0[matter    ][i][f][fp] = 0;
 	pmatrixf0[antimatter][i][f][fp] = 0;
       }
-    pmatrixf0[matter    ][i][e ][e ]=eP[i](r);
-    pmatrixf0[antimatter][i][e ][e ]=eBarP[i](r);
-    pmatrixf0[antimatter][i][mu][mu]=xP[i](r);
-    pmatrixf0[matter    ][i][mu][mu]=xP[i](r);
+    pmatrixf0[matter    ][i][e ][e ]=MU(r, E[0]);           //UNCOMMENT eP[i](r); //
+    pmatrixf0[antimatter][i][e ][e ]=MU(r, E[0]) * ALPHA(r);//UNCOMMENT eBarP[i](r); //
+    pmatrixf0[antimatter][i][mu][mu]=0;//UNCOMMENT xP[i](r);
+    pmatrixf0[matter    ][i][mu][mu]=0;//UNCOMMENT xP[i](r);
   }
 }
+
 
 //===//
 // K //
@@ -137,10 +144,10 @@ void K(double r,
   vector<double> phase(1);
   vector<double> dvdr(4);
   // *************
-  rrho=exp(lnrho(log(r)));
-  drrhodr=rrho*lnrho.Derivative(log(r))/r;
-  YYe=Ye(r);
-  dYYedr=Ye.Derivative(r);
+  rrho=-1;//UNCOMMENT exp(lnrho(log(r)));
+  drrhodr=-1;//UNCOMMENT rrho*lnrho.Derivative(log(r))/r;
+  YYe=-1; //UNCOMMENT Ye(r);
+  dYYedr=-1; //UNCOMMENT Ye.Derivative(r);
   VfMSW[e][e]=Ve(rrho,YYe);
   VfMSW[mu][mu]=Vmu(rrho,YYe);
   VfMSWbar=-Conjugate(VfMSW);
@@ -148,25 +155,6 @@ void K(double r,
   dVfMSWdr[mu][mu]=dVmudr(rrho,drrhodr,YYe,dYYedr);
   dVfMSWbardr=-Conjugate(dVfMSWdr);
 
-  vector<vector<vector<double> > > P0 (NM,vector<vector<double> >(NF,vector <double>(NE)));
-  //    pmatrixf0[matter]=pmatrixf0[antimatter]=vector<MATRIX<complex<double>,NF,NF> >(NE);
-  //  pmatrixm0[matter]=pmatrixm0[antimatter]=vector<MATRIX<complex<double>,NF,NF> >(NE);
-  //
-  // *************
-  // set up neutrino S matrices
-  /* for(int i=0;i<=NE-1;i++){
-     P0[matter][e][i]=eP[i](r);
-     P0[antimatter][e][i]=eBarP[i](r);
-     P0[antimatter][mu][i]=xP[i](r);
-     P0[matter][mu][i]=xP[i](r);
-     for(state m=matter;m<=antimatter;m++)
-     { for(flavour f=e;f<=mu;f++)
-     { pmatrixf0[m][i][f][f]=P0[m][f][i];
-     }
-     pmatrixm0[m][i]=Scumulative[m][i] *Adjoint(U0[m][i])*pmatrixf0[m][i]*U0[m][i] *Adjoint( Scumulative[m][i] );
-     }
-     }
-  */
 #pragma omp parallel for schedule(auto) private(Hf,Hfbar,UU,UUbar,kk,kkbar,dkk,dkkbar,dkkdr,dkkbardr,QQ,QQbar,AA,CC,dCCdr,BB,BBbar,Sfm,Sfmbar,JI) firstprivate(Ha,HB,dvdr,phase)
   for(i=0;i<=NE-1;i++){
     Hf  = HfV[matter][i]+VfMSW;
@@ -360,7 +348,7 @@ void K(double r,
 vector<double> Ebins(int NE){
   vector<double> energybin(NE);
   for(int i=0;i<NE;i++)
-    energybin[i]=exp(log(2*1000000) + i*(log(37.48*1000000) - log(2*1000000))/(NE-1))/1000000;
+    energybin[i]=1.e6*cgs::units::eV * exp(log(2*1000000) + i*(log(37.48*1000000) - log(2*1000000))/(NE-1))/1000000;
   return energybin;
 }
 
@@ -383,11 +371,11 @@ void Outputvsr(ofstream &fout,
 
   vector<MATRIX<complex<double>,NF,NF> > rhomatrix(NM);
 
-  double rrho=exp(lnrho(log(r)));
-  double drrhodr=rrho*lnrho.Derivative(log(r))/r;
+  double rrho=-1; //UNCOMMENT exp(lnrho(log(r)));
+  double drrhodr=-1; //UNCOMMENT rrho*lnrho.Derivative(log(r))/r;
 
-  double YYe=Ye(r);
-  double dYYedr=Ye.Derivative(r);
+  double YYe=-1; //UNCOMMENT Ye(r);
+  double dYYedr=-1; //UNCOMMENT Ye.Derivative(r);
 
   VfMSW[matter][e][e]=Ve(rrho,YYe);
   VfMSW[matter][mu][mu]=Vmu(rrho,YYe);
@@ -421,19 +409,12 @@ void Outputvsr(ofstream &fout,
   vector<double> s(6);
   vector<double> predP((NE+2)*(2));
 
-  vector<vector<vector<double> > > P0 (NM,vector<vector<double> >(NF,vector <double>(NE)));
-  // pmatrixf0[matter]=pmatrixf0[antimatter]=vector<MATRIX<complex<double>,NF,NF> >(NE);
-  // pmatrixm0[matter]=pmatrixm0[antimatter]=vector<MATRIX<complex<double>,NF,NF> >(NE);
   for(int i=0;i<=NE-1;i++){
-    P0[matter][e][i]=eP[i](r);
-    P0[antimatter][e][i]=eBarP[i](r);
-    P0[antimatter][mu][i]=xP[i](r);
-    P0[matter][mu][i]=xP[i](r);
-    ePotentialSum[i]=eP[i](r);
-    ebarPotentialSum[i]=eBarP[i](r);
-    heavyPotentialSum[i]=xP[i](r);
+    getP(r);
+    ePotentialSum[i]=real(pmatrixf0[matter][i][e][e]);//UNCOMMENT eP[i](r);
+    ebarPotentialSum[i]=real(pmatrixf0[antimatter][i][e][e]);//UNCOMMENT eBarP[i](r);
+    heavyPotentialSum[i]=real(pmatrixf0[matter][i][mu][mu]);
     for(state m=matter;m<=antimatter;m++){
-      for(flavour f=e;f<=mu;f++) pmatrixf0[m][i][f][f]=P0[m][f][i];
       pmatrixm0[m][i] = Scumulative[m][i]
 	* Adjoint(U0[m][i])
 	* pmatrixf0[m][i]

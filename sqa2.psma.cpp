@@ -181,9 +181,9 @@ int main(int argc, char *argv[]){
     // *************************************************
 
     // vectors of energies and vacuum eigenvalues
-    E = vector<double>(NE);
     kV = vector<vector<double> >(NE,vector<double>(NF));
     vector<double> energybin(NE);
+    E.resize(NE);
     energybin=Ebins(NE);
     cout<<"NE"<<NE;
     cout.flush();
@@ -192,11 +192,11 @@ int main(int argc, char *argv[]){
       cout.flush();
     }
     for(int i=0;i<=NE-1;i++){
-      if(NE==1||NE==2|NE==4) E[i]=energybin[i*NEP/NE+NEP/NE/2];
+      if(NE==1||NE==2||NE==4) E[i]=energybin[i*NEP/NE+NEP/NE/2];
       else E[i]=energybin[i];
       
-      kV[i][0] = m1*m1 * cgs::constants::c4 /2./E[i];
-      kV[i][1] = (m1*m1 + dm21) * cgs::constants::c4 /2./E[i];
+      kV[i][0] = m1*m1 * cgs::constants::c4 /2./E[0]; //UNCOMMENT E[i];
+      kV[i][1] = (m1*m1 + dm21) * cgs::constants::c4 /2./E[0]; //UNCOMMENT E[i];
     }
     
     // determine eigenvalue ordering
@@ -241,8 +241,8 @@ int main(int argc, char *argv[]){
     // **************************************
     
     // MSW potential matrix
-    double rrho = exp(lnrho(log(rmin)));
-    double YYe=Ye(rmin);
+    double rrho = 0;//UNCOMMENT exp(lnrho(log(rmin)));
+    double YYe=0;//UNCOMMENT Ye(rmin);
     
     MATRIX<complex<double>,NF,NF> VfMSW0, Hf0;
     vector<double> k0, deltak0;
@@ -531,7 +531,7 @@ int main(int argc, char *argv[]){
 	    }
 	  }
 	  
-	  C=UpdateC(r,Ye(r));
+	  C=UpdateC(r,-1/*Ye(r) UNCOMMENT*/);
 	  A=UpdateA(C,C0,A0);
 	    
 	  // find largest error
