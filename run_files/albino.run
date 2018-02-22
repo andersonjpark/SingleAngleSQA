@@ -1,11 +1,11 @@
-/mnt/scratch/tables/NuLib/NuLib_rho82_temp65_ye51_ng18_ns3_version1.0_20180128.h5
+/mnt/scratch/tables/NuLib/NuLib_SFHo.h5
 /mnt/scratch/sqa/input_data/albino/input/
 /mnt/scratch/sqa/input_data/albino/input/rho_v_potential3log1.txt
 /mnt/scratch/sqa/input_data/albino/input/Ye_v_potential3log1.txt
 /mnt/scratch/sqa/input_data/albino/input/temp_v_potential3log1.txt
 ./output
-2e5
-300e5
+50e5
+200e5
 16
 2       37.48
 2.43E-003      9       1.01E-0010
