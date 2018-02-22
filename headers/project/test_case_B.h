@@ -1,3 +1,18 @@
+void initialize(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
+	      double rho, double T, double Ye){
+  for(int i=0; i<NE; i++){
+    for(state m=matter; m<=antimatter; m++)
+      for(flavour f1=e; f1<=mu; f1++)
+	for(flavour f2=e; f2<=mu; f2++) 
+	  fmatrixf[m][i][f1][f2] = 0;
+
+    fmatrixf[    matter][i][e ][e ] = 1;//eas.Bnu(0,i);
+    fmatrixf[    matter][i][mu][mu] = 0;//eas.Bnu(2,i);
+    fmatrixf[antimatter][i][e ][e ] = 4./3.;//eas.Bnu(1,i);
+    fmatrixf[antimatter][i][mu][mu] = 0;//eas.Bnu(2,i);
+  }
+}
+
 double get_rho(const double r){
   return -1;
 }
@@ -69,20 +84,37 @@ double MU(const double r, const double E){ // erg
   double r_dimless = r*dV / (cgs::constants::hbarc * 2.*M_PI);
   return 1e4 * dV * exp(-r_dimless / 10.)  / (double)NE;
 }
-double ALPHA(const double r){
-  return 4./3.;
-}
-void getP(vector<vector<MATRIX<complex<double>,NF,NF> > >& pmatrixf0, const double r)
-{
+void getP(const double r,
+	  const vector<vector<MATRIX<complex<double>,NF,NF> > > U0, 
+	  const vector<vector<MATRIX<complex<double>,NF,NF> > > Scumulative, 
+	  vector<vector<MATRIX<complex<double>,NF,NF> > >& pmatrixf0,
+	  vector<vector<MATRIX<complex<double>,NF,NF> > >& pmatrixm0){
+  
+  double constMu = MU(r, E[0]);
   for(int i=0;i<=NE-1;i++){
+
+    // construct OSCILLATED potential from distribution function
     for(flavour f=e;f<=mu;f++)
       for(flavour fp=e; fp<=mu; fp++){
-	pmatrixf0[matter    ][i][f][fp] = 0;
-	pmatrixf0[antimatter][i][f][fp] = 0;
+	pmatrixf0[matter    ][i][f][fp] = constMu * fmatrixf[    matter][i][f][fp];
+	pmatrixf0[antimatter][i][f][fp] = constMu * fmatrixf[antimatter][i][f][fp];
       }
-    pmatrixf0[matter    ][i][e ][e ]=MU(r, E[0]);
-    pmatrixf0[antimatter][i][e ][e ]=MU(r, E[0]) * ALPHA(r);
-    pmatrixf0[antimatter][i][mu][mu]=0;
-    pmatrixf0[matter    ][i][mu][mu]=0;
+
+    // transform to mass basis
+    for(state m=matter;m<=antimatter;m++)
+      pmatrixm0[m][i] = Adjoint(U0[m][i])
+	* pmatrixf0[m][i]
+	* U0[m][i];
+  }
+}
+
+void interact(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
+	      double rho, double T, double Ye, double dr){
+  double kappa = deltaV(E[0]) / (cgs::constants::hbarc * M_2PI)/100.;
+  double tmp = 0;
+  for(int i=0; i<NE; i++){
+    fmatrixf[    matter][i][e][e ] *= exp(-kappa    * dr);
+    fmatrixf[    matter][i][e][mu] *= exp(-kappa/2. * dr);
+    fmatrixf[    matter][i][mu][e] = conj(fmatrixf[matter][i][e][mu]);
   }
 }

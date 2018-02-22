@@ -60,7 +60,6 @@ double NSI;
 #include "headers/jacobians.h"
 #include "headers/multiEnergy.h"
 #include "headers/MNR.h"
-#include "headers/nulib_interface.h"
 
 //vector<vector<MATRIX<complex<double>,NF,NF> > > rhomatrixf0(NM), rhomatrixm0(NM);
 vector<vector<MATRIX<complex<double>,NF,NF> > > pmatrixf0(NM), pmatrixm0(NM);
@@ -86,7 +85,9 @@ void Outputvsr(ofstream &fout,
 	       vector<vector<MATRIX<complex<double>,NF,NF> > > Scumulative);
 
 #include "headers/update.h"
+//#include "headers/project/albino.h"
 #include "headers/project/test_case_B.h"
+#include "headers/nulib_interface.h"
 
 //======//
 // MAIN //
@@ -332,6 +333,10 @@ int main(int argc, char *argv[]){
     vector<vector<vector<vector<double> > > > 
       A0(NM,vector<vector<vector<double> > >(NE,vector<vector<double> >(NF,vector<double>(NF))));
     
+    // accumulated S matrices from prior integration domains
+    vector<vector<MATRIX<complex<double>,NF,NF> > > 
+      Scumulative(NM,vector<MATRIX<complex<double>,NF,NF> >(NE,UnitMatrix<complex<double> >(NF)));
+
     // mixing angles to MSW basis at initial point
     U0[matter] = vector<MATRIX<complex<double>,NF,NF> >(NE);
     U0[antimatter] = vector<MATRIX<complex<double>,NF,NF> >(NE);
@@ -373,7 +378,7 @@ int main(int argc, char *argv[]){
     fmatrixm[matter]=fmatrixm[antimatter]=vector<MATRIX<complex<double>,NF,NF> >(NE);
 
     // yzhu14 density/potential matrices art rmin
-    getP(pmatrixf0,rmin);
+    getP(rmin,U0,Scumulative,pmatrixf0,pmatrixm0);
     double rho0 = rho(rmin);
     double T0 = 5.0;//temperature(rmin);
     double ye0 = Ye(rmin);
@@ -413,11 +418,7 @@ int main(int argc, char *argv[]){
     vector<vector<vector<MATRIX<complex<double>,NF,NF> > > > C=C0;;
     // mixing matrix prefactors
     vector<vector<vector<vector<double> > > > A=A0;
-    
-    // accumulated S matrices from prior integration domains
-    vector<vector<MATRIX<complex<double>,NF,NF> > > 
-      Scumulative(NM,vector<MATRIX<complex<double>,NF,NF> >(NE,UnitMatrix<complex<double> >(NF)));
-    
+        
     // ************************
     // Runge-Kutta quantities *
     // ************************
@@ -464,21 +465,6 @@ int main(int argc, char *argv[]){
       cout << "r(km)  dr(cm)" << endl;
       cout.flush();
       
-      // oscillate pmatrix for background potential
-      for(int i=0;i<=NE-1;i++){
-	pmatrixm0[matter][i] = Scumulative[matter][i]
-	  * Adjoint(U0[matter][i])
-	  * pmatrixf0[matter][i]
-	  * U0[matter][i]
-	  * Adjoint(Scumulative[matter][i]);
-	
-	pmatrixm0[antimatter][i] = Scumulative[antimatter][i]
-	  * Adjoint(U0[antimatter][i])
-	  * pmatrixf0[antimatter][i]
-	  * U0[antimatter][i]
-	  * Adjoint(Scumulative[antimatter][i]);
-      }
-
       // *****************************************
       // initialize at beginning of every domain *
       // *****************************************
@@ -528,44 +514,7 @@ int main(int argc, char *argv[]){
 	// beginning of RK section
 	do{ 
 	  repeat=false;
-	  // first step: assumes derivatives are evaluated at r
-	  getP(pmatrixf0,r);
-
-	  for(int i=0;i<=NE-1;i++)
-	    for(state m=matter;m<=antimatter;m++)
-		pmatrixm0[m][i] = Scumulative[m][i]
-		  * Adjoint(U0[m][i])
-		  * pmatrixf0[m][i]
-		  * U0[m][i]
-		  * Adjoint( Scumulative[m][i] );
-
-	  // pmatrixmm=pmatrixm0[matter];
-	  // pmatrixmmbar=pmatrixm0[antimatter];
-	  K(r,dr,Y,C,A,Ks[0]);
-	    
-	  // second step
-	  r=r0+AA[1]*dr;
-	  for(state m=matter;m<=antimatter;m++)
-	    for(int i=0;i<=NE-1;i++)
-	      for(solution x=msw;x<=si;x++)
-		for(int j=0;j<=NY-1;j++)
-		  Y[m][i][x][j] += BB[1][0] * Ks[0][m][i][x][j];
-
-	  getP(pmatrixf0,r);     
-	  for(int i=0;i<=NE-1;i++)
-	    for(state m=matter;m<=antimatter;m++)
-		pmatrixm0[m][i] = Scumulative[m][i]
-		  * Adjoint(U0[m][i])
-		  * pmatrixf0[m][i]
-		  * U0[m][i]
-		  * Adjoint( Scumulative[m][i] );
-
-	  //pmatrixmm=pmatrixm0[matter];
-	  //pmatrixmmbar=pmatrixm0[antimatter];
-	  K(r,dr,Y,C,A,Ks[1]);
-	    
-	  // remaining steps
-	  for(int k=2;k<=NRK-1;k++){
+	  for(int k=0;k<=NRK-1;k++){
 	    r=r0+AA[k]*dr;
 	    Y=Y0;
 
@@ -575,16 +524,8 @@ int main(int argc, char *argv[]){
 		  for(int j=0;j<=NY-1;j++)
 		    for(int l=0;l<=k-1;l++)
 		      Y[m][i][x][j] += BB[k][l] * Ks[l][m][i][x][j];
-	    
-	    getP(pmatrixf0,r);     
-	    for(int i=0;i<=NE-1;i++)
-	      for(state m=matter;m<=antimatter;m++)
-		  pmatrixm0[m][i] = Scumulative[m][i]
-		    * Adjoint(U0[m][i])
-		    * pmatrixf0[m][i]
-		    * U0[m][i]
-		    * Adjoint( Scumulative[m][i] );
 
+	    getP(r,U0,Scumulative,pmatrixf0,pmatrixm0);
 	    K(r,dr,Y,C,A,Ks[k]);
 	  }
 	  
@@ -1034,17 +975,10 @@ void Outputvsr(ofstream &fout,
   vector<double> predP((NE+2)*(2));
 
   for(int i=0;i<=NE-1;i++){
-    getP(pmatrixf0,r);
+    getP(r,U0,Scumulative,pmatrixf0,pmatrixm0);
     ePotentialSum[i]=real(pmatrixf0[matter][i][e][e]);
     ebarPotentialSum[i]=real(pmatrixf0[antimatter][i][e][e]);
     heavyPotentialSum[i]=real(pmatrixf0[matter][i][mu][mu]);
-    for(state m=matter;m<=antimatter;m++){
-      pmatrixm0[m][i] = Scumulative[m][i]
-	* Adjoint(U0[m][i])
-	* pmatrixf0[m][i]
-	* U0[m][i]
-	* Adjoint( Scumulative[m][i] );
-    }
   }
 
 
