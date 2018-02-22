@@ -974,8 +974,8 @@ void Outputvsr(ofstream &fout,
   vector<double> s(6);
   vector<double> predP((NE+2)*(2));
 
+  getP(r,U0,Scumulative,pmatrixf0,pmatrixm0);
   for(int i=0;i<=NE-1;i++){
-    getP(r,U0,Scumulative,pmatrixf0,pmatrixm0);
     ePotentialSum[i]=real(pmatrixf0[matter][i][e][e]);
     ebarPotentialSum[i]=real(pmatrixf0[antimatter][i][e][e]);
     heavyPotentialSum[i]=real(pmatrixf0[matter][i][mu][mu]);
