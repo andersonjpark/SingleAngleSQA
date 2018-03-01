@@ -65,6 +65,7 @@ double NSI;
 vector<vector<MATRIX<complex<double>,NF,NF> > > pmatrixf0(NM), pmatrixm0(NM);
 vector<vector<MATRIX<complex<double>,NF,NF> > > fmatrixf(NM), fmatrixm(NM);
 vector<DISCONTINUOUS> eP,eBarP,xP;
+vector<DISCONTINUOUS> eD,eBarD,xD;
 
 MATRIX<complex<double>,NF,NF> B(vector<double> y);
 void K(double r,
@@ -85,8 +86,8 @@ void Outputvsr(ofstream &fout,
 	       vector<vector<MATRIX<complex<double>,NF,NF> > > Scumulative);
 
 #include "headers/update.h"
-//#include "headers/project/albino.h"
-#include "headers/project/test_case_B.h"
+#include "headers/project/albino.h"
+//#include "headers/project/test_case_B.h"
 #include "headers/nulib_interface.h"
 
 //======//
@@ -179,12 +180,18 @@ int main(int argc, char *argv[]){
     eP.resize(NE);
     eBarP.resize(NE);
     xP.resize(NE);
+    eD.resize(NE);
+    eBarD.resize(NE);
+    xD.resize(NE);
     
     // load and compute spectral data
     for(int i=0;i<=NE-1;i++){
       eP   [i].Open(potential_directory+"/v_potential1_"+patch::to_string(i+1)+"_"+patch::to_string(nt)+note+".txt",'#');
       eBarP[i].Open(potential_directory+"/v_potential2_"+patch::to_string(i+1)+"_"+patch::to_string(nt)+note+".txt",'#');
       xP   [i].Open(potential_directory+"/v_potential3_"+patch::to_string(i+1)+"_"+patch::to_string(nt)+note+".txt",'#');
+      eD   [i].Open(potential_directory+"/v_density1_"+patch::to_string(i+1)+"_"+patch::to_string(nt)+note+".txt",'#');
+      eBarD[i].Open(potential_directory+"/v_density2_"+patch::to_string(i+1)+"_"+patch::to_string(nt)+note+".txt",'#');
+      xD   [i].Open(potential_directory+"/v_density3_"+patch::to_string(i+1)+"_"+patch::to_string(nt)+note+".txt",'#');
     }
 
     // output filestreams: the arrays of ofstreams cannot use the vector container - bug in g++
@@ -378,11 +385,11 @@ int main(int argc, char *argv[]){
     fmatrixm[matter]=fmatrixm[antimatter]=vector<MATRIX<complex<double>,NF,NF> >(NE);
 
     // yzhu14 density/potential matrices art rmin
-    getP(rmin,U0,Scumulative,pmatrixf0,pmatrixm0);
     double rho0 = rho(rmin);
     double T0 = 5.0;//temperature(rmin);
     double ye0 = Ye(rmin);
-    initialize(fmatrixf,rho0,T0,ye0);
+    initialize(fmatrixf,rmin,rho0,T0,ye0);
+    getP(rmin,U0,fmatrixf,pmatrixf0,pmatrixm0);
 
     // ***************************************
     // quantities needed for the calculation *
@@ -525,7 +532,7 @@ int main(int argc, char *argv[]){
 		    for(int l=0;l<=k-1;l++)
 		      Y[m][i][x][j] += BB[k][l] * Ks[l][m][i][x][j];
 
-	    getP(r,U0,Scumulative,pmatrixf0,pmatrixm0);
+	    getP(r,U0,fmatrixf,pmatrixf0,pmatrixm0);
 	    K(r,dr,Y,C,A,Ks[k]);
 	  }
 	  
@@ -574,7 +581,7 @@ int main(int argc, char *argv[]){
 	}while(repeat==true); // end of RK section
 
 	// interact with the matter
-	interact(fmatrixf, rho0/*rho(r)*/, T0/*temperature(r)*/, ye0/*Ye(r)*/, dr);
+	interact(fmatrixf, rho(r), T0/*temperature(r)*/, Ye(r), dr);
 
 	// accumulate S and reset variables
 	for(state m=matter;m<=antimatter;m++){
@@ -974,7 +981,7 @@ void Outputvsr(ofstream &fout,
   vector<double> s(6);
   vector<double> predP((NE+2)*(2));
 
-  getP(r,U0,Scumulative,pmatrixf0,pmatrixm0);
+  getP(r,U0,fmatrixf,pmatrixf0,pmatrixm0);
   for(int i=0;i<=NE-1;i++){
     ePotentialSum[i]=real(pmatrixf0[matter][i][e][e]);
     ebarPotentialSum[i]=real(pmatrixf0[antimatter][i][e][e]);

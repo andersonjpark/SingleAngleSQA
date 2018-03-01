@@ -1,5 +1,5 @@
 void initialize(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
-	      double rho, double T, double Ye){
+		double r, double rho, double T, double Ye){
   for(int i=0; i<NE; i++){
     for(state m=matter; m<=antimatter; m++)
       for(flavour f1=e; f1<=mu; f1++)
@@ -86,7 +86,7 @@ double MU(const double r, const double E){ // erg
 }
 void getP(const double r,
 	  const vector<vector<MATRIX<complex<double>,NF,NF> > > U0, 
-	  const vector<vector<MATRIX<complex<double>,NF,NF> > > Scumulative, 
+	  const vector<vector<MATRIX<complex<double>,NF,NF> > > fmatrixf,
 	  vector<vector<MATRIX<complex<double>,NF,NF> > >& pmatrixf0,
 	  vector<vector<MATRIX<complex<double>,NF,NF> > >& pmatrixm0){
   
