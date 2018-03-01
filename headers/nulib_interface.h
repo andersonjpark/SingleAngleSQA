@@ -124,15 +124,15 @@ class EAS{
     return is + ig*ns + iv*ns*ng;
   }
 
-  /* void fix_units(){ */
-  /*   for(int ig=0; ig<ng; ig++){ */
-  /*     double Emid = __nulibtable_MOD_nulibtable_energies[ig]*MeV_to_ergs; */
-  /*     double dE = __nulibtable_MOD_nulibtable_ewidths[ig]*MeV_to_ergs; */
-  /*     double tmp = hplanck*hplanck*hplanck * clight*clight /  (Emid*Emid*Emid * dE); */
-  /*     for(int is=0; is<ns; is++) */
-  /* 	storage[index(is,ig,0)] *= tmp; */
-  /*   } */
-  /* } */
+  void fix_units(){
+    for(int ig=0; ig<ng; ig++){
+      double Emid = __nulibtable_MOD_nulibtable_energies[ig]*MeV_to_ergs;
+      double dE = __nulibtable_MOD_nulibtable_ewidths[ig]*MeV_to_ergs;
+      double tmp = hplanck*hplanck*hplanck * clight*clight /  (Emid*Emid*Emid * dE);
+      for(int is=0; is<ns; is++)
+	storage[index(is,ig,0)] *= tmp;
+    }
+  }
 
   double emis(int is,int ig){
     return storage[index(is,ig,0)];
