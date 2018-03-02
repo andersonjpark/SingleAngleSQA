@@ -17,11 +17,13 @@ void initialize(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
 	for(flavour f2=e; f2<=mu; f2++) 
 	  fmatrixf[m][i][f1][f2] = 0;
 
-    //double absopac = 1./100.;
-    fmatrixf[    matter][i][e ][e ] = eD[i](r); //eas.emis(0,i) / eas.abs(0,i);
-    fmatrixf[    matter][i][mu][mu] = xD[i](r); //eas.emis(2,i) / eas.abs(2,i);
-    fmatrixf[antimatter][i][e ][e ] = eBarD[i](r); //eas.emis(1,i) / eas.abs(1,i);
-    fmatrixf[antimatter][i][mu][mu] = xD[i](r); //eas.emis(2,i) / eas.abs(2,i);
+    double Elow = i>0    ? E[i-1] : 0;
+    double Ehi  = i<NE-1 ? E[i+1] : E[i] + 0.5*(E[i]-E[i-1]);
+    double phaseSpaceVol = 4./3.*M_PI * (pow(Ehi,3) - pow(Elow,3)) / pow(2.*M_PI*cgs::constants::hbarc,3);
+    fmatrixf[    matter][i][e ][e ] = eD[i](r)    / phaseSpaceVol; //eas.emis(0,i) / eas.abs(0,i);
+    fmatrixf[    matter][i][mu][mu] = xD[i](r)    / phaseSpaceVol; //eas.emis(2,i) / eas.abs(2,i);
+    fmatrixf[antimatter][i][e ][e ] = eBarD[i](r) / phaseSpaceVol; //eas.emis(1,i) / eas.abs(1,i);
+    fmatrixf[antimatter][i][mu][mu] = xD[i](r)    / phaseSpaceVol; //eas.emis(2,i) / eas.abs(2,i);
   }  
 }
 
