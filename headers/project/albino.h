@@ -140,18 +140,18 @@ void getP(const double r,
 
 void interact(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
 	      double rho, double T, double Ye, double dr){
-  return;
+  //return;
   // don't do anything if too sparse
-  if(log10(rho) <= __nulibtable_MOD_nulibtable_logrho_min)
-    return;
+  //if(log10(rho) <= __nulibtable_MOD_nulibtable_logrho_min)
+  //  return;
 
   // T should be MeV
   double T_tmp = 10.0;
-  nulibtable_range_species_range_energy_(&rho, &T_tmp, &Ye, &eas.storage.front(),
-  					 &__nulibtable_MOD_nulibtable_number_species,
-  					 &__nulibtable_MOD_nulibtable_number_groups,
-  					 &__nulibtable_MOD_nulibtable_number_easvariables);
-  eas.fix_units();
+  //nulibtable_range_species_range_energy_(&rho, &T_tmp, &Ye, &eas.storage.front(),
+  //					 &__nulibtable_MOD_nulibtable_number_species,
+  //					 &__nulibtable_MOD_nulibtable_number_groups,
+  //					 &__nulibtable_MOD_nulibtable_number_easvariables);
+  //eas.fix_units();
 
 
   double absopac = 1./(100.*1e5);
@@ -169,7 +169,9 @@ void interact(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
     double kappa_avg = 0.5 * (kappa_e+kappa_mu);
     //fmatrixf[    matter][i][e ][e ] *= exp(kappa_e   * dr);
     //fmatrixf[    matter][i][mu][mu] *= exp(kappa_mu  * dr);
-    fmatrixf[    matter][i][e ][mu] *= exp(kappa_avg * dr);
+    fmatrixf[    matter][i][e ][mu] -= kappa_avg * dr; //*= exp(kappa_avg * dr);
     fmatrixf[    matter][i][mu][e ] = conj(fmatrixf[matter][i][e][mu]);
+    fmatrixf[antimatter][i][e ][mu] -= kappa_avg * dr; //*= exp(kappa_avg * dr);
+    fmatrixf[antimatter][i][mu][e ] = conj(fmatrixf[matter][i][e][mu]);
   }
 }
