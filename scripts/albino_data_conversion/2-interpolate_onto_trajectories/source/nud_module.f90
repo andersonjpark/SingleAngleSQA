@@ -455,7 +455,7 @@
 !
 !=======================================================================
 
-      subroutine nu_potential(num,x,qx,d,t,y,d_nu,v_nu)
+      subroutine nu_potential(num,x,qx,d,t,y,d_nu,v_nu,datacylname,datalumname,opdepcylname)
 
       implicit none
 
@@ -485,8 +485,7 @@
       real(r_kind), dimension(3)                :: rc
       real(r_kind), dimension(ne_h,nut_h,nr,nz) :: tau
 
-      character(len=100) :: filename
-      character(len=6)   :: suffix
+      character(len=100) :: filename, datacylname, datalumname, opdepcylname
 
       logical, save :: dir_init=.true.
       logical, save :: read_file=.true.
@@ -500,15 +499,9 @@
 !.....read-in input files...............................................
       if (read_file) then
 
-!.....generate file suffix..............................................
-        write(suffix,88) num
-88      format('_',i5)
-        do j=1,6
-          if(suffix(j:j).eq.' ')suffix(j:j)='0'
-        end do
 
 !.....generate file name for the neutrino quantities....................
-        filename = '../input_data/data'//suffix//'.lum'
+        filename = datalumname
         write(6,*)'I am reading the neutrino input file'
         call read_luminosity(filename,time,ser2dc,n_tau,map_read,e,de)
 
@@ -524,12 +517,12 @@
         end do
 
 !.....generate file name for the disc quantities........................
-        filename = '../input_data/data'//suffix//'.cyl'
+        filename = datacylname
         write(6,*)'I am reading the disc profile input file'
         call read_2Davg(filename,dens,temp,ye,vel)
 
 !.....generate file name for the neutrino optical depth.................
-        filename = '../input_data/opdep_2D'//suffix//'.cyl'
+        filename = opdepcylname
         write(6,*)'I am reading the neutrino optical depths'
         call read_2Dtau(filename,tau)
 
@@ -547,15 +540,12 @@
       rz = 1.e+5*rc(3)/dx - float(kc-1)
 
 !.....calculate the neutrino potentials.................................
-!$OMP parallel &
-!$OMP default(none) private(kc1,ic1,iphi1,map_loc) &
-!$OMP shared(ic,kc,x,ser2dc,map,dnu)
-
-!$OMP do collapse(3) schedule(guided) reduction(+:dnu)
-
       v_nu = 0.
       d_nu = 0.
-
+!$OMP parallel &
+!$OMP default(none) private(kc1,ic1,iphi1,map_loc,ic_s,kc_s) &
+!$OMP shared(ic,kc,x,ser2dc,map,d_nu,v_nu,n_tau,tau,qx)
+!$OMP do collapse(3) schedule(guided) reduction(+:d_nu,v_nu)
       do iphi1=1,nphip
         do kc1=1,cyl_h_nz
           do ic1=1,cyl_h_nx

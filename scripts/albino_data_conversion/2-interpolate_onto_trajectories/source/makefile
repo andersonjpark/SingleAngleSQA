@@ -6,7 +6,7 @@ ifeq ($(CONFIG),"gfortran")
 FC      = gfortran    # compiler
 LD      = gfortran -lgfortran     # linker
 LDFLAGS =           # linker options
-SFLAGS  = -c -mcmodel=large -fbacktrace # standard compiler flags
+SFLAGS  = -c -mcmodel=large -fbacktrace -fopenmp # standard compiler flags
 OFLAGS  = -O2  # optimization compiler flags
 DFLAGS  = -O0 -g -ggdb -fbounds-check -Wuninitialized -Wall -Wextra -C # debug compiler flags
 # mpi library
@@ -15,7 +15,7 @@ MPILIB  =
 MPI     =
 # Openmp library
 OMPINCL =
-OMPLIB  = 
+OMPLIB  = -fopenmp
 OMP     =
 # hdf5 library
 HDF5INCL =

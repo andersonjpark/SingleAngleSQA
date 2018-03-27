@@ -1,4 +1,5 @@
 all: clean
+	mkdir -p output
 	gfortran -c -fdefault-real-8 main.f90
 	gfortran -o main.x main.o
 	./main.x

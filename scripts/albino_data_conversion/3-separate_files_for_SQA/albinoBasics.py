@@ -1,6 +1,8 @@
 __author__ = 'yzhu14'
 import numpy as np
 from unit_const import *
+import os
+import sys
 from scipy.interpolate import interp1d
 #Input from Albino Perego's nu_potential_V2, v_density/v_potential
 #out put neutrino self interaciton potentials of 8/n bins for neutrino ocsillation calculation
@@ -10,12 +12,6 @@ from scipy.interpolate import interp1d
 # For neutrino capture rate calculation
 
 #######################################################################
-whichFileP = 'v_potential'
-whichFileN = 'v_density'
-nCommentLines = 2
-nxCheck = 2  # n-th x at which to check the interpolation
-testInt = 1000  # number of points plotted to check interpolation
-note="log1"
 ######################################### getnewbins #################################################################
 #   Yonglin Zhu 2017
 ############################################################################
@@ -142,7 +138,7 @@ def onebin(dir,nf,nNew,whichFileP,whichFileN,note,ntestpoints):
                             (float(pointsCoordinatesP[1])-y0) ** 2 +
                             (float(pointsCoordinatesP[2])-z0) ** 2)
         if n==0:
-            print(nf,Rs,float(pointsCoordinatesP[0]),float(pointsCoordinatesP[1]),float(pointsCoordinatesP[2]))
+            print("Trajectory",nf, "Starting at(km):",float(pointsCoordinatesP[0]),float(pointsCoordinatesP[1]),float(pointsCoordinatesP[2]))
         outFileYe.write(str(Rs) + "\t" + str(pointsCoordinatesP[5]) + "\n")
         outFilerho.write(str(Rs) + "\t" + str(pointsCoordinatesP[3]) + "\n")
         checkP=[0.]*numberofneutrinotype
@@ -174,25 +170,23 @@ def onebin(dir,nf,nNew,whichFileP,whichFileN,note,ntestpoints):
 #   check: R_original(core or not), potential/density units, potential/density normalization, interplote algorithm
 #   to do: checkmorebins()
 ####################################################################################################################
-def Morebins(dir,nf,nNew,whichFileP,whichFileN,note,ntestpoints):
+def Morebins(outdir,nNew,whichFileP,whichFileN,note,ntestpoints):
     nucap=1
     Enew,dEnew,EnewCgs,ECgs,dECgs,dEnewCgs=getNewE(nNew)
-    inFileP = open(str(dir) + '/' + str(whichFileP) + str(nf) + '.txt', 'r')
-    inFileN = open(str(dir) + '/' + str(whichFileN) + str(nf) + '.txt', 'r')
+    inFileP = open(str(whichFileP), 'r')
+    inFileN = open(str(whichFileN), 'r')
     linesP = inFileP.readlines()  # yzhu: START FROM 0
     linesN = inFileN.readlines()  # yzhu: START FROM 0
     inFileN.close()
     inFileP.close()
-    outFileYe = open(dir + '/' + str(nNew) + 'NE/'+ str(nf)  +'/Ye_' + whichFileP + str(nf) + note + '.txt', 'w')
-    outFilerho = open(dir +  '/' + str(nNew) + 'NE/' + str(nf)+ '/rho_' + whichFileP + str(nf) + note + '.txt', 'w')
-    outFilePotential = open(dir + '/' + str(nNew) + 'NE/' + str(nf)+"/" +whichFileP+ str(nf) + note + '.txt',
-                            'w')  # plot linear and cubic spline
-    outFileDensity = open(dir +'/' + str(nNew) + 'NE/' + str(nf)+"/" + whichFileN+ str(nf)  +  note + '.txt',
-                          'w')  # plot linear and cubic spline
-    outFileErr = open(dir + '/' + str(nNew) + 'NE/' +str(nf)+"/" +  'dir' + whichFileP + str(nf) + note + 'err.txt', 'w')
-    outFileIntpCheck = open(dir  + '/' + str(nNew) + 'NE/' +str(nf)+"/"  + str(nf) + 'intpCheckffcub' + whichFileP+note + '.txt',
-                        'w')  # plot linear and cubic spline
-    outfileNC=open(dir + '/' + str(nNew) + 'NE/'+ str(nf)+"/"  + str(nf) + note + 'nucap.txt','w')
+    outFileTemp = open(outdir + '/temp.txt', 'w')
+    outFileYe = open(outdir + '/Ye.txt', 'w')
+    outFilerho = open(outdir +  '/rho.txt', 'w')
+    outFilePotential = open(outdir + '/potential.txt', 'w')  # plot linear and cubic spline
+    outFileDensity = open(outdir +'/density.txt', 'w')  # plot linear and cubic spline
+    outFileErr = open(outdir + '/potential_err.txt', 'w')
+    outFileIntpCheck = open(outdir  + '/intpCheckffcub_potential.txt','w')  # plot linear and cubic spline
+    outfileNC=open(outdir + '/nucap.txt','w')
     p = [0] * nEnergyBins
     pnew = [0]*numberofneutrinotype*nNew
     d = [0] * nEnergyBins
@@ -233,9 +227,10 @@ def Morebins(dir,nf,nNew,whichFileP,whichFileN,note,ntestpoints):
                                (float(pointsCoordinatesP[1])-y0) ** 2 +
                                (float(pointsCoordinatesP[2])-z0) ** 2)
         if n==0:
-            print(nf,Rs,float(pointsCoordinatesP[0]),float(pointsCoordinatesP[1]),float(pointsCoordinatesP[2]))
+            print("Trajectory Starting at(km):",float(pointsCoordinatesP[0]),float(pointsCoordinatesP[1]),float(pointsCoordinatesP[2]))
         outFileYe.write(str(Rs) + "\t" + str(pointsCoordinatesP[5]) + "\n")
         outFilerho.write(str(Rs) + "\t" + str(pointsCoordinatesP[3]) + "\n")
+        outFileTemp.write(str(Rs) + "\t" + str(pointsCoordinatesP[4]) + "\n")
         outFilePotential.write(str(Rs) + "\t")
         outFileDensity.write(str(Rs)+"\t")
         checkP=[0.]*numberofneutrinotype
@@ -320,6 +315,7 @@ def Morebins(dir,nf,nNew,whichFileP,whichFileN,note,ntestpoints):
     outFileIntpCheck.close()
     outFilePotential.close()
     outFileDensity.close()
+    outFileTemp.close()
 ######################################## neucap ###########################################################################################
 #   Yonglin Zhu 2017
 #   input: nf - file #, Density files, nNew - new # of energy bins, NE - # of energy bins,
@@ -375,24 +371,23 @@ def neucap(dir,nf,nNew,whichFileP,whichFileN,note):
 #   input: nf - file #, new Density files, nNew - new # of energy bins,
 #   output: outFilePotentialBin, outFileDensityBin
 ############################################################################################################################################
-def input(dir,nf,nNew,whichFileP,whichFileN,note,tracers,nCommentLines):
-    outFile = open(dir + '/' + str(nNew) + 'NE/' +str(nf)+"/"  + 'dir' + whichFileP + str(id) + note + '.txt', 'w')
-    inputdir="/ncsu/volume1/yzhu14/data/"+tracers
-    inFileNewP = open(dir +'/' + str(nNew) + 'NE/' +str(nf)+"/"   +whichFileP+ str(nf) + note + '.txt',
-                      'r')  # plot linear and cubic spline
+def input(outdir,nNew,whichFileP,whichFileN,note,nCommentLines):
+    #outFile = open(outdir + "/"  +whichFileP + str(nf) + note + '.txt', 'w')
+    inFileNewP = open(whichFileP,'r')  # plot linear and cubic spline
     linesNewP = inFileNewP.readlines()  # yzhu: START FROM 0
     inFileNewP.close()
-    inFileNewN = open(dir + '/' + str(nNew) + 'NE/'  +str(nf)+"/"  + whichFileN + str(nf)+ note + '.txt',
-                      'r')  # plot linear and cubic spline
+    inFileNewN = open(whichFileN, 'r')  # plot linear and cubic spline
     linesNewN = inFileNewN.readlines()  # yzhu: START FROM 0
     inFileNewN.close()
-    ntestpoints = sum(1 for line in open(dir + '/' + str(nNew) + 'NE/' +str(nf)+"/"   + whichFileP + str(nf)+note + '.txt'))
+    ntestpoints = sum(1 for line in open(whichFileP))
     for it in range(0, numberofneutrinotype):
+        print("it=",it)
         for k in range(0, nNew):
-            outFilePotentialBin = open(dir + '/' + str(nNew) + 'NE/' +str(nf)+"/"    +whichFileP  + str(it + 1) + '_' + str(
-                k + 1) + '_' + str(nf) + note + '.txt', 'w')
-            outFileDensityBin = open(dir +'/' + str(nNew) + 'NE/' +str(nf)+"/"   + whichFileN + str(it + 1) + '_' + str(
-                k + 1) + '_' + str(nf) + note + '.txt', 'w')
+            print("k=",k)
+            outFilePotentialBin = open(outdir + '/potential_s' + str(it + 1) + '_g' + str(
+                k + 1) + '_' + note + '.txt', 'w')
+            outFileDensityBin = open(outdir + '/density_s' + str(it + 1) + '_g' + str(
+                k + 1) + '_' + note + '.txt', 'w')
             for n in range(nCommentLines, ntestpoints):  # all points in the test trajectory
                 coordinatesLinesNewP = linesNewP[n]
                 pointsCoordinatesNewP = coordinatesLinesNewP.split()
@@ -405,6 +400,6 @@ def input(dir,nf,nNew,whichFileP,whichFileN,note,tracers,nCommentLines):
                     str(pointsCoordinatesNewN[0]) + "\t"
                     + str(float(pointsCoordinatesNewN[1 + k + it * nNew]))+ "\n")
     outFilePotentialBin.close()
-    outFile.close()
+    #outFile.close()
 ############################################################
 ###############
