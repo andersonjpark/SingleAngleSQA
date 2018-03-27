@@ -6,7 +6,6 @@ program main
   implicit none
   
   ! parameters
-  integer, parameter :: num=400           !index of the file to be read
   integer, parameter :: npt=800           !number of points along the trajectory
   
   real(r_kind), dimension(3,npt) :: x
@@ -73,7 +72,7 @@ program main
         stop
      end if
      
-     call nu_potential(num,x(:,i),qx,d,t,y,d_nu,v_nu, datacylname, datalumname, opdepcylname)
+     call nu_potential(x(:,i),qx,d,t,y,d_nu,v_nu, datacylname, datalumname, opdepcylname)
      
      !....write out the potentials...........................................
      write(9,19)x(:,i)*dx/1.e+5,d,t,y,                               &

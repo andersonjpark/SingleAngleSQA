@@ -455,13 +455,12 @@
 !
 !=======================================================================
 
-      subroutine nu_potential(num,x,qx,d,t,y,d_nu,v_nu,datacylname,datalumname,opdepcylname)
+      subroutine nu_potential(x,qx,d,t,y,d_nu,v_nu,datacylname,datalumname,opdepcylname)
 
       implicit none
 
 !      include 'omp_lib.h'
 
-      integer                            , intent(in)  :: num
       real(r_kind), dimension(3)         , intent(in)  :: x
       real(r_kind), dimension(3)         , intent(in)  :: qx
       real(r_kind)                       , intent(out) :: d
