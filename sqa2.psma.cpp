@@ -100,7 +100,7 @@ int main(int argc, char *argv[]){
     ofstream fout,foutC,foutP,foutS, foutf;
     string outputfilename,rhofilename, Yefilename, vfilename, spectrapath, nulibfilename, temperaturefilename;
     string outputfilenamestem;
-    string nt, note;
+    string note;
     
     inputfilename=string(argv[in]);
     ifstream fin(inputfilename.c_str());
@@ -143,7 +143,6 @@ int main(int argc, char *argv[]){
     // fin>>iNT;
     // fin>>fNT;
     // fin>>id;//number of tracer
-    fin>>nt;
     
     cout<<"\n\n*********************************************************\n";
     cout<<"\nrho\t"<<rhofilename;
@@ -186,12 +185,12 @@ int main(int argc, char *argv[]){
     
     // load and compute spectral data
     for(int i=0;i<=NE-1;i++){
-      eP   [i].Open(potential_directory+"/v_potential1_"+patch::to_string(i+1)+"_"+patch::to_string(nt)+note+".txt",'#');
-      eBarP[i].Open(potential_directory+"/v_potential2_"+patch::to_string(i+1)+"_"+patch::to_string(nt)+note+".txt",'#');
-      xP   [i].Open(potential_directory+"/v_potential3_"+patch::to_string(i+1)+"_"+patch::to_string(nt)+note+".txt",'#');
-      eD   [i].Open(potential_directory+"/v_density1_"+patch::to_string(i+1)+"_"+patch::to_string(nt)+note+".txt",'#');
-      eBarD[i].Open(potential_directory+"/v_density2_"+patch::to_string(i+1)+"_"+patch::to_string(nt)+note+".txt",'#');
-      xD   [i].Open(potential_directory+"/v_density3_"+patch::to_string(i+1)+"_"+patch::to_string(nt)+note+".txt",'#');
+      eP   [i].Open(potential_directory+"/potential_s1_g"+patch::to_string(i+1)+note+".txt",'#');
+      eBarP[i].Open(potential_directory+"/potential_s2_g"+patch::to_string(i+1)+note+".txt",'#');
+      xP   [i].Open(potential_directory+"/potential_s3_g"+patch::to_string(i+1)+note+".txt",'#');
+      eD   [i].Open(potential_directory+"/density_s1_g"+patch::to_string(i+1)+note+".txt",'#');
+      eBarD[i].Open(potential_directory+"/density_s2_g"+patch::to_string(i+1)+note+".txt",'#');
+      xD   [i].Open(potential_directory+"/density_s3_g"+patch::to_string(i+1)+note+".txt",'#');
     }
 
     // output filestreams: the arrays of ofstreams cannot use the vector container - bug in g++
@@ -200,7 +199,7 @@ int main(int argc, char *argv[]){
 		+  "-"+patch::to_string(rmax)
 		+ "km"+patch::to_string(accuracy)
 		+"ACC"+patch::to_string(NE)
-		+ "NE"+patch::to_string(nt)
+		+ "NE"
 		+ note+".txt").c_str());
     foutS.precision(12);
     foutS.flush();
@@ -209,7 +208,7 @@ int main(int argc, char *argv[]){
 		+         "-"+patch::to_string(rmax)
 		+        "km"+patch::to_string(accuracy)
 		+       "ACC"+patch::to_string(NE)
-		+        "NE"+patch::to_string(nt)
+		+        "NE"
 		+ note+".txt").c_str());
     foutP.precision(12);
     foutP.flush();
@@ -232,7 +231,7 @@ int main(int argc, char *argv[]){
 	       +  "-"+patch::to_string(rmax)
 	       + "km"+patch::to_string(accuracy)
 	       +"ACC"+patch::to_string(NE)
-	       + "NE"+patch::to_string(nt)
+	       + "NE"
 	       + note+".txt").c_str());
     fout.precision(12);
     fout.flush();
@@ -581,7 +580,7 @@ int main(int argc, char *argv[]){
 	}while(repeat==true); // end of RK section
 
 	// interact with the matter
-	interact(fmatrixf, rho(r), T0/*temperature(r)*/, Ye(r), dr);
+	interact(fmatrixf, rho(r), T0/*temperature(r)*/, Ye(r), r, dr);
 
 	// accumulate S and reset variables
 	for(state m=matter;m<=antimatter;m++){
