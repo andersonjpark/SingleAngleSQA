@@ -373,10 +373,10 @@ def neucap(dir,nf,nNew,whichFileP,whichFileN,note):
 ############################################################################################################################################
 def input(outdir,nNew,whichFileP,whichFileN,note,nCommentLines):
     #outFile = open(outdir + "/"  +whichFileP + str(nf) + note + '.txt', 'w')
-    inFileNewP = open(whichFileP,'r')  # plot linear and cubic spline
+    inFileNewP = open(outdir+'/potential.txt','r')  # plot linear and cubic spline
     linesNewP = inFileNewP.readlines()  # yzhu: START FROM 0
     inFileNewP.close()
-    inFileNewN = open(whichFileN, 'r')  # plot linear and cubic spline
+    inFileNewN = open(outdir+'/density.txt', 'r')  # plot linear and cubic spline
     linesNewN = inFileNewN.readlines()  # yzhu: START FROM 0
     inFileNewN.close()
     ntestpoints = sum(1 for line in open(whichFileP))
