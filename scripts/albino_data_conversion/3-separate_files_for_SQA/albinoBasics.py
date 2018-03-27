@@ -371,7 +371,7 @@ def neucap(dir,nf,nNew,whichFileP,whichFileN,note):
 #   input: nf - file #, new Density files, nNew - new # of energy bins,
 #   output: outFilePotentialBin, outFileDensityBin
 ############################################################################################################################################
-def input(outdir,nNew,whichFileP,whichFileN,note,nCommentLines):
+def input(outdir,nNew,note,nCommentLines):
     #outFile = open(outdir + "/"  +whichFileP + str(nf) + note + '.txt', 'w')
     inFileNewP = open(outdir+'/potential.txt','r')  # plot linear and cubic spline
     linesNewP = inFileNewP.readlines()  # yzhu: START FROM 0
@@ -379,11 +379,10 @@ def input(outdir,nNew,whichFileP,whichFileN,note,nCommentLines):
     inFileNewN = open(outdir+'/density.txt', 'r')  # plot linear and cubic spline
     linesNewN = inFileNewN.readlines()  # yzhu: START FROM 0
     inFileNewN.close()
-    ntestpoints = sum(1 for line in open(whichFileP))
+    ntestpoints = sum(1 for line in open(outdir+'/potential.txt'))
     for it in range(0, numberofneutrinotype):
         print("it=",it)
         for k in range(0, nNew):
-            print("k=",k)
             outFilePotentialBin = open(outdir + '/potential_s' + str(it + 1) + '_g' + str(
                 k + 1) + '_' + note + '.txt', 'w')
             outFileDensityBin = open(outdir + '/density_s' + str(it + 1) + '_g' + str(
