@@ -8,18 +8,14 @@ program main
   !.....number of points..................................................
   integer, parameter :: ntr = 800 ! number of points
   real(r_kind), parameter :: deltax = 0.2  ![km]
-  real(r_kind), dimension(3) :: u0 =(/0.,30.05,10.41/)![km] real 
-  real(r_kind), dimension(3) :: un ! direction vector
-  real(r_kind), parameter :: pi=3.1415926
-  real(r_kind), parameter :: phi = pi/2.0
-  real(r_kind), parameter :: theta = pi/4.0
+  real(r_kind), dimension(3) :: u0 =(/0.,0.,18./)![km] real 
+  real(r_kind), dimension(3) :: un =(/0.,sqrt(2.),3./)! direction vector
   character(len=100) :: format_num 
 
   !.....normalize the direction vector....................................
-  un(1)=SIN(theta)*COS(phi)
-  un(2)=SIN(theta)*SIN(phi)
-  un(3)=COS(theta)
+  un = un/sqrt(sum(un*un))
   write (*,*) u0(1),u0(2),u0(3),un(1),un(2),un(3)
+
   !  .....read-in the points of the trajectory..............................
   open(8,file='output/trajectory.txt',status='unknown')
   do i=1,ntr
