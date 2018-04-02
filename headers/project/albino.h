@@ -1,44 +1,6 @@
 #include "../nulib_interface.h"
 #include "../isospin.h"
 
-void initialize(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
-		double r, double rho, double T, double Ye){
-  // T should be MeV
-  double T_tmp = 10.0;
-  nulibtable_range_species_range_energy_(&rho, &T_tmp, &Ye, &eas.storage.front(),
-  					 &__nulibtable_MOD_nulibtable_number_species,
-  					 &__nulibtable_MOD_nulibtable_number_groups,
-  					 &__nulibtable_MOD_nulibtable_number_easvariables);
-  eas.fix_units();
-  
-  for(int i=0; i<NE; i++){
-    for(state m=matter; m<=antimatter; m++)
-      for(flavour f1=e; f1<=mu; f1++)
-	for(flavour f2=e; f2<=mu; f2++) 
-	  fmatrixf[m][i][f1][f2] = 0;
-
-    double Elow = i>0    ? E[i-1] : 0;
-    double Ehi  = i<NE-1 ? E[i+1] : E[i] + 0.5*(E[i]-E[i-1]);
-    double phaseSpaceVol = 4./3.*M_PI * (pow(Ehi,3) - pow(Elow,3)) / pow(2.*M_PI*cgs::constants::hbarc,3);
-    fmatrixf[    matter][i][e ][e ] = eD[i](r)    / phaseSpaceVol; //eas.emis(0,i) / eas.abs(0,i);
-    fmatrixf[    matter][i][mu][mu] = xD[i](r)    / phaseSpaceVol; //eas.emis(2,i) / eas.abs(2,i);
-    fmatrixf[antimatter][i][e ][e ] = eBarD[i](r) / phaseSpaceVol; //eas.emis(1,i) / eas.abs(1,i);
-    fmatrixf[antimatter][i][mu][mu] = xD[i](r)    / phaseSpaceVol; //eas.emis(2,i) / eas.abs(2,i);
-  }  
-}
-
-double get_rho(const double r){
-  return exp(lnrho(log(r)));
-}
-double get_drhodr(const double rrho, const double r){
-  return rrho*lnrho.Derivative(log(r))/r;
-}
-double get_Ye(const double r){
-  return Ye(r);
-}
-double get_dYedr(const double r){
-  return Ye.Derivative(r);
-}
 
 //=======//
 // Ebins //
@@ -57,6 +19,61 @@ void set_Ebins(vector<double>& E){
     cout.flush();
   }
   cout.flush();
+}
+double dE(const unsigned i){
+  double dlogE = (log(E[NE-1]) - log(E[0])) / (NE-1.);
+  double Elow = exp(log(E[0]) + (i-0.5)*dlogE);
+  double Ehi  = exp(log(E[0]) + (i+0.5)*dlogE);
+  return Ehi - Elow;
+}
+double phaseVolDensity(const double density, const unsigned i){
+  double phaseSpaceVol = 4.*M_PI * E[i]*E[i]*dE(i) / pow(2.*M_PI*cgs::constants::hbarc,3);
+  return density / phaseSpaceVol;
+}
+
+//============//
+// Initialize //
+//============//
+void initialize(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
+		double r, double rho, double T, double Ye){
+  // T should be MeV
+  double T_tmp = 10.0;
+  nulibtable_range_species_range_energy_(&rho, &T_tmp, &Ye, &eas.storage.front(),
+  					 &__nulibtable_MOD_nulibtable_number_species,
+  					 &__nulibtable_MOD_nulibtable_number_groups,
+  					 &__nulibtable_MOD_nulibtable_number_easvariables);
+  eas.fix_units();
+  
+  for(int i=0; i<NE; i++){
+    for(state m=matter; m<=antimatter; m++)
+      for(flavour f1=e; f1<=mu; f1++)
+	for(flavour f2=e; f2<=mu; f2++) 
+	  fmatrixf[m][i][f1][f2] = 0;
+
+    fmatrixf[    matter][i][e ][e ] = phaseVolDensity(eD[i](r)   , i); //eas.emis(0,i) / eas.abs(0,i);
+    fmatrixf[    matter][i][mu][mu] = phaseVolDensity(xD[i](r)   , i); //eas.emis(2,i) / eas.abs(2,i);
+    fmatrixf[antimatter][i][e ][e ] = phaseVolDensity(eBarD[i](r), i); //eas.emis(1,i) / eas.abs(1,i);
+    fmatrixf[antimatter][i][mu][mu] = phaseVolDensity(xD[i](r)   , i); //eas.emis(2,i) / eas.abs(2,i);
+  }
+  
+  for(state m=matter; m<=antimatter; m++)
+    for(int i=0; i<NE; i++)
+      for(flavour f1=e; f1<=mu; f1++)
+	for(flavour f2=e; f2<=mu; f2++)
+	  assert(fmatrixf[m][i][f1][f2] == fmatrixf[m][i][f1][f2]);
+}
+
+double get_rho(const double r){
+  return exp(lnrho(log(r)));
+}
+double get_drhodr(const double rrho, const double r){
+  return rrho*lnrho.Derivative(log(r))/r;
+}
+double get_Ye(const double r){
+  return Ye(r);
+}
+double get_dYedr(const double r){
+  return Ye.Derivative(r);
 }
 
 //===================//
@@ -141,39 +158,81 @@ void getP(const double r,
 }
 
 void interact(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
-	      double rho, double T, double Ye, double dr){
+	      double rho, double T, double Ye, double r, double dr){
   //return;
+
+  // set up rate matrix
+  MATRIX<complex<double>,NF,NF> dfdr, dfbardr;
+  
   // don't do anything if too sparse
-  //if(log10(rho) <= __nulibtable_MOD_nulibtable_logrho_min)
-  //  return;
+  if(log10(rho) <= __nulibtable_MOD_nulibtable_logrho_min)
+    return;
 
   // T should be MeV
   double T_tmp = 10.0;
-  //nulibtable_range_species_range_energy_(&rho, &T_tmp, &Ye, &eas.storage.front(),
-  //					 &__nulibtable_MOD_nulibtable_number_species,
-  //					 &__nulibtable_MOD_nulibtable_number_groups,
-  //					 &__nulibtable_MOD_nulibtable_number_easvariables);
-  //eas.fix_units();
+  nulibtable_range_species_range_energy_(&rho, &T_tmp, &Ye, &eas.storage.front(),
+  					 &__nulibtable_MOD_nulibtable_number_species,
+  					 &__nulibtable_MOD_nulibtable_number_groups,
+  					 &__nulibtable_MOD_nulibtable_number_easvariables);
+  eas.fix_units();
 
 
-  double absopac = 1./(100.*1e5);
   double tmp = 0;
   for(int i=0; i<NE; i++){
-    // scale the diagonal components
-    fmatrixf[    matter][i][e ][e ] += (/*eas.emis(0,i)*/ - absopac/*eas.abs(0,i)*/*fmatrixf[    matter][i][e ][e ]) * dr;
-    fmatrixf[    matter][i][mu][mu] += (/*eas.emis(2,i)*/ - absopac/*eas.abs(2,i)*/*fmatrixf[    matter][i][mu][mu]) * dr;
-    fmatrixf[antimatter][i][e ][e ] += (/*eas.emis(1,i)*/ - absopac/*eas.abs(1,i)*/*fmatrixf[antimatter][i][e ][e ]) * dr;
-    fmatrixf[antimatter][i][mu][mu] += (/*eas.emis(2,i)*/ - absopac/*eas.abs(2,1)*/*fmatrixf[antimatter][i][mu][mu]) * dr;
+    // reset dfdr
+    for(flavour f1=e; f1<=mu; f1++)
+      for(flavour f2=e; f2<=mu; f2++){
+	dfdr   [f1][f2] = 0;
+	dfbardr[f1][f2] = 0;
+      }
 
-    // scale the off-diagonal components
-    double kappa_e  = absopac; //eas.abs(0,i);
-    double kappa_mu = absopac; //eas.abs(2,i);
-    double kappa_avg = 0.5 * (kappa_e+kappa_mu);
-    //fmatrixf[    matter][i][e ][e ] *= exp(kappa_e   * dr);
-    //fmatrixf[    matter][i][mu][mu] *= exp(kappa_mu  * dr);
-    fmatrixf[    matter][i][e ][mu] -= kappa_avg * dr; //*= exp(kappa_avg * dr);
-    fmatrixf[    matter][i][mu][e ] = conj(fmatrixf[matter][i][e][mu]);
-    fmatrixf[antimatter][i][e ][mu] -= kappa_avg * dr; //*= exp(kappa_avg * dr);
-    fmatrixf[antimatter][i][mu][e ] = conj(fmatrixf[matter][i][e][mu]);
+    // get interaction rates
+    /* double absopac = eas.abs(1./(500.*1e5); */
+    /* double scatopac = 1./(100.*1e5); */
+    /* double rmin = 50e5; */
+    /* double emis_e = eas.absopac;//phaseVolDensity(eD[i](rmin)   , i) * absopac; */
+    /* double emis_a = phaseVolDensity(eBarD[i](rmin), i) * absopac; */
+    /* double emis_x = phaseVolDensity(xD[i](rmin)   , i) * absopac; */
+
+    // absorption and out-scattering
+    double kappa_e    = eas.abs(0,i) + eas.scat(0,i); //absopac + scatopac; //
+    double kappa_ebar = eas.abs(1,i) + eas.scat(1,i); //absopac + scatopac; //
+    double kappa_mu   = eas.abs(2,i) + eas.scat(2,i); //absopac; //
+    double kappa_avg    = 0.5*(kappa_e   +kappa_mu);
+    double kappa_avgbar = 0.5*(kappa_ebar+kappa_mu);
+    dfdr   [e ][e ] -= kappa_e      * fmatrixf[    matter][i][e ][e ];
+    dfbardr[e ][e ] -= kappa_ebar   * fmatrixf[antimatter][i][e ][e ];
+    dfdr   [mu][mu] -= kappa_mu     * fmatrixf[    matter][i][mu][mu];
+    dfbardr[mu][mu] -= kappa_mu     * fmatrixf[antimatter][i][mu][mu];
+    dfdr   [e ][mu] -= kappa_avg    * fmatrixf[    matter][i][e ][mu];
+    dfbardr[e ][mu] -= kappa_avgbar * fmatrixf[antimatter][i][e ][mu];
+
+    // emission
+    dfdr   [e ][e ] += eas.emis(0,i);//emis_e;
+    dfbardr[e ][e ] += eas.emis(1,i);//emis_a;
+    dfdr   [mu][mu] += eas.emis(2,i);//emis_x;
+    dfbardr[mu][mu] += eas.emis(2,i);//emis_x;
+    
+    // in-scattering (currently assumes charged-current scattering)
+    dfdr   [e ][e ] += phaseVolDensity(eD[i](r)   , i) * eas.scat(0,i);//scatopac;
+    dfbardr[e ][e ] += phaseVolDensity(eBarD[i](r), i) * eas.scat(1,i);//scatopac;
+
+    // Make sure dfdr is Hermitian
+    dfdr   [mu][e ] = conj(dfdr   [e][mu]);
+    dfbardr[mu][e ] = conj(dfbardr[e][mu]);
+
+    // update fmatrixf
+    for(flavour f1=e; f1<=mu; f1++)
+      for(flavour f2=e; f2<=mu; f2++){
+	fmatrixf[    matter][i][f1][f2] += dfdr[f1][f2]    * dr;
+	fmatrixf[antimatter][i][f1][f2] += dfbardr[f1][f2] * dr;
+      }
+
+    // check that everything makes sense
+    for(state s=matter; s<=antimatter; s++)
+      for(flavour f1=e; f1<=mu; f1++)
+	for(flavour f2=e; f2<=mu; f2++){
+	  assert(fmatrixf[s][i][f1][f2] == fmatrixf[s][i][f1][f2]);
+      }
   }
 }

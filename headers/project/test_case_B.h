@@ -109,7 +109,7 @@ void getP(const double r,
 }
 
 void interact(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
-	      double rho, double T, double Ye, double dr){
+	      double rho, double T, double Ye, double r, double dr){
   double kappa = deltaV(E[0]) / (cgs::constants::hbarc * M_2PI)/100.;
   double tmp = 0;
   for(int i=0; i<NE; i++){

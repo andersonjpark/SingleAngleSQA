@@ -7,7 +7,7 @@ nNew=16
 start ="0"
 whichFileN = sys.argv[1]
 whichFileP = sys.argv[2]
-nCommentLines = 2
+nCommentLines = 0
 note=""
 
 ########################################################################

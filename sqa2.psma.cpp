@@ -1,4 +1,4 @@
-#include <cmath>
+
 #include <complex>
 using std::complex;
 using std::polar;
@@ -165,11 +165,11 @@ int main(int argc, char *argv[]){
     // load rho and Ye data
     rho.Open(rhofilename,'#');
     Ye.Open(Yefilename,'#');
-    //temperature.Open(Yefilename,'#'); // UNCOMMENT
+    temperature.Open(temperaturefilename,'#');
     rmin=max(rmin,max(rho.XMin(),Ye.XMin()) );
-    //rmin = max(rmin, temperature.XMin() ); //UNCOMMENT
+    rmin = max(rmin, temperature.XMin() );
     rmax=min(rmax,min(rho.XMax(),Ye.XMax()) );
-    //rmax = min(rmax, temperature.XMax() ); //UNCOMMENT
+    rmax = min(rmax, temperature.XMax() );
 
     lnrho=rho;
     lnrho.TransformX(log);
@@ -385,7 +385,7 @@ int main(int argc, char *argv[]){
 
     // yzhu14 density/potential matrices art rmin
     double rho0 = rho(rmin);
-    double T0 = 5.0;//temperature(rmin);
+    double T0 = temperature(rmin);
     double ye0 = Ye(rmin);
     initialize(fmatrixf,rmin,rho0,T0,ye0);
     getP(rmin,U0,fmatrixf,pmatrixf0,pmatrixm0);
@@ -468,7 +468,7 @@ int main(int argc, char *argv[]){
       
       cout<<"\n"<<d<<"\t"<<rmin<<"\t"<<rmax << endl;
       cout << endl;
-      cout << "r(km)  dr(cm)" << endl;
+      cout << "r(km)  dr(cm) rho(g/ccm) T(MeV) Ye" << endl;
       cout.flush();
       
       // *****************************************
@@ -496,13 +496,19 @@ int main(int argc, char *argv[]){
       counterout=1;
       Outputvsr(fout,foutP,foutf,foutPvsr,foutFvsr,r,Y,C,A,Scumulative);
 	
+      for(state m=matter; m<=antimatter; m++)
+	for(int i=0; i<NE; i++)
+	  for(flavour f1=e; f1<=mu; f1++)
+	    for(flavour f2=e; f2<=mu; f2++)
+	      assert(fmatrixf[m][i][f1][f2] == fmatrixf[m][i][f1][f2]);
+      
       // ***********************
       // start the loop over r *
       // ***********************
       do{ 
 	double intkm = int(r/1e5)*1e5;
 	if(r - intkm <= dr){
-	  cout << r/1e5 << " " << dr << endl;
+	  cout << r/1e5 << " " << dr << " " << rho(r) << " " << temperature(r) << " " << Ye(r) << endl;
 	  cout.flush();
 	}
 
@@ -517,6 +523,12 @@ int main(int argc, char *argv[]){
 	C0=C;
 	A0=A;
 	  
+	for(state m=matter; m<=antimatter; m++)
+	  for(int i=0; i<NE; i++)
+	    for(flavour f1=e; f1<=mu; f1++)
+	      for(flavour f2=e; f2<=mu; f2++)
+		assert(fmatrixf[m][i][f1][f2] == fmatrixf[m][i][f1][f2]);
+	
 	// beginning of RK section
 	do{ 
 	  repeat=false;
@@ -544,8 +556,11 @@ int main(int argc, char *argv[]){
 		  Y[m][i][x][j] = Y0[m][i][x][j];
 		  Yerror[m][i][x][j] = 0.;
 		  for(int k=0;k<=NRK-1;k++){
+		    assert(CC[k] == CC[k]);
+		    assert(Ks[k][m][i][x][j] == Ks[k][m][i][x][j]);
 		    Y[m][i][x][j] += CC[k] * Ks[k][m][i][x][j];
 		    Yerror[m][i][x][j] += (CC[k]-DD[k]) * Ks[k][m][i][x][j];
+		    assert(Y[m][i][x][j] == Y[m][i][x][j]);
 		  }
 		}
 	      }
@@ -580,7 +595,12 @@ int main(int argc, char *argv[]){
 	}while(repeat==true); // end of RK section
 
 	// interact with the matter
-	interact(fmatrixf, rho(r), T0/*temperature(r)*/, Ye(r), r, dr);
+	//interact(fmatrixf, rho(r), temperature(r), Ye(r), r, dr);
+	for(state m=matter; m<=antimatter; m++)
+	  for(int i=0; i<NE; i++)
+	    for(flavour f1=e; f1<=mu; f1++)
+	      for(flavour f2=e; f2<=mu; f2++)
+		assert(fmatrixf[m][i][f1][f2] == fmatrixf[m][i][f1][f2]);
 
 	// accumulate S and reset variables
 	for(state m=matter;m<=antimatter;m++){
@@ -589,11 +609,16 @@ int main(int argc, char *argv[]){
 	    SSSI  = W(Y[m][i][si ])*B(Y[m][i][si ]);
 	    SThisStep = SSMSW*SSSI;	
 	    Scumulative[m][i]=MATRIX<complex<double>,NF,NF>(SThisStep*Scumulative[m][i] );
-	      
+	    
 	    // convert fmatrix from flavor basis to mass basis
 	    // oscillate fmatrix in mass basis
 	    // convert back to flavor basis.
 	    // don't need to modify pmatrix since it's re-read at each timestep
+	    for(flavour f1=e; f1<=mu; f1++)
+	      for(flavour f2=e; f2<=mu; f2++){
+		assert(fmatrixm[m][i][f1][f2] == fmatrixm[m][i][f1][f2]);
+		assert(fmatrixf[m][i][f1][f2] == fmatrixf[m][i][f1][f2]);
+	      }
 	    fmatrixm[m][i] = SThisStep
 	      * Adjoint( U0[m][i] ) 
 	      * fmatrixf[m][i] 
@@ -602,6 +627,11 @@ int main(int argc, char *argv[]){
 	    fmatrixf[m][i] = U0[m][i]
 	      * fmatrixm[m][i] 
 	      * Adjoint(  U0[m][i] );
+	    for(flavour f1=e; f1<=mu; f1++)
+	      for(flavour f2=e; f2<=mu; f2++){
+		assert(fmatrixm[m][i][f1][f2] == fmatrixm[m][i][f1][f2]);
+		assert(fmatrixf[m][i][f1][f2] == fmatrixf[m][i][f1][f2]);
+	      }
 	    
 	    // reset the evolution matrix to identity
 	    Y[m][i][msw][0]=Y[m][i][msw][1]=M_PI/2.;
@@ -1144,8 +1174,8 @@ void Outputvsr(ofstream &fout,
   }
 
   foutP<<r<<"\t"<<Ve(rrho,YYe)<<"\t";//1,2
-  foutP<<real(VfSI[    matter][e ][e ])<<"\t"<<imag(VfSI[    matter][e ][e ])<<"\t";
-  foutP<<real(VfSI[    matter][mu][mu])<<"\t"<<imag(VfSI[    matter][mu][mu])<<"\t";//3,4,5,6
+  foutP<<real(VfSI[    matter][e ][e ])<<"\t"<<real(VfSI[    matter][mu][mu])<<"\t";
+  foutP<<real(VfSI[antimatter][e ][e ])<<"\t"<<real(VfSI[antimatter][mu][mu])<<"\t";//3,4,5,6
   fout <<real(VfSI[    matter][e ][e ])<<"\t"<<imag(VfSI[    matter][e ][e ])<<"\t";
   fout <<real(VfSI[    matter][mu][mu])<<"\t"<<imag(VfSI[    matter][mu][mu]);
   fout <<real(VfSI[antimatter][e ][e ])<<"\t"<<imag(VfSI[antimatter][e ][e ])<<"\t";
