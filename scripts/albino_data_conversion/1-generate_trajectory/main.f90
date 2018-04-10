@@ -6,10 +6,13 @@ program main
   integer :: i
   
   !.....number of points..................................................
-  integer, parameter :: ntr = 800 ! number of points
+  integer, parameter :: ntr = 1000 ! number of points
   real(r_kind), parameter :: deltax = 0.2  ![km]
-  real(r_kind), dimension(3) :: u0 =(/0.,0.,18./)![km] real 
-  real(r_kind), dimension(3) :: un =(/0.,sqrt(2.),3./)! direction vector
+  real(r_kind), dimension(3) :: u0 =(/0.,0.,18.0/)![km] real  [trajectories 1,2]
+  !real(r_kind), dimension(3) :: u0 =(/0.,60.05,20.69/)![km] real  [trajectory 3]
+  real(r_kind), dimension(3) :: un =(/0.,sqrt(2),3./)! direction vector [trajectory 1]
+  !real(r_kind), dimension(3) :: un =(/0.,1.,3./)! direction vector [trajectory 2]
+  !real(r_kind), dimension(3) :: un =(/0.,-1.,1./)! direction vector [trajectory 3]
   character(len=100) :: format_num 
 
   !.....normalize the direction vector....................................
