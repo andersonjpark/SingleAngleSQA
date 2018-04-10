@@ -86,8 +86,53 @@ void Outputvsr(ofstream &fout,
 	       vector<vector<MATRIX<complex<double>,NF,NF> > > Scumulative);
 
 #include "headers/update.h"
-#include "headers/project/albino.h"
-//#include "headers/project/test_case_B.h"
+//#include "headers/project/albino.h"
+#include "headers/project/test_case_B.h"
+
+void getP(const double r,
+	  const vector<vector<MATRIX<complex<double>,NF,NF> > > U0, 
+	  const vector<vector<MATRIX<complex<double>,NF,NF> > > fmatrixf, 
+	  vector<vector<MATRIX<complex<double>,NF,NF> > >& pmatrixf0,
+	  vector<vector<MATRIX<complex<double>,NF,NF> > >& pmatrixm0){
+
+  double hf[4]; // [state][pauli index] coefficients of Pauli matrices for f
+  double hp[4]; // pauli matrix coefficients for p
+  double hf_norm[3]; // components of isospin spatial unit vector
+  double hp_unosc[4]; // unoscillated potential has only diagonal elements
+  MATRIX<complex<double>,NF,NF> p_unosc;
+
+  for(int i=0;i<=NE-1;i++){
+    for(state m=matter; m<=antimatter; m++){
+
+      // decompose (oscillated) distribution function
+      pauli_decompose(fmatrixf[m][i], hf);
+      double hf_length = sqrt(hf[0]*hf[0] + hf[1]*hf[1] + hf[2]*hf[2]);
+      for(unsigned k=0; k<3; k++) hf_norm[k] = hf[k] / hf_length;
+
+      // decompose unoscillated potential
+      getPunosc(r, m, i, p_unosc);
+      pauli_decompose(p_unosc, hp_unosc);
+
+      // re-distribute p Pauli coefficients to have same flavor angle as f
+      //assert(hp_unosc[0] == 0);
+      //assert(hp_unosc[1] == 0);
+      double xyz_magnitude = sqrt(hp_unosc[0]*hp_unosc[0] + hp_unosc[1]*hp_unosc[1] + hp_unosc[2]*hp_unosc[2]);
+      for(unsigned k=0; k<3; k++)
+	hp[k] = hf_norm[k] * xyz_magnitude;
+      hp[3] = hp_unosc[3];
+
+      // reconstruct the potential matrix
+      pauli_reconstruct(hp, pmatrixf0[m][i]);
+
+      // put in mass basis
+      //pmatrixf0[m][i] = p_unosc;
+      pmatrixm0[m][i] = Adjoint(U0[m][i])
+	* pmatrixf0[m][i]
+	* U0[m][i];
+    }
+  }
+}
+
 #include "headers/nulib_interface.h"
 
 //======//
@@ -1010,11 +1055,14 @@ void Outputvsr(ofstream &fout,
   vector<double> s(6);
   vector<double> predP((NE+2)*(2));
 
-  getP(r,U0,fmatrixf,pmatrixf0,pmatrixm0);
+  MATRIX<complex<double>,NF,NF> p_unosc;
   for(int i=0;i<=NE-1;i++){
-    ePotentialSum[i]=real(pmatrixf0[matter][i][e][e]);
-    ebarPotentialSum[i]=real(pmatrixf0[antimatter][i][e][e]);
+    getPunosc(r, matter, i, p_unosc);
+    ePotentialSum[i]=real(p_unosc[e][e]);
     heavyPotentialSum[i]=real(pmatrixf0[matter][i][mu][mu]);
+
+    getPunosc(r, antimatter, i, p_unosc);
+    ebarPotentialSum[i]=real(p_unosc[e][e]);
   }
 
 

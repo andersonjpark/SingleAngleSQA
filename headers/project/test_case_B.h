@@ -1,3 +1,6 @@
+#include "../nulib_interface.h"
+#include "../isospin.h"
+
 void initialize(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
 		double r, double rho, double T, double Ye){
   for(int i=0; i<NE; i++){
@@ -84,28 +87,14 @@ double MU(const double r, const double E){ // erg
   double r_dimless = r*dV / (cgs::constants::hbarc * 2.*M_PI);
   return 1e4 * dV * exp(-r_dimless / 10.)  / (double)NE;
 }
-void getP(const double r,
-	  const vector<vector<MATRIX<complex<double>,NF,NF> > > U0, 
-	  const vector<vector<MATRIX<complex<double>,NF,NF> > > fmatrixf,
-	  vector<vector<MATRIX<complex<double>,NF,NF> > >& pmatrixf0,
-	  vector<vector<MATRIX<complex<double>,NF,NF> > >& pmatrixm0){
+void getPunosc(const double r, const state m, const unsigned ig,
+	       MATRIX<complex<double>,NF,NF>& p_unosc){
   
-  double constMu = MU(r, E[0]);
-  for(int i=0;i<=NE-1;i++){
-
-    // construct OSCILLATED potential from distribution function
-    for(flavour f=e;f<=mu;f++)
-      for(flavour fp=e; fp<=mu; fp++){
-	pmatrixf0[matter    ][i][f][fp] = constMu * fmatrixf[    matter][i][f][fp];
-	pmatrixf0[antimatter][i][f][fp] = constMu * fmatrixf[antimatter][i][f][fp];
-      }
-
-    // transform to mass basis
-    for(state m=matter;m<=antimatter;m++)
-      pmatrixm0[m][i] = Adjoint(U0[m][i])
-	* pmatrixf0[m][i]
-	* U0[m][i];
-  }
+  // construct potential from distribution function 
+  for(flavour f=e;f<=mu;f++)
+    for(flavour fp=e; fp<=mu; fp++)
+      p_unosc[f][fp] = 0;
+  p_unosc[e][e] = MU(r, E[0]) * (m==matter ? 1. : 4./3.);
 }
 
 void interact(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
