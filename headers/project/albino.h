@@ -38,11 +38,11 @@ void initialize(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
 		double r, double rho, double T, double Ye){
   // T should be MeV
   double T_tmp = 10.0;
-  nulibtable_range_species_range_energy_(&rho, &T_tmp, &Ye, &eas.storage.front(),
-  					 &__nulibtable_MOD_nulibtable_number_species,
-  					 &__nulibtable_MOD_nulibtable_number_groups,
-  					 &__nulibtable_MOD_nulibtable_number_easvariables);
-  eas.fix_units();
+  //nulibtable_range_species_range_energy_(&rho, &T_tmp, &Ye, &eas.storage.front(),
+  //					 &__nulibtable_MOD_nulibtable_number_species,
+  //					 &__nulibtable_MOD_nulibtable_number_groups,
+  //					 &__nulibtable_MOD_nulibtable_number_easvariables);
+  //eas.fix_units();
   
   for(int i=0; i<NE; i++){
     for(state m=matter; m<=antimatter; m++)
@@ -51,9 +51,9 @@ void initialize(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
 	  fmatrixf[m][i][f1][f2] = 0;
 
     fmatrixf[    matter][i][e ][e ] = phaseVolDensity(eD[i](r)   , i); //eas.emis(0,i) / eas.abs(0,i);
-    fmatrixf[    matter][i][mu][mu] = phaseVolDensity(xD[i](r)   , i); //eas.emis(2,i) / eas.abs(2,i);
+    fmatrixf[    matter][i][mu][mu] = phaseVolDensity(xD[i](r)/2., i); //eas.emis(2,i) / eas.abs(2,i);
     fmatrixf[antimatter][i][e ][e ] = phaseVolDensity(eBarD[i](r), i); //eas.emis(1,i) / eas.abs(1,i);
-    fmatrixf[antimatter][i][mu][mu] = phaseVolDensity(xD[i](r)   , i); //eas.emis(2,i) / eas.abs(2,i);
+    fmatrixf[antimatter][i][mu][mu] = phaseVolDensity(xD[i](r)/2., i); //eas.emis(2,i) / eas.abs(2,i);
   }
   
   for(state m=matter; m<=antimatter; m++)
@@ -110,52 +110,18 @@ double dVmudr(double rho, double drhodr, double Ye, double dYedr){ return 0.;}
 //=============================//
 // Self-Interaction Potentials //
 //=============================//
-void getP(const double r,
-	  const vector<vector<MATRIX<complex<double>,NF,NF> > > U0, 
-	  const vector<vector<MATRIX<complex<double>,NF,NF> > > fmatrixf, 
-	  vector<vector<MATRIX<complex<double>,NF,NF> > >& pmatrixf0,
-	  vector<vector<MATRIX<complex<double>,NF,NF> > >& pmatrixm0){
-
-  double hf[4]; // [state][pauli index] coefficients of Pauli matrices for f
-  double hp[4]; // pauli matrix coefficients for p
-  double hf_norm[3]; // components of isospin spatial unit vector
-  double hp_unosc[4]; // unoscillated potential has only diagonal elements
-  MATRIX<complex<double>,NF,NF> p_unosc;
+void getPunosc(const double r, const state m, const unsigned ig,
+	       MATRIX<complex<double>,NF,NF>& p_unosc){
   
-  for(int i=0;i<=NE-1;i++){
-    for(state m=matter; m<=antimatter; m++){
-
-      // decompose (oscillated) distribution function
-      pauli_decompose(fmatrixf[m][i], hf);
-      double hf_length = sqrt(hf[0]*hf[0] + hf[1]*hf[1] + hf[2]*hf[2]);
-      for(unsigned k=0; k<3; k++) hf_norm[k] = hf[k] / hf_length;
-
-      // decompose unoscillated potential
-      double P0 = (m==matter ? eP[i](r) : eBarP[i](r));
-      double P1 = xP[i](r);
-      p_unosc[0][0] = complex<double>(P0,0);
-      p_unosc[1][0] = complex<double>(0,0);
-      p_unosc[0][1] = complex<double>(0,0);
-      p_unosc[1][1] = complex<double>(P1,0);
-      pauli_decompose(p_unosc, hp_unosc);
-
-      // re-distribute p Pauli coefficients to have same flavor angle as f
-      assert(hp_unosc[0] == 0);
-      assert(hp_unosc[1] == 0);
-      for(unsigned k=0; k<3; k++)
-	hp[k] = hf_norm[k] * abs(hp_unosc[2]);
-      hp[3] = hp_unosc[3];
-
-      // reconstruct the potential matrix
-      pauli_reconstruct(hp, pmatrixf0[m][i]);
-
-      // put in mass basis
-      pmatrixm0[m][i] = Adjoint(U0[m][i])
-	* pmatrixf0[m][i]
-	* U0[m][i];
-    }
-  }
+  // decompose unoscillated potential
+  double P0 = (m==matter ? eP[ig](r) : eBarP[ig](r));
+  double P1 = xP[ig](r);
+  p_unosc[e ][e ] = complex<double>(P0,0);
+  p_unosc[mu][e ] = complex<double>(0,0);
+  p_unosc[e ][mu] = complex<double>(0,0);
+  p_unosc[mu][mu] = complex<double>(P1,0);
 }
+
 
 void interact(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
 	      double rho, double T, double Ye, double r, double dr){

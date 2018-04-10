@@ -86,8 +86,8 @@ void Outputvsr(ofstream &fout,
 	       vector<vector<MATRIX<complex<double>,NF,NF> > > Scumulative);
 
 #include "headers/update.h"
-//#include "headers/project/albino.h"
-#include "headers/project/test_case_B.h"
+#include "headers/project/albino.h"
+//#include "headers/project/test_case_B.h"
 
 void getP(const double r,
 	  const vector<vector<MATRIX<complex<double>,NF,NF> > > U0, 
@@ -119,7 +119,7 @@ void getP(const double r,
       double xyz_magnitude = sqrt(hp_unosc[0]*hp_unosc[0] + hp_unosc[1]*hp_unosc[1] + hp_unosc[2]*hp_unosc[2]);
       for(unsigned k=0; k<3; k++)
 	hp[k] = hf_norm[k] * xyz_magnitude;
-      hp[3] = hp_unosc[3];
+      hp[3] = 0;//hp_unosc[3]; // subtracting half the trace
 
       // reconstruct the potential matrix
       pauli_reconstruct(hp, pmatrixf0[m][i]);
@@ -1059,7 +1059,7 @@ void Outputvsr(ofstream &fout,
   for(int i=0;i<=NE-1;i++){
     getPunosc(r, matter, i, p_unosc);
     ePotentialSum[i]=real(p_unosc[e][e]);
-    heavyPotentialSum[i]=real(pmatrixf0[matter][i][mu][mu]);
+    heavyPotentialSum[i]=real(p_unosc[mu][mu]);
 
     getPunosc(r, antimatter, i, p_unosc);
     ebarPotentialSum[i]=real(p_unosc[e][e]);
@@ -1108,8 +1108,12 @@ void Outputvsr(ofstream &fout,
     // compute contribution to self interaction potential
     // scattering matrix matter(electron - x) - scattering matrix Antimatter(antielectron - anti-x)
     // what is VfSI[antimatter]?
-    VfSI[matter] += Sf[    matter][i]*pmatrixf0[    matter][i]*Adjoint(Sf[    matter][i])
-      - Conjugate(  Sf[antimatter][i]*pmatrixf0[antimatter][i]*Adjoint(Sf[antimatter][i]) );
+    // MATRIX<complex<double>,NF,NF> p_unosc_matter, p_unosc_antimatter;
+    // getPunosc(r, matter,     i,     p_unosc_matter);
+    // getPunosc(r, antimatter, i, p_unosc_antimatter);
+    // VfSI[matter] += Sf[    matter][i]*p_unosc_matter    *Adjoint(Sf[    matter][i])
+    //   - Conjugate(  Sf[antimatter][i]*p_unosc_antimatter*Adjoint(Sf[antimatter][i]) );
+    VfSI[matter] += pmatrixf0[matter][i] - Conjugate(pmatrixf0[antimatter][i]);
   }
   
   complex<double> Tr=VfSI[matter][e][e]+VfSI[matter][mu][mu];
