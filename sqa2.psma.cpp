@@ -284,25 +284,13 @@ int main(int argc, char *argv[]){
     }
 
     // output filestreams: the arrays of ofstreams cannot use the vector container - bug in g++
-    foutS.open((outputfilename+"/"
-		+  "S"+patch::to_string(rmin)
-		+  "-"+patch::to_string(rmax)
-		+ "km"+patch::to_string(accuracy)
-		+"ACC"+patch::to_string(NE)
-		+ "NE"
-		+ note+".txt").c_str());
+    foutS.open((outputfilename+"/S.dat").c_str());
     foutS.precision(12);
     foutS.flush();
-    foutP.open((outputfilename+"/"
-		+string("2p")+patch::to_string(rmin)
-		+         "-"+patch::to_string(rmax)
-		+        "km"+patch::to_string(accuracy)
-		+       "ACC"+patch::to_string(NE)
-		+        "NE"
-		+ note+".txt").c_str());
+    foutP.open((outputfilename+"/2p.dat").c_str());
     foutP.precision(12);
     foutP.flush();
-    foutf.open((outputfilename+"/"+"f.dat").c_str());
+    foutf.open((outputfilename+"/f.dat").c_str());
     foutf.precision(12);
     foutf << "# 1:r ";
     for(int i=0; i<NE; i++)
@@ -316,40 +304,19 @@ int main(int argc, char *argv[]){
     foutf << endl;
     foutf.flush();
     
-    fout.open((outputfilename+"/"
-	       +      patch::to_string(rmin)
-	       +  "-"+patch::to_string(rmax)
-	       + "km"+patch::to_string(accuracy)
-	       +"ACC"+patch::to_string(NE)
-	       + "NE"
-	       + note+".txt").c_str());
+    fout.open((outputfilename+"/out.dat").c_str());
     fout.precision(12);
     fout.flush();
-    string comma(","), colon(":"), dat(".dat");;
-    stringstream filename, filenamestart;
-    filenamestart<<outputfilenamestem;
-    filenamestart<<colon<<dm21<<comma<<theta12V;
-    filenamestart<<colon<<NE<<comma<<Emin<<comma<<Emax;
 
     ofstream foutPvsr[NE],foutFvsr[NE];
     ofstream fPvsE, fFvsE;
     
     for(int i=0;i<=NE-1;i++){
-      filename << filenamestart.str() 
-	       << string(":E=") 
-	       << ((NE-1.-i)*Emin+i*Emax)/(NE-1.) 
-	       << string("MeV.P.dat");
-      foutPvsr[i].open((filename.str()).c_str());
+      foutPvsr[i].open(outputfilename+"/g"+std::to_string(i)+"_Pvsr.dat");
       foutPvsr[i].precision(12);
-      filename.str("");
       
-      filename << filenamestart.str() 
-	       << string(":E=") 
-	       << ((NE-1.-i)*Emin+i*Emax)/(NE-1.)
-	       <<string("MeV.F.dat");
-      foutFvsr[i].open((filename.str()).c_str());
+      foutFvsr[i].open(outputfilename+"/g"+std::to_string(i)+"_Fvsr.dat");
       foutFvsr[i].precision(12);
-      filename.str("");
     }
     
     // unit conversion to cgs
