@@ -7,7 +7,7 @@ ng = 16
 
 r = np.genfromtxt("density_s1_g1_.txt",usecols=(0))
 nr = len(r)
-X, Y = np.meshgrid(r,range(ng))
+X, Y = np.meshgrid(r,range(ng+1))
 
 # neutrino plot
 densityZ = np.zeros((ng,nr))
