@@ -37,23 +37,37 @@ double phaseVolDensity(const double density, const unsigned i){
 void initialize(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
 		double r, double rho, double T, double Ye){
   // T should be MeV
-  double T_tmp = 10.0;
-  //nulibtable_range_species_range_energy_(&rho, &T_tmp, &Ye, &eas.storage.front(),
-  //					 &__nulibtable_MOD_nulibtable_number_species,
-  //					 &__nulibtable_MOD_nulibtable_number_groups,
-  //					 &__nulibtable_MOD_nulibtable_number_easvariables);
-  //eas.fix_units();
+  cout << "Setting initial data." << endl;
+  cout << "rho = " << rho << " g/ccm" << endl;
+  cout << "T = " << T << " MeV" << endl;
+  cout << "Ye = " << Ye << endl;
+  double Ye_in = max(Ye,__nulibtable_MOD_nulibtable_ye_min);
+  nulibtable_range_species_range_energy_(&rho, &T, &Ye_in, &eas.storage.front(),
+  					 &__nulibtable_MOD_nulibtable_number_species,
+  					 &__nulibtable_MOD_nulibtable_number_groups,
+  					 &__nulibtable_MOD_nulibtable_number_easvariables);
   
   for(int i=0; i<NE; i++){
     for(state m=matter; m<=antimatter; m++)
       for(flavour f1=e; f1<=mu; f1++)
 	for(flavour f2=e; f2<=mu; f2++) 
 	  fmatrixf[m][i][f1][f2] = 0;
+    double De = phaseVolDensity(eD[i](r)   , i); //eas.emis(0,i) / eas.abs(0,i); //
+    double Da = phaseVolDensity(eBarD[i](r), i); //eas.emis(1,i) / eas.abs(1,i); //
+    double Dx = phaseVolDensity(xD[i](r)   , i); //eas.emis(2,i) / eas.abs(2,i); //
+    
+    fmatrixf[    matter][i][e ][e ] = De; 
+    fmatrixf[    matter][i][mu][mu] = Dx;
+    fmatrixf[antimatter][i][e ][e ] = Da;
+    fmatrixf[antimatter][i][mu][mu] = Dx;
+      
+    cout << "GROUP " << i << endl;
+    cout << "\teas.emis = {" << eas.emis(0,i) << ", " << eas.emis(1,i) << ", " << eas.emis(2,i) << "}" << endl;
+    cout << "\teas.abs = {" << eas.abs(0,i) << ", " << eas.abs(1,i) << ", " << eas.abs(2,i) << "}" << endl;
+    cout << "\tBB = {" << eas.emis(0,i)/eas.abs(0,i) << ", " << eas.emis(1,i)/eas.abs(1,i) << ", " << eas.emis(2,i)/eas.abs(2,i) << "}" << endl;
+    cout << "\teas.scat = {" << eas.scat(0,i) << ", " << eas.scat(1,i) << ", " << eas.scat(2,i) << "}" << endl;
 
-    fmatrixf[    matter][i][e ][e ] = phaseVolDensity(eD[i](r)   , i); //eas.emis(0,i) / eas.abs(0,i);
-    fmatrixf[    matter][i][mu][mu] = phaseVolDensity(xD[i](r)/2., i); //eas.emis(2,i) / eas.abs(2,i);
-    fmatrixf[antimatter][i][e ][e ] = phaseVolDensity(eBarD[i](r), i); //eas.emis(1,i) / eas.abs(1,i);
-    fmatrixf[antimatter][i][mu][mu] = phaseVolDensity(xD[i](r)/2., i); //eas.emis(2,i) / eas.abs(2,i);
+    cout << "\tf = {" << real(fmatrixf[matter][i][e][e]) << ", " << real(fmatrixf[antimatter][i][e][e]) << ", " << real(fmatrixf[matter][i][mu][mu]) << ", " << real(fmatrixf[antimatter][i][mu][mu]) << "}" << endl;
   }
   
   for(state m=matter; m<=antimatter; m++)
@@ -106,7 +120,6 @@ double Vmu(double rho, double Ye){ return 0.;}
 
 double dVmudr(double rho, double drhodr, double Ye, double dYedr){ return 0.;}
 
-
 //=============================//
 // Self-Interaction Potentials //
 //=============================//
@@ -123,13 +136,12 @@ void getPunosc(const double r, const state m, const unsigned ig,
 }
 
 
-void interact(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
+void my_interact(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
 	      double rho, double T, double Ye, double r, double dr){
-  //return;
 
   // set up rate matrix
   MATRIX<complex<double>,NF,NF> dfdr, dfbardr;
-  
+
   // don't do anything if too sparse
   if(log10(rho) <= __nulibtable_MOD_nulibtable_logrho_min)
     return;
@@ -140,8 +152,6 @@ void interact(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
   					 &__nulibtable_MOD_nulibtable_number_species,
   					 &__nulibtable_MOD_nulibtable_number_groups,
   					 &__nulibtable_MOD_nulibtable_number_easvariables);
-  eas.fix_units();
-
 
   double tmp = 0;
   for(int i=0; i<NE; i++){
@@ -152,18 +162,10 @@ void interact(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
 	dfbardr[f1][f2] = 0;
       }
 
-    // get interaction rates
-    /* double absopac = eas.abs(1./(500.*1e5); */
-    /* double scatopac = 1./(100.*1e5); */
-    /* double rmin = 50e5; */
-    /* double emis_e = eas.absopac;//phaseVolDensity(eD[i](rmin)   , i) * absopac; */
-    /* double emis_a = phaseVolDensity(eBarD[i](rmin), i) * absopac; */
-    /* double emis_x = phaseVolDensity(xD[i](rmin)   , i) * absopac; */
-
     // absorption and out-scattering
-    double kappa_e    = eas.abs(0,i) + eas.scat(0,i); //absopac + scatopac; //
-    double kappa_ebar = eas.abs(1,i) + eas.scat(1,i); //absopac + scatopac; //
-    double kappa_mu   = eas.abs(2,i) + eas.scat(2,i); //absopac; //
+    double kappa_e    = eas.abs(0,i) + eas.scat(0,i);
+    double kappa_ebar = eas.abs(1,i) + eas.scat(1,i);
+    double kappa_mu   = eas.abs(2,i) + eas.scat(2,i);
     double kappa_avg    = 0.5*(kappa_e   +kappa_mu);
     double kappa_avgbar = 0.5*(kappa_ebar+kappa_mu);
     dfdr   [e ][e ] -= kappa_e      * fmatrixf[    matter][i][e ][e ];
@@ -174,14 +176,14 @@ void interact(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
     dfbardr[e ][mu] -= kappa_avgbar * fmatrixf[antimatter][i][e ][mu];
 
     // emission
-    dfdr   [e ][e ] += eas.emis(0,i);//emis_e;
-    dfbardr[e ][e ] += eas.emis(1,i);//emis_a;
-    dfdr   [mu][mu] += eas.emis(2,i);//emis_x;
-    dfbardr[mu][mu] += eas.emis(2,i);//emis_x;
+    dfdr   [e ][e ] += eas.emis(0,i);
+    dfbardr[e ][e ] += eas.emis(1,i);
+    dfdr   [mu][mu] += eas.emis(2,i);
+    dfbardr[mu][mu] += eas.emis(2,i);
     
     // in-scattering (currently assumes charged-current scattering)
-    dfdr   [e ][e ] += phaseVolDensity(eD[i](r)   , i) * eas.scat(0,i);//scatopac;
-    dfbardr[e ][e ] += phaseVolDensity(eBarD[i](r), i) * eas.scat(1,i);//scatopac;
+    dfdr   [e ][e ] += phaseVolDensity(eD[i](r)   , i) * eas.scat(0,i);
+    dfbardr[e ][e ] += phaseVolDensity(eBarD[i](r), i) * eas.scat(1,i);
 
     // Make sure dfdr is Hermitian
     dfdr   [mu][e ] = conj(dfdr   [e][mu]);

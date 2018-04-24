@@ -7,8 +7,8 @@
 #include "mstl.h"
 
 // physical constants
-const double clight = 2.99792458e10;
-const double hplanck = 1.0545716e-27;
+const double clight = 2.99792458e10; // cm/s
+const double hplanck = 1.0545716e-27; // erg.s
 const double MeV_to_ergs = 1.60217646e-6;
 
 inline bool hdf5_dataset_exists(const char* filename, const char* datasetname){
@@ -124,23 +124,19 @@ class EAS{
     return is + ig*ns + iv*ns*ng;
   }
 
-  void fix_units(){
-    for(int ig=0; ig<ng; ig++){
-      double Emid = __nulibtable_MOD_nulibtable_energies[ig]*MeV_to_ergs;
-      double dE = __nulibtable_MOD_nulibtable_ewidths[ig]*MeV_to_ergs;
-      double tmp = hplanck*hplanck*hplanck * clight*clight /  (Emid*Emid*Emid * dE);
-      for(int is=0; is<ns; is++)
-	storage[index(is,ig,0)] *= tmp;
-    }
+  double emis(int is,int ig){ // 1/cm
+    double Emid = __nulibtable_MOD_nulibtable_energies[ig]*MeV_to_ergs; // erg
+    double dE = __nulibtable_MOD_nulibtable_ewidths[ig]*MeV_to_ergs; // erg
+    double dE3 = pow(__nulibtable_MOD_nulibtable_etop[ig],3) - pow(__nulibtable_MOD_nulibtable_ebottom[ig],3);
+    dE3 *= pow(MeV_to_ergs,3);
+    double tmp = hplanck*hplanck*hplanck * clight*clight /  (Emid*dE3/3.);//Emid*Emid * dE); // 
+    double nulib_emis = storage[index(is,ig,0)]; // erg/ccm/s/sr
+    return nulib_emis * tmp;
   }
-
-  double emis(int is,int ig){
-    return storage[index(is,ig,0)];
-  }
-  double abs(int is,int ig){
+  double abs(int is,int ig){ // 1/cm
     return storage[index(is,ig,1)];
   }
-  double scat(int is,int ig){
+  double scat(int is,int ig){ // 1/cm
     return storage[index(is,ig,2)];
   }
   double Bnu(int is, int ig){

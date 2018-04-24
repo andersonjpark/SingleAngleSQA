@@ -91,44 +91,89 @@ void Outputvsr(ofstream &fout,
 
 void getP(const double r,
 	  const vector<vector<MATRIX<complex<double>,NF,NF> > > U0, 
-	  const vector<vector<MATRIX<complex<double>,NF,NF> > > fmatrixf, 
+	  const vector<vector<MATRIX<complex<double>,NF,NF> > > Scumulative, 
 	  vector<vector<MATRIX<complex<double>,NF,NF> > >& pmatrixf0,
 	  vector<vector<MATRIX<complex<double>,NF,NF> > >& pmatrixm0){
 
-  double hf[4]; // [state][pauli index] coefficients of Pauli matrices for f
-  double hp[4]; // pauli matrix coefficients for p
-  double hf_norm[3]; // components of isospin spatial unit vector
-  double hp_unosc[4]; // unoscillated potential has only diagonal elements
-  MATRIX<complex<double>,NF,NF> p_unosc;
-
   for(int i=0;i<=NE-1;i++){
     for(state m=matter; m<=antimatter; m++){
+      // get unoscillated potential
+      getPunosc(r, m, i, pmatrixf0[m][i]);
 
-      // decompose (oscillated) distribution function
-      pauli_decompose(fmatrixf[m][i], hf);
-      double hf_length = sqrt(hf[0]*hf[0] + hf[1]*hf[1] + hf[2]*hf[2]);
-      for(unsigned k=0; k<3; k++) hf_norm[k] = hf[k] / hf_length;
-
-      // decompose unoscillated potential
-      getPunosc(r, m, i, p_unosc);
-      pauli_decompose(p_unosc, hp_unosc);
-
-      // re-distribute p Pauli coefficients to have same flavor angle as f
-      //assert(hp_unosc[0] == 0);
-      //assert(hp_unosc[1] == 0);
-      double xyz_magnitude = sqrt(hp_unosc[0]*hp_unosc[0] + hp_unosc[1]*hp_unosc[1] + hp_unosc[2]*hp_unosc[2]);
-      for(unsigned k=0; k<3; k++)
-	hp[k] = hf_norm[k] * xyz_magnitude;
-      hp[3] = 0;//hp_unosc[3]; // subtracting half the trace
-
-      // reconstruct the potential matrix
-      pauli_reconstruct(hp, pmatrixf0[m][i]);
-
-      // put in mass basis
-      //pmatrixf0[m][i] = p_unosc;
-      pmatrixm0[m][i] = Adjoint(U0[m][i])
+      // oscillate the potential and put into the mass basis
+      pmatrixm0[m][i] = Scumulative[m][i]
+	* Adjoint(U0[m][i])
 	* pmatrixf0[m][i]
-	* U0[m][i];
+	* U0[m][i]
+	* Adjoint(Scumulative[m][i]);
+      pmatrixf0[m][i] =  U0[m][i] * pmatrixm0[m][i] * Adjoint(U0[m][i]);
+    }
+  }
+}
+
+void interact(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
+	      vector<vector<MATRIX<complex<double>,NF,NF> > >& Scumulative,
+	      vector<vector<MATRIX<complex<double>,NF,NF> > >& U0,
+	      double rho, double T, double Ye, double r, double dr){
+  // save old fmatrix
+  vector<vector<MATRIX<complex<double>,NF,NF> > > old_fmatrixf = fmatrixf;
+
+  // let neutrinos interact
+  my_interact(fmatrixf, rho, T, Ye, r, dr);
+  for(int i=0; i<NE; i++){
+    for(state m=matter; m<=antimatter; m++){
+      fmatrixm[m][i] = Adjoint(U0[m][i]) * fmatrixf[m][i] * U0[m][i];
+    }
+  }
+  
+  // loop through getting rotation matrices
+  double hold[4];
+  double hnew[4];
+  for(int i=0; i<NE; i++){
+    for(state m=matter; m<=antimatter; m++){
+      pauli_decompose(old_fmatrixf[m][i], hold);
+      pauli_decompose(    fmatrixf[m][i], hnew);
+
+      // get the cosine of the angle between the vectors
+      double oldmag   = sqrt(hold[0]*hold[0] + hold[1]*hold[1] + hold[2]*hold[2]);
+      double newmag   = sqrt(hnew[0]*hnew[0] + hnew[1]*hnew[1] + hnew[2]*hnew[2]);
+      double costheta = (hold[0]*hnew[0] + hold[1]*hnew[1] + hold[2]*hnew[2]) / (newmag*oldmag);
+      assert(costheta-1. < 1e-10);
+      costheta = min(1.,costheta);
+      
+      // get the axis of rotation
+      double lrot[3];
+      lrot[0] =   hold[1]*hnew[2] - hold[2]*hnew[1] ;
+      lrot[1] = -(hold[0]*hnew[2] - hold[2]*hnew[0]);
+      lrot[2] =   hold[0]*hnew[1] - hold[1]*hnew[0] ;
+      double lmag = sqrt(lrot[0]*lrot[0] + lrot[1]*lrot[1] + lrot[2]*lrot[2]);
+      if(lmag > 0)
+	for(unsigned i=0; i<3; i++) lrot[i] /= lmag;
+      else{
+	assert(abs(costheta-1.) < 1e-10 );
+	lrot[0] = 0;
+	lrot[1] = 0;
+	lrot[2] = 1;
+      }
+
+      // get the rotation operator in the flavor basis
+      double cost_2 = sqrt((1.+costheta)/2.);
+      double sint_2 = sqrt((1.-costheta)/2.);
+      MATRIX<complex<double>,NF,NF> R;
+      for(flavour f1=e; f1<=mu; f1++){
+	for(flavour f2=e; f2<=mu; f2++){
+	  R[f1][f2] = pauli[3][f1][f2] * cost_2;
+	  for(unsigned i=0; i<3; i++)
+	    R[f1][f2] -= I * sint_2 * lrot[i] * pauli[i][f1][f2];
+	  assert(abs(R[f1][f2]) <= 1.0+1e-10);
+	}
+      }
+
+      // rotate to the mass basis
+      R = MATRIX<complex<double>,NF,NF>(Adjoint(U0[m][i]) * R * U0[m][i]);
+      
+      // apply to Scumulative
+      Scumulative[m][i] = MATRIX<complex<double>,NF,NF>(R*Scumulative[m][i] );
     }
   }
 }
@@ -433,7 +478,7 @@ int main(int argc, char *argv[]){
     double T0 = temperature(rmin);
     double ye0 = Ye(rmin);
     initialize(fmatrixf,rmin,rho0,T0,ye0);
-    getP(rmin,U0,fmatrixf,pmatrixf0,pmatrixm0);
+    getP(rmin,U0,Scumulative,pmatrixf0,pmatrixm0);
 
     // ***************************************
     // quantities needed for the calculation *
@@ -588,7 +633,7 @@ int main(int argc, char *argv[]){
 		    for(int l=0;l<=k-1;l++)
 		      Y[m][i][x][j] += BB[k][l] * Ks[l][m][i][x][j];
 
-	    getP(r,U0,fmatrixf,pmatrixf0,pmatrixm0);
+	    getP(r,U0,Scumulative,pmatrixf0,pmatrixm0);
 	    K(r,dr,Y,C,A,Ks[k]);
 	  }
 	  
@@ -640,7 +685,7 @@ int main(int argc, char *argv[]){
 	}while(repeat==true); // end of RK section
 
 	// interact with the matter
-	//interact(fmatrixf, rho(r), temperature(r), Ye(r), r, dr);
+	interact(fmatrixf, Scumulative, U0, rho(r), temperature(r), Ye(r), r, dr);
 	for(state m=matter; m<=antimatter; m++)
 	  for(int i=0; i<NE; i++)
 	    for(flavour f1=e; f1<=mu; f1++)
