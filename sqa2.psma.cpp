@@ -119,7 +119,7 @@ void interact(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
   vector<vector<MATRIX<complex<double>,NF,NF> > > old_fmatrixf = fmatrixf;
 
   // let neutrinos interact
-  my_interact(fmatrixf, rho, T, Ye, r, dr);
+  my_interact(fmatrixf, Scumulative, rho, T, Ye, r, dr);
   for(int i=0; i<NE; i++){
     for(state m=matter; m<=antimatter; m++){
       fmatrixm[m][i] = Adjoint(U0[m][i]) * fmatrixf[m][i] * U0[m][i];

@@ -5,29 +5,34 @@
 //=======//
 // Ebins //
 //=======//
+double dE3(const unsigned i){
+  double dlogE = (log(E[NE-1]) - log(E[0])) / (NE-1.);
+  double Elow = exp(log(E[0]) + (i-0.5)*dlogE);
+  double Ehi  = exp(log(E[0]) + (i+0.5)*dlogE);
+  return pow(Ehi,3) - pow(Elow,3);
+}
 void set_Ebins(vector<double>& E){
   const double NEP=8;
-  cout<<"NE="<<NE << " NEP="<<NEP;
   E.resize(NE);
+  cout << endl;
+  cout<<"NE="<<NE << " NEP="<<NEP << endl;
   for(int i=0;i<NE;i++){
     unsigned ind = i;
     if(NE==1||NE==2||NE==4) ind = i*NEP/NE+NEP/NE/2;
 
-    E[i] = 1.e6*cgs::units::eV * exp(log(2*1000000) + ind*(log(37.48*1000000) - log(2*1000000))/(NE-1))/1000000;
+    double lEtop = log(37.48 * 1e6*cgs::units::eV) ; //erg
+    double lEbottom = log(2. * 1e6*cgs::units::eV) ; //erg
+    double dlE = (lEtop-lEbottom)/(NE-1);
+    E[i] =  exp(lEbottom + ind*dlE);
 
-    cout<<E[i]<<endl;
-    cout.flush();
+    cout << E[i]/(1.e6*cgs::units::eV) << " ";
+    cout << exp(lEbottom + (ind-0.5)*dlE)/(1.e6*cgs::units::eV) << " ";
+    cout << exp(lEbottom + (ind+0.5)*dlE)/(1.e6*cgs::units::eV) << endl;
   }
   cout.flush();
 }
-double dE(const unsigned i){
-  double dlogE = (log(E[NE-1]) - log(E[0])) / (NE-1.);
-  double Elow = exp(log(E[0]) + (i-0.5)*dlogE);
-  double Ehi  = exp(log(E[0]) + (i+0.5)*dlogE);
-  return Ehi - Elow;
-}
 double phaseVolDensity(const double density, const unsigned i){
-  double phaseSpaceVol = 4.*M_PI * E[i]*E[i]*dE(i) / pow(2.*M_PI*cgs::constants::hbarc,3);
+  double phaseSpaceVol = 4.*M_PI * dE3(i)/3. / pow(2.*M_PI*cgs::constants::hbarc,3);
   return density / phaseSpaceVol;
 }
 
@@ -42,7 +47,7 @@ void initialize(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
   cout << "T = " << T << " MeV" << endl;
   cout << "Ye = " << Ye << endl;
   double Ye_in = max(Ye,__nulibtable_MOD_nulibtable_ye_min);
-  nulibtable_range_species_range_energy_(&rho, &T, &Ye_in, &eas.storage.front(),
+  nulibtable_range_species_range_energy_(&rho, &T, &Ye_in, &eas.eas.front(),
   					 &__nulibtable_MOD_nulibtable_number_species,
   					 &__nulibtable_MOD_nulibtable_number_groups,
   					 &__nulibtable_MOD_nulibtable_number_easvariables);
@@ -137,10 +142,11 @@ void getPunosc(const double r, const state m, const unsigned ig,
 
 
 void my_interact(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
-	      double rho, double T, double Ye, double r, double dr){
+		 vector<vector<MATRIX<complex<double>,NF,NF> > >& Scumulative,
+		 double rho, double T, double Ye, double r, double dr){
 
   // set up rate matrix
-  MATRIX<complex<double>,NF,NF> dfdr, dfbardr;
+  MATRIX<complex<double>,NF,NF> dfdr, dfbardr, fBackground, fbarBackground;
 
   // don't do anything if too sparse
   if(log10(rho) <= __nulibtable_MOD_nulibtable_logrho_min)
@@ -148,7 +154,7 @@ void my_interact(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
 
   // T should be MeV
   double T_tmp = 10.0;
-  nulibtable_range_species_range_energy_(&rho, &T_tmp, &Ye, &eas.storage.front(),
+  nulibtable_range_species_range_energy_(&rho, &T_tmp, &Ye, &eas.eas.front(),
   					 &__nulibtable_MOD_nulibtable_number_species,
   					 &__nulibtable_MOD_nulibtable_number_groups,
   					 &__nulibtable_MOD_nulibtable_number_easvariables);
@@ -181,10 +187,42 @@ void my_interact(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
     dfdr   [mu][mu] += eas.emis(2,i);
     dfbardr[mu][mu] += eas.emis(2,i);
     
-    // in-scattering (currently assumes charged-current scattering)
-    dfdr   [e ][e ] += phaseVolDensity(eD[i](r)   , i) * eas.scat(0,i);
-    dfbardr[e ][e ] += phaseVolDensity(eBarD[i](r), i) * eas.scat(1,i);
-
+    // in-scattering
+    fBackground[e ][e ]    = phaseVolDensity(   eD[i](r), i);
+    fBackground[mu][mu]    = phaseVolDensity(   xD[i](r), i);
+    fbarBackground[e ][e ] = phaseVolDensity(eBarD[i](r), i);
+    fbarBackground[mu][mu] = phaseVolDensity(   xD[i](r), i);
+    fBackground[e][mu]     = 0;
+    fBackground[mu][e]     = 0;
+    fbarBackground[e][mu]  = 0;
+    fbarBackground[mu][e]  = 0;
+    fBackground = U0[matter][i]
+      * Scumulative[matter][i]
+      * Adjoint(U0[matter][i])
+      * fBackground
+      * U0[matter][i]
+      * Adjoint(Scumulative[matter][i])
+      * Adjoint(U0[matter][i]);
+    fbarBackground = U0[antimatter][i]
+      * Scumulative[antimatter][i]
+      * Adjoint(U0[antimatter][i])
+      * fbarBackground
+      * U0[antimatter][i]
+      * Adjoint(Scumulative[antimatter][i])
+      * Adjoint(U0[antimatter][i]);
+    kappa_e    = eas.scat(0,i);
+    kappa_ebar = eas.scat(1,i);
+    kappa_mu   = eas.scat(2,i);
+    kappa_avg    = 0.5*(kappa_e   +kappa_mu);
+    kappa_avgbar = 0.5*(kappa_ebar+kappa_mu);
+    dfdr   [e ][e ] +=    fBackground[e ][e ] * eas.scat(0,i);
+    dfdr   [mu][mu] +=    fBackground[mu][mu] * eas.scat(2,i);
+    dfbardr[e ][e ] += fbarBackground[e ][e ] * eas.scat(1,i);
+    dfbardr[mu][mu] += fbarBackground[mu][mu] * eas.scat(2,i);
+    // assume x scatter contains all the neutral-current contribution
+    dfdr   [e ][mu] +=    fBackground[e ][mu] * eas.scat(2,i);
+    dfbardr[e ][mu] += fbarBackground[e ][mu] * eas.scat(2,i);
+    
     // Make sure dfdr is Hermitian
     dfdr   [mu][e ] = conj(dfdr   [e][mu]);
     dfbardr[mu][e ] = conj(dfbardr[e][mu]);
@@ -192,8 +230,8 @@ void my_interact(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
     // update fmatrixf
     for(flavour f1=e; f1<=mu; f1++)
       for(flavour f2=e; f2<=mu; f2++){
-	fmatrixf[    matter][i][f1][f2] += dfdr[f1][f2]    * dr;
-	fmatrixf[antimatter][i][f1][f2] += dfbardr[f1][f2] * dr;
+    	fmatrixf[    matter][i][f1][f2] +=    dfdr[f1][f2] * dr;
+    	fmatrixf[antimatter][i][f1][f2] += dfbardr[f1][f2] * dr;
       }
 
     // check that everything makes sense

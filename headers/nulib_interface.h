@@ -111,17 +111,27 @@ extern "C"{
 class EAS{
  public:
   int ns, ng, nv;
-  vector<double> storage;
+  vector<double> eas;
+  vector<double> escat_kernel0;
+  vector<double> escat_kernel1;
 
-  void resize(int ns_in, int ng_in, int nv_in){
+  void resize(int ns_in, int ng_in, int nv_in, int read_Ielectron){
     ns = ns_in;
     ng = ng_in;
     nv = nv_in;
-    storage.resize(ns*ng*nv);
+    eas.resize(ns*ng*nv);
+    if(read_Ielectron){
+      escat_kernel0.resize(ns*ng*ng*2);
+      escat_kernel1.resize(ns*ng*ng*2);
+    }
   }
 
   int index(int is,int ig,int iv){
     return is + ig*ns + iv*ns*ng;
+  }
+
+  int kernel_index(int is,int igin, int igout){
+    return is + igin*ns + igout*ns*ng;
   }
 
   double emis(int is,int ig){ // 1/cm
@@ -130,17 +140,31 @@ class EAS{
     double dE3 = pow(__nulibtable_MOD_nulibtable_etop[ig],3) - pow(__nulibtable_MOD_nulibtable_ebottom[ig],3);
     dE3 *= pow(MeV_to_ergs,3);
     double tmp = hplanck*hplanck*hplanck * clight*clight /  (Emid*dE3/3.);//Emid*Emid * dE); // 
-    double nulib_emis = storage[index(is,ig,0)]; // erg/ccm/s/sr
+    double nulib_emis = eas[index(is,ig,0)]; // erg/ccm/s/sr
     return nulib_emis * tmp;
   }
   double abs(int is,int ig){ // 1/cm
-    return storage[index(is,ig,1)];
+    return eas[index(is,ig,1)];
   }
   double scat(int is,int ig){ // 1/cm
-    return storage[index(is,ig,2)];
+    return eas[index(is,ig,2)];
+  }
+  double delta(int is,int ig){ // 1/cm
+    if(nv==4) return eas[index(is,ig,3)];
+    else return 0;
   }
   double Bnu(int is, int ig){
     return emis(is,ig) / abs(is,ig);
+  }
+  double Phi0(int is,int igin, int igout){ // 1/cm
+    if(escat_kernel0.size() > 0)
+      return escat_kernel0[kernel_index(is,igin,igout)];
+    else return 0;
+  }
+  double Phi1(int is,int igin, int igout){ // 1/cm
+    if(escat_kernel1.size() > 0)
+      return escat_kernel1[kernel_index(is,igin,igout)];
+    else return 0;
   }
 };
 EAS eas;
@@ -169,7 +193,8 @@ void nulib_init(string filename, int use_scattering_kernels){
 
   eas.resize(__nulibtable_MOD_nulibtable_number_species,
 	     __nulibtable_MOD_nulibtable_number_groups,
-	     __nulibtable_MOD_nulibtable_number_easvariables);
+	     __nulibtable_MOD_nulibtable_number_easvariables,
+	     read_Ielectron);
 
 }
 

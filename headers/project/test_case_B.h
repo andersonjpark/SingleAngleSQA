@@ -98,6 +98,7 @@ void getPunosc(const double r, const state m, const unsigned ig,
 }
 
 void my_interact(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
+		 vector<vector<MATRIX<complex<double>,NF,NF> > >& Scumulative,
 	      double rho, double T, double Ye, double r, double dr){
   double kappa = deltaV(E[0]) / (cgs::constants::hbarc * M_2PI)/100.;
   double tmp = 0;
