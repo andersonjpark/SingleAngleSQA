@@ -66,6 +66,8 @@ vector<vector<MATRIX<complex<double>,NF,NF> > > pmatrixf0(NM), pmatrixm0(NM);
 vector<vector<MATRIX<complex<double>,NF,NF> > > fmatrixf(NM), fmatrixm(NM);
 vector<DISCONTINUOUS> eP,eBarP,xP;
 vector<DISCONTINUOUS> eD,eBarD,xD;
+vector<vector<double> > dphi_dr_interact, dtheta_dr_interact;
+vector<vector<double> > dphi_dr_osc,      dtheta_dr_osc;
 
 MATRIX<complex<double>,NF,NF> B(vector<double> y);
 void K(double r,
@@ -77,6 +79,7 @@ void K(double r,
 void Outputvsr(ofstream &fout,
 	       ofstream &foutP,
 	       ofstream &foutf,
+	       ofstream &foutdangledr,	       
 	       ofstream *foutPvsr,
 	       ofstream *foutFvsr,
 	       double r,
@@ -138,8 +141,15 @@ void interact(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
       double oldmag   = sqrt(hold[0]*hold[0] + hold[1]*hold[1] + hold[2]*hold[2]);
       double newmag   = sqrt(hnew[0]*hnew[0] + hnew[1]*hnew[1] + hnew[2]*hnew[2]);
       double costheta = (hold[0]*hnew[0] + hold[1]*hnew[1] + hold[2]*hnew[2]) / (newmag*oldmag);
+      if(oldmag==0 or newmag==0){
+	dphi_dr_interact[i][m] = 0;
+	dtheta_dr_interact[i][m] = 0;
+	continue;
+      }
       assert(costheta-1. < 1e-10);
       costheta = min(1.,costheta);
+      dphi_dr_interact[i][m] = (acos(hnew[2]/newmag) - acos(hold[2]/oldmag)) / dr;
+      dtheta_dr_interact[i][m] = (atan2(hnew[1],hnew[0]) - atan2(hold[1],hold[0])) / dr;
       
       // get the axis of rotation
       double lrot[3];
@@ -155,7 +165,7 @@ void interact(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
 	lrot[1] = 0;
 	lrot[2] = 1;
       }
-
+      
       // get the rotation operator in the flavor basis
       double cost_2 = sqrt((1.+costheta)/2.);
       double sint_2 = sqrt((1.-costheta)/2.);
@@ -173,7 +183,7 @@ void interact(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
       R = MATRIX<complex<double>,NF,NF>(Adjoint(U0[m][i]) * R * U0[m][i]);
       
       // apply to Scumulative
-      Scumulative[m][i] = MATRIX<complex<double>,NF,NF>(R*Scumulative[m][i] );
+      Scumulative[m][i] = MATRIX<complex<double>,NF,NF>(R*Scumulative[m][i] * Adjoint(R) );
     }
   }
 }
@@ -187,7 +197,7 @@ int main(int argc, char *argv[]){
   try{ 
     int in=1;
     string inputfilename,potential_directory;
-    ofstream fout,foutC,foutP,foutS, foutf;
+    ofstream fout,foutC,foutP,foutS, foutf, foutdangledr;
     string outputfilename,rhofilename, Yefilename, vfilename, spectrapath, nulibfilename, temperaturefilename;
     string outputfilenamestem;
     string note;
@@ -272,6 +282,10 @@ int main(int argc, char *argv[]){
     eD.resize(NE);
     eBarD.resize(NE);
     xD.resize(NE);
+    dtheta_dr_interact = vector< vector<double> > (NE, vector<double>(2,0) );
+    dphi_dr_interact = vector< vector<double> > (NE, vector<double>(2,0) );
+    dtheta_dr_osc      = vector< vector<double> > (NE, vector<double>(2,0) );
+    dphi_dr_osc      = vector< vector<double> > (NE, vector<double>(2,0) );
     
     // load and compute spectral data
     for(int i=0;i<=NE-1;i++){
@@ -290,9 +304,12 @@ int main(int argc, char *argv[]){
     foutP.open((outputfilename+"/2p.dat").c_str());
     foutP.precision(12);
     foutP.flush();
+    fout.open((outputfilename+"/out.dat").c_str());
+    fout.precision(12);
     foutf.open((outputfilename+"/f.dat").c_str());
     foutf.precision(12);
     foutf << "# 1:r ";
+    fout << "# 1:r ";
     for(int i=0; i<NE; i++)
       for(state m=matter; m<=antimatter; m++)
 	for(flavour f1=e; f1<=mu; f1++)
@@ -300,14 +317,32 @@ int main(int argc, char *argv[]){
 	    int istart = 2*( f2 + f1*2 + m*2*2 + i*2*2*2) + 2;
 	    foutf << istart   << ":ie"<<i<<"m"<<m<<"f"<<f1<<f2<<"R\t";
 	    foutf << istart+1 << ":ie"<<i<<"m"<<m<<"f"<<f1<<f2<<"I\t";
+	    fout  << istart   << ":ie"<<i<<"m"<<m<<"f"<<f1<<f2<<"R\t";
+	    fout  << istart+1 << ":ie"<<i<<"m"<<m<<"f"<<f1<<f2<<"I\t";
     }
     foutf << endl;
+    fout << endl;
+    fout.flush();
     foutf.flush();
     
-    fout.open((outputfilename+"/out.dat").c_str());
-    fout.precision(12);
-    fout.flush();
-
+    foutdangledr.open((outputfilename+"/dangledr.dat").c_str());
+    foutdangledr.precision(12);
+    foutdangledr << "# 1:r ";
+    for(state m=matter; m<=antimatter; m++)
+      for(int i=0; i<NE; i++)
+	foutdangledr << 2+0*NE*2 + i + m*NE << ":OscThetaie"<<i<<"m"<<m<<"\t";
+    for(state m=matter; m<=antimatter; m++)
+      for(int i=0; i<NE; i++)
+	foutdangledr << 2+1*NE*2 + i + m*NE << ":OscPhiie"<<i<<"m"<<m<<"\t";
+    for(state m=matter; m<=antimatter; m++)
+      for(int i=0; i<NE; i++)
+	foutdangledr << 2+2*NE*2 + i + m*NE << ":InteractThetaie"<<i<<"m"<<m<<"\t";
+    for(state m=matter; m<=antimatter; m++)
+      for(int i=0; i<NE; i++)
+	foutdangledr << 2+3*NE*2 + i + m*NE << ":InteractPhiie"<<i<<"m"<<m<<"\t";
+    foutdangledr << endl;
+    foutdangledr.flush();
+    
     ofstream foutPvsr[NE],foutFvsr[NE];
     ofstream fPvsE, fFvsE;
     
@@ -551,7 +586,7 @@ int main(int argc, char *argv[]){
 	
       finish=output=false;
       counterout=1;
-      Outputvsr(fout,foutP,foutf,foutPvsr,foutFvsr,r,Y,C,A,Scumulative);
+      Outputvsr(fout,foutP,foutf,foutdangledr,foutPvsr,foutFvsr,r,Y,C,A,Scumulative);
 	
       for(state m=matter; m<=antimatter; m++)
 	for(int i=0; i<NE; i++)
@@ -660,13 +695,14 @@ int main(int argc, char *argv[]){
 		assert(fmatrixf[m][i][f1][f2] == fmatrixf[m][i][f1][f2]);
 
 	// accumulate S and reset variables
+	vector<vector<MATRIX<complex<double>,NF,NF> > > old_fmatrixf = fmatrixf;
 	for(state m=matter;m<=antimatter;m++){
 	  for(int i=0;i<=NE-1;i++){
 	    SSMSW = W(Y[m][i][msw])*B(Y[m][i][msw]);
 	    SSSI  = W(Y[m][i][si ])*B(Y[m][i][si ]);
-	    SThisStep = SSMSW*SSSI;	
+	    SThisStep = SSMSW*SSSI;
 	    Scumulative[m][i]=MATRIX<complex<double>,NF,NF>(SThisStep*Scumulative[m][i] );
-	    
+
 	    // convert fmatrix from flavor basis to mass basis
 	    // oscillate fmatrix in mass basis
 	    // convert back to flavor basis.
@@ -700,6 +736,18 @@ int main(int argc, char *argv[]){
 	    Y[m][i][si][2]=0.;
 	    Y[m][i][si][3]=1.;
 	    Y[m][i][si][4]=Y[m][i][si][5]=0.;
+
+	    // get rate of change of fmatrix from oscillation
+	    double hold[4], hnew[4];
+	    pauli_decompose(old_fmatrixf[m][i], hold);
+	    pauli_decompose(    fmatrixf[m][i], hnew);
+	    double oldmag   = sqrt(hold[0]*hold[0] + hold[1]*hold[1] + hold[2]*hold[2]);
+	    double newmag   = sqrt(hnew[0]*hnew[0] + hnew[1]*hnew[1] + hnew[2]*hnew[2]);
+	    double costheta = (hold[0]*hnew[0] + hold[1]*hnew[1] + hold[2]*hnew[2]) / (newmag*oldmag);
+	    assert(costheta-1. < 1e-10);
+	    costheta = min(1.,costheta);
+	    dtheta_dr_osc[i][m] = (acos(hnew[2]/newmag) - acos(hold[2]/oldmag)) / dr;
+	    dphi_dr_osc[i][m] = (atan2(hnew[1],hnew[0]) - atan2(hold[1],hold[0])) / dr;
 	  }
 	}
 
@@ -711,7 +759,7 @@ int main(int argc, char *argv[]){
 	else counterout++;
 	
 	if(output==true || finish==true){
-	  Outputvsr(fout,foutP,foutf,foutPvsr,foutFvsr,r,Y,C,A,Scumulative);
+	  Outputvsr(fout,foutP,foutf,foutdangledr,foutPvsr,foutFvsr,r,Y,C,A,Scumulative);
 	  output=false;
 	}
 
@@ -734,7 +782,7 @@ int main(int argc, char *argv[]){
 	A=UpdateA(C,C0,A0);
       }
       else{ // output at the end of the code
-	Outputvsr(fout,foutP,foutf,foutPvsr,foutFvsr,rs[d+1],Y,C,A,Scumulative);
+	Outputvsr(fout,foutP,foutf,foutdangledr,foutPvsr,foutFvsr,rs[d+1],Y,C,A,Scumulative);
 	//OutputvsE(fPvsE,fFvsE,rs[d+1],Y,C,A,Scumulative);
       }
 
@@ -1016,6 +1064,7 @@ void K(double r,
 void Outputvsr(ofstream &fout,
 	       ofstream &foutP,
 	       ofstream &foutf,
+	       ofstream &foutdangledr,
 	       ofstream *foutPvsr,
 	       ofstream *foutFvsr,
 	       double r,
@@ -1135,6 +1184,7 @@ void Outputvsr(ofstream &fout,
   //VfSI[matter]*=NSI*CSI(r);
   VfSI[antimatter] = -Conjugate(VfSI[matter]);
 
+  /*
   for(int i=0;i<=NE-1;i++){
     //foutPvsr[i]<<"\n"<<E[i]/(giga*cgs::units::eV);
     foutPvsr[i]<<"\n"<<r;
@@ -1214,24 +1264,34 @@ void Outputvsr(ofstream &fout,
 
     foutFvsr[i].flush();
   }
-
+  */
   /////////////////////////////////////////////////////////////////////
 
+  fout << r << "\t";
+  for(int i=0; i<NE; i++)
+    for(state m=matter; m<=antimatter; m++){
+      for(flavour f1=e; f1<=mu; f1++)
+	for(flavour f2=e; f2<=mu; f2++) {
+	  fout << real(Scumulative[m][i][f1][f2] ) << "\t";
+	  fout << imag(Scumulative[m][i][f1][f2] ) << "\t";
+	}
+    }
+  fout << endl;
+  fout.flush();
   for(int i=0;i<NE;i++){
-    fout<<norm(Sf[    matter][i][e ][e ])<<"\t"<<norm(Sf[antimatter][i][e ][e ])<<"\t";
-    fout<<real(Sf[    matter][i][e ][e ])<<"\t"<<imag(Sf[    matter][i][e ][e ])<<"\t";
-    fout<<real(Sf[antimatter][i][e ][e ])<<"\t"<<imag(Sf[antimatter][i][e ][e ])<<"\t";
-    fout<<real(Sf[    matter][i][e ][mu])<<"\t"<<imag(Sf[    matter][i][e ][mu])<<"\t";
-    fout<<real(Sf[antimatter][i][e ][mu])<<"\t"<<imag(Sf[antimatter][i][e ][mu])<<"\t";
-    fout<<real(Sf[    matter][i][mu][e ])<<"\t"<<imag(Sf[    matter][i][mu][e ])<<"\t";
-    fout<<real(Sf[antimatter][i][mu][e ])<<"\t"<<imag(Sf[antimatter][i][mu][e ])<<"\t";
-    fout<<real(Sf[    matter][i][mu][mu])<<"\t"<<imag(Sf[    matter][i][mu][mu])<<"\t";
-    fout<<real(Sf[antimatter][i][mu][mu])<<"\t"<<imag(Sf[antimatter][i][mu][mu])<<"\t";
-    fout<<norm(Sf[    matter][i][mu][mu])<<"\t"<<norm(Sf[antimatter][i][mu][mu])<<"\t";
-    fout<<dm21/(4*E[i])*cgs::constants::c4<<"\t";
+  //   fout<<norm(Sf[    matter][i][e ][e ])<<"\t"<<norm(Sf[antimatter][i][e ][e ])<<"\t";
+  //   fout<<real(Sf[    matter][i][e ][e ])<<"\t"<<imag(Sf[    matter][i][e ][e ])<<"\t";
+  //   fout<<real(Sf[antimatter][i][e ][e ])<<"\t"<<imag(Sf[antimatter][i][e ][e ])<<"\t";
+  //   fout<<real(Sf[    matter][i][e ][mu])<<"\t"<<imag(Sf[    matter][i][e ][mu])<<"\t";
+  //   fout<<real(Sf[antimatter][i][e ][mu])<<"\t"<<imag(Sf[antimatter][i][e ][mu])<<"\t";
+  //   fout<<real(Sf[    matter][i][mu][e ])<<"\t"<<imag(Sf[    matter][i][mu][e ])<<"\t";
+  //   fout<<real(Sf[antimatter][i][mu][e ])<<"\t"<<imag(Sf[antimatter][i][mu][e ])<<"\t";
+  //   fout<<real(Sf[    matter][i][mu][mu])<<"\t"<<imag(Sf[    matter][i][mu][mu])<<"\t";
+  //   fout<<real(Sf[antimatter][i][mu][mu])<<"\t"<<imag(Sf[antimatter][i][mu][mu])<<"\t";
+  //   fout<<norm(Sf[    matter][i][mu][mu])<<"\t"<<norm(Sf[antimatter][i][mu][mu])<<"\t";
+  //   fout<<dm21/(4*E[i])*cgs::constants::c4<<"\t";
 
     fout.flush();
-
     Pe    [i] = norm(Sf[    matter][i][e ][e ]);
     Pebar [i] = norm(Sf[antimatter][i][e ][e ]);
     Pheavy[i] = norm(Sf[    matter][i][mu][mu]);
@@ -1240,11 +1300,14 @@ void Outputvsr(ofstream &fout,
   foutP<<r<<"\t"<<Ve(rrho,YYe)<<"\t";//1,2
   foutP<<real(VfSI[    matter][e ][e ])<<"\t"<<real(VfSI[    matter][mu][mu])<<"\t";
   foutP<<real(VfSI[antimatter][e ][e ])<<"\t"<<real(VfSI[antimatter][mu][mu])<<"\t";//3,4,5,6
+  /*
   fout <<real(VfSI[    matter][e ][e ])<<"\t"<<imag(VfSI[    matter][e ][e ])<<"\t";
   fout <<real(VfSI[    matter][mu][mu])<<"\t"<<imag(VfSI[    matter][mu][mu]);
   fout <<real(VfSI[antimatter][e ][e ])<<"\t"<<imag(VfSI[antimatter][e ][e ])<<"\t";
   fout <<real(VfSI[antimatter][mu][mu])<<"\t"<<imag(VfSI[antimatter][mu][mu]);
-
+  fout<<endl;
+  fout.flush();
+  */
   Pvalues = averageProbability(Pe,Pebar,Pheavy,ebarPotentialSum,ePotentialSum,heavyPotentialSum);
   totalNuFlux = Pvalues[3];
   totalANuFlux =Pvalues[4];
@@ -1258,10 +1321,8 @@ void Outputvsr(ofstream &fout,
   foutP<<predP[0]<<"\t"<<predP[1+NE]<<"\t";//13,14
   for(int i=0;i<NE;i++) foutP<<predP[1+i]<<"\t"<<predP[(NE+1)+i+1]<<"\t";//15,16,...2*(NE-1)+15,
   foutP<<predP[(NE+1)*2]<<"\t"<<predP[(NE+1)*2+1]<<"\t";//2*(NE-1)+17,2*(NE-1)+18
-  fout<<endl;
   foutP<<endl;
   foutP.flush();
-  fout.flush();
 
   foutf << r << "\t";
   for(int i=0; i<NE; i++)
@@ -1271,6 +1332,24 @@ void Outputvsr(ofstream &fout,
 	  foutf << real( fmatrixf[m][i][f1][f2] ) << "\t";
 	  foutf << imag( fmatrixf[m][i][f1][f2] ) << "\t";
 	}
+  
+
   foutf << endl;
   foutf.flush();
+
+  foutdangledr << r << "\t";
+  for(state m=matter; m<=antimatter; m++)
+    for(int i=0; i<NE; i++)
+      foutdangledr << dtheta_dr_osc[i][m] << "\t";
+  for(state m=matter; m<=antimatter; m++)
+    for(int i=0; i<NE; i++)
+      foutdangledr << dphi_dr_osc[i][m] << "\t";
+  for(state m=matter; m<=antimatter; m++)
+    for(int i=0; i<NE; i++)
+      foutdangledr << dtheta_dr_interact[i][m] << "\t";
+  for(state m=matter; m<=antimatter; m++)
+    for(int i=0; i<NE; i++)
+      foutdangledr << dphi_dr_interact[i][m] << "\t";
+  foutdangledr << endl;
+  foutdangledr.flush();
 }
