@@ -1,0 +1,16 @@
+nulibfilename
+potential_directory
+rhofilename
+Yefilename
+temperaturefilename
+outputfilename
+rmin - minimum radius (cm) from the beginning of the profile. Must be at least 1
+rmax - maximum radius (cm) at which to end the calculation
+NE - number of energy bins
+dm21 - mass squared difference (eV^2)
+theta12V
+accuracy
+note - used for filenames
+artificial_scaling - artificially change the length scale of the profile
+do_interact - include absorption/emission/scattering?
+
