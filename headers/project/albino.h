@@ -144,7 +144,8 @@ void getPunosc(const double r, const state m, const unsigned ig,
 void my_interact(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
 		 vector<vector<MATRIX<complex<double>,NF,NF> > >& Scumulative,
 		 double rho, double T, double Ye, double r, double dr){
-
+  const double sin2thetaW = 0.23122;
+  
   // set up rate matrix
   MATRIX<complex<double>,NF,NF> dfdr, dfbardr, fBackground, fbarBackground;
 
@@ -153,8 +154,7 @@ void my_interact(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
     return;
 
   // T should be MeV
-  double T_tmp = 10.0;
-  nulibtable_range_species_range_energy_(&rho, &T_tmp, &Ye, &eas.eas.front(),
+  nulibtable_range_species_range_energy_(&rho, &T, &Ye, &eas.eas.front(),
   					 &__nulibtable_MOD_nulibtable_number_species,
   					 &__nulibtable_MOD_nulibtable_number_groups,
   					 &__nulibtable_MOD_nulibtable_number_easvariables);
@@ -213,15 +213,17 @@ void my_interact(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
     kappa_e    = eas.scat(0,i);
     kappa_ebar = eas.scat(1,i);
     kappa_mu   = eas.scat(2,i);
-    kappa_avg    = 0.5*(kappa_e   +kappa_mu);
-    kappa_avgbar = 0.5*(kappa_ebar+kappa_mu);
+    kappa_avg       = (kappa_e    + kappa_mu) / 2.;
+    kappa_avgbar    = (kappa_ebar + kappa_mu) / 2.;
+    double kappa_tilde     = (kappa_e    - kappa_mu) / (4.*sin2thetaW);
+    double kappa_tildebar  = (kappa_ebar - kappa_mu) / (4.*sin2thetaW);
     dfdr   [e ][e ] +=    fBackground[e ][e ] * eas.scat(0,i);
     dfdr   [mu][mu] +=    fBackground[mu][mu] * eas.scat(2,i);
     dfbardr[e ][e ] += fbarBackground[e ][e ] * eas.scat(1,i);
     dfbardr[mu][mu] += fbarBackground[mu][mu] * eas.scat(2,i);
     // assume x scatter contains all the neutral-current contribution
-    dfdr   [e ][mu] +=    fBackground[e ][mu] * eas.scat(2,i);
-    dfbardr[e ][mu] += fbarBackground[e ][mu] * eas.scat(2,i);
+    dfdr   [e ][mu] +=    fBackground[e ][mu] * (kappa_avg    - kappa_tilde);
+    dfbardr[e ][mu] += fbarBackground[e ][mu] * (kappa_avgbar - kappa_tildebar);
     
     // Make sure dfdr is Hermitian
     dfdr   [mu][e ] = conj(dfdr   [e][mu]);
