@@ -137,53 +137,38 @@ void interact(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
       pauli_decompose(old_fmatrixf[m][i], hold);
       pauli_decompose(    fmatrixf[m][i], hnew);
 
-      // get the cosine of the angle between the vectors
-      double oldmag   = sqrt(hold[0]*hold[0] + hold[1]*hold[1] + hold[2]*hold[2]);
-      double newmag   = sqrt(hnew[0]*hnew[0] + hnew[1]*hnew[1] + hnew[2]*hnew[2]);
-      double costheta = (hold[0]*hnew[0] + hold[1]*hnew[1] + hold[2]*hnew[2]) / (newmag*oldmag);
-      if(oldmag==0 or newmag==0){
-	dphi_dr_interact[i][m] = 0;
-	dtheta_dr_interact[i][m] = 0;
+      // get the theta and phi contribution
+      double oldmag2   = hold[0]*hold[0] + hold[1]*hold[1] + hold[2]*hold[2];
+      double newmag2   = hnew[0]*hnew[0] + hnew[1]*hnew[1] + hnew[2]*hnew[2];
+      if(oldmag2==0 or newmag2==0){
 	continue;
       }
-      assert(costheta-1. < 1e-10);
-      costheta = min(1.,costheta);
-      dphi_dr_interact[i][m] = (acos(hnew[2]/newmag) - acos(hold[2]/oldmag)) / dr;
-      dtheta_dr_interact[i][m] = (atan2(hnew[1],hnew[0]) - atan2(hold[1],hold[0])) / dr;
-      
+      dtheta_dr_interact[i][m] = (acos(hnew[2]/sqrt(newmag2)) - acos(hold[2]/sqrt(oldmag2))) / dr;
+      dphi_dr_interact[i][m] = (atan2(hnew[1],hnew[0]) - atan2(hold[1],hold[0])) / dr;
+
       // get the axis of rotation
       double lrot[3];
       lrot[0] =   hold[1]*hnew[2] - hold[2]*hnew[1] ;
       lrot[1] = -(hold[0]*hnew[2] - hold[2]*hnew[0]);
       lrot[2] =   hold[0]*hnew[1] - hold[1]*hnew[0] ;
-      double lmag = sqrt(lrot[0]*lrot[0] + lrot[1]*lrot[1] + lrot[2]*lrot[2]);
+      double lmag2 = lrot[0]*lrot[0] + lrot[1]*lrot[1] + lrot[2]*lrot[2];
+      double lmag = sqrt(lmag2);
+      double sinalpha = sqrt(lmag2 / (oldmag2*newmag2));
       if(lmag > 0)
-	for(unsigned i=0; i<3; i++) lrot[i] /= lmag;
-      else{
-	assert(abs(costheta-1.) < 1e-10 );
-	lrot[0] = 0;
-	lrot[1] = 0;
-	lrot[2] = 1;
-      }
-      
-      // get the rotation operator in the flavor basis
-      double cost_2 = sqrt((1.+costheta)/2.);
-      double sint_2 = sqrt((1.-costheta)/2.);
-      MATRIX<complex<double>,NF,NF> R;
-      for(flavour f1=e; f1<=mu; f1++){
-	for(flavour f2=e; f2<=mu; f2++){
-	  R[f1][f2] = pauli[3][f1][f2] * cost_2;
-	  for(unsigned i=0; i<3; i++)
-	    R[f1][f2] -= I * sint_2 * lrot[i] * pauli[i][f1][f2];
-	  assert(abs(R[f1][f2]) <= 1.0+1e-10);
-	}
-      }
+	for(unsigned i=0; i<3; i++) lrot[i] /= sqrt(lmag);
+      else continue;
 
-      // rotate to the mass basis
-      R = MATRIX<complex<double>,NF,NF>(Adjoint(U0[m][i]) * R * U0[m][i]);
+      // get the rotation operator in the flavor basis
+      double alpha = asin(sinalpha);
+      complex<double> Rcoeff[4];
+      for(int i=0; i<3; i++) Rcoeff[i] = -I * sin(alpha/2.) * lrot[i];
+      Rcoeff[3] = cos(alpha/2.);
       
+      MATRIX<complex<double>,NF,NF> R;
+      pauli_reconstruct(Rcoeff, R);
+
       // apply to Scumulative
-      Scumulative[m][i] = MATRIX<complex<double>,NF,NF>(R*Scumulative[m][i] * Adjoint(R) );
+      Scumulative[m][i] = MATRIX<complex<double>,NF,NF>(Adjoint(U0[m][i]) * R * U0[m][i] * Scumulative[m][i]);
     }
   }
 }
@@ -485,7 +470,7 @@ int main(int argc, char *argv[]){
     // ***************************************
     // quantities needed for the calculation *
     // ***************************************
-    double r,r0,dr,drmin;
+    double r,r0,dr,drmin,dr_this_step;
     int ND;
     vector<double> rs;
     
@@ -671,6 +656,7 @@ int main(int argc, char *argv[]){
 		  maxerror = max( maxerror, fabs(Yerror[m][i][x][j]) );
 	    
 	  // decide whether to accept step, if not adjust step size
+	  dr_this_step = dr;
 	  if(maxerror>accuracy){
 	    dr *= 0.9 * pow(accuracy/maxerror, 1./(NRKOrder-1.));
 	    if(dr > drmin) repeat=true;
@@ -687,7 +673,7 @@ int main(int argc, char *argv[]){
 	}while(repeat==true); // end of RK section
 
 	// interact with the matter
-	interact(fmatrixf, Scumulative, U0, rho(r), temperature(r), Ye(r), r, dr);
+	interact(fmatrixf, Scumulative, U0, rho(r), temperature(r), Ye(r), r, dr_this_step);
 	for(state m=matter; m<=antimatter; m++)
 	  for(int i=0; i<NE; i++)
 	    for(flavour f1=e; f1<=mu; f1++)

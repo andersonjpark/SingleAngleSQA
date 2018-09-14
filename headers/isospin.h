@@ -33,13 +33,14 @@ void pauli_decompose(const MATRIX<complex<double>,2,2>& M, double coefficients[4
   //assert(imag(M[0][0]) == 0);
   //assert(imag(M[1][1]) == 0);
 
-  coefficients[0] = real(M[1][0]);
-  coefficients[1] = imag(M[1][0]);
+  coefficients[0] = 0.5 * (real(M[1][0]) + real(M[0][1]));
+  coefficients[1] = 0.5 * (imag(M[1][0]) - imag(M[0][1]));
   coefficients[2] = 0.5 * (real(M[0][0]) - real(M[1][1]));
   coefficients[3] = 0.5 * (real(M[0][0]) + real(M[1][1]));
 }
 
-void pauli_reconstruct(const double coefficients[4], MATRIX<complex<double>,2,2>& M){
+template<typename T>
+void pauli_reconstruct(const T coefficients[4], MATRIX<complex<double>,2,2>& M){
   for(unsigned i=0; i<2; i++){
     for(unsigned j=0; j<2; j++){
       M[i][j] = 0;
