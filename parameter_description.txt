@@ -13,4 +13,4 @@ accuracy
 note - used for filenames
 artificial_scaling - artificially change the length scale of the profile
 do_interact - include absorption/emission/scattering?
-
+step - how often to output (number of steps)

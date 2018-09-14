@@ -242,6 +242,8 @@ int main(int argc, char *argv[]){
     cout<<"\nT\t"<<temperaturefilename;
     cout<<"\noutput\t"<<outputfilename;
     cout<<"\nrmin\t"<<rmin<<"\trmax\t"<<rmax;
+    cout<<"\nartificial_scaling\t"<<artificial_scaling;
+    cout<<"\ndo_interact\t"<<do_interact;
     //cout<<"\nRnu\t"<<Rnu<<"\nt\t"<<t;
     
     //cout << "\n\nNE\t" << NE << "\tEmin\t" << Emin << "\tEmax\t" << Emax;
