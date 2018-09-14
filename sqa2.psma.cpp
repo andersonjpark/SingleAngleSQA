@@ -46,7 +46,8 @@ using interpolation::DISCONTINUOUS;
 
 // global variables
 DISCONTINUOUS rho, lnrho, Ye, temperature; // rho is the mass density
-double NSI;
+//double NSI;
+bool do_interact;
 
 // headers
 #include "headers/parameters.h"
@@ -122,7 +123,7 @@ void interact(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
   vector<vector<MATRIX<complex<double>,NF,NF> > > old_fmatrixf = fmatrixf;
 
   // let neutrinos interact
-  my_interact(fmatrixf, Scumulative, rho, T, Ye, r, dr);
+  if(do_interact) my_interact(fmatrixf, Scumulative, rho, T, Ye, r, dr);
   for(int i=0; i<NE; i++){
     for(state m=matter; m<=antimatter; m++){
       fmatrixm[m][i] = Adjoint(U0[m][i]) * fmatrixf[m][i] * U0[m][i];
@@ -206,7 +207,7 @@ int main(int argc, char *argv[]){
     double rmin, rmax;
     fin>>rmin>>rmax; // cm
     
-    fin>>NE>>Emin>>Emax; // MeV
+    fin>>NE; //>>Emin>>Emax; // MeV
     
     //fin>>Rnu; // cm
     //fin>>t;   // s
@@ -228,6 +229,12 @@ int main(int argc, char *argv[]){
     // fin>>iNT;
     // fin>>fNT;
     // fin>>id;//number of tracer
+
+    double artificial_scaling;
+    fin >> artificial_scaling;
+    rmin *= artificial_scaling;
+    rmax *= artificial_scaling;
+    fin >> do_interact;
     
     cout<<"\n\n*********************************************************\n";
     cout<<"\nrho\t"<<rhofilename;
@@ -237,7 +244,7 @@ int main(int argc, char *argv[]){
     cout<<"\nrmin\t"<<rmin<<"\trmax\t"<<rmax;
     //cout<<"\nRnu\t"<<Rnu<<"\nt\t"<<t;
     
-    cout << "\n\nNE\t" << NE << "\tEmin\t" << Emin << "\tEmax\t" << Emax;
+    //cout << "\n\nNE\t" << NE << "\tEmin\t" << Emin << "\tEmax\t" << Emax;
     
     cout<<"\n\nm1\t"<<m1<<"\tdm21^2\t"<<dm21;
     cout<<"\ntheta12V\t"<<theta12V;
@@ -251,6 +258,12 @@ int main(int argc, char *argv[]){
     rho.Open(rhofilename,'#');
     Ye.Open(Yefilename,'#');
     temperature.Open(temperaturefilename,'#');
+    vector<double> newX = rho.X();
+    for(unsigned i=0; i<newX.size(); i++)
+      newX[i] *= artificial_scaling;
+    rho.SetX(newX);
+    Ye.SetX(newX);
+    temperature.SetX(newX);
     rmin=max(rmin,max(rho.XMin(),Ye.XMin()) );
     rmin = max(rmin, temperature.XMin() );
     rmax=min(rmax,min(rho.XMax(),Ye.XMax()) );
@@ -280,6 +293,15 @@ int main(int argc, char *argv[]){
       eD   [i].Open(potential_directory+"/density_s1_g"+patch::to_string(i+1)+note+".txt",'#');
       eBarD[i].Open(potential_directory+"/density_s2_g"+patch::to_string(i+1)+note+".txt",'#');
       xD   [i].Open(potential_directory+"/density_s3_g"+patch::to_string(i+1)+note+".txt",'#');
+      newX = eP[i].X();
+      for(unsigned i=0; i<newX.size(); i++)
+	newX[i] *= artificial_scaling;
+      eP[i].SetX(newX);
+      eBarP[i].SetX(newX);
+      xP[i].SetX(newX);
+      eD[i].SetX(newX);
+      eBarD[i].SetX(newX);
+      xD[i].SetX(newX);
     }
 
     // output filestreams: the arrays of ofstreams cannot use the vector container - bug in g++
@@ -340,8 +362,8 @@ int main(int argc, char *argv[]){
     }
     
     // unit conversion to cgs
-    Emin *= 1.*mega*cgs::units::eV;
-    Emax *= 1.*mega*cgs::units::eV;
+    //Emin *= 1.*mega*cgs::units::eV;
+    //Emax *= 1.*mega*cgs::units::eV;
     m1   *= 1.*cgs::units::eV/cgs::constants::c2;
     dm21 *= 1.*cgs::units::eV*cgs::units::eV/cgs::constants::c4;
     theta12V *= M_PI/180.;
@@ -482,7 +504,7 @@ int main(int argc, char *argv[]){
     fin>>step;
     
     // self-interaction integration factor
-    NSI=M_SQRT2*cgs::constants::GF*(Emax-Emin)/(NE-1.);
+    //NSI=M_SQRT2*cgs::constants::GF*(Emax-Emin)/(NE-1.);
     
     // ***************************************
     // variables followed as a function of r *
