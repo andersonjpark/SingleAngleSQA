@@ -190,6 +190,7 @@ void my_interact(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
 
   double kappa_e, kappa_ebar, kappa_mu, kappa_avg, kappa_avgbar;
   double Phi0_e, Phi0_ebar, Phi0_mu, Phi0_avg, Phi0_avgbar, Phi0_tilde, Phi0_tildebar, Phi0_emu, Phi0_emubar;
+  #pragma omp parallel for
   for(int i=0; i<NE; i++){
     // reset dfdr
     for(flavour f1=e; f1<=mu; f1++)
@@ -225,7 +226,6 @@ void my_interact(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
       Phi0bar  = Phi0avgbar - Phi0tildebar;
       block    = eas.blocking_term0(Phi0,    fmatrixf[    matter][i],    DBackground[j]);
       blockbar = eas.blocking_term0(Phi0bar, fmatrixf[antimatter][i], DbarBackground[j]);
-      
       for(flavour f1=e; f1<=mu; f1++)
 	for(flavour f2=e; f2<=mu; f2++){
 	  dfdr   [f1][f2] += phaseVolDensity(   DBackground[j][f1][f2]*Phi0   [f1][f2] - block[f1][f2], i);
