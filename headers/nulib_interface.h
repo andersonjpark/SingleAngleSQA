@@ -157,14 +157,42 @@ class EAS{
     return emis(is,ig) / abs(is,ig);
   }
   double Phi0(int is,int igin, int igout){ // 1/cm
+    double Phi0 = (igin==igout ? scat(is,igin) : 0);
     if(escat_kernel0.size() > 0)
-      return escat_kernel0[kernel_index(is,igin,igout)];
-    else return 0;
+      return Phi0 += escat_kernel0[kernel_index(is,igin,igout)];
+    return Phi0;
   }
   double Phi1(int is,int igin, int igout){ // 1/cm
     if(escat_kernel1.size() > 0)
       return escat_kernel1[kernel_index(is,igin,igout)];
     else return 0;
+  }
+
+  static MATRIX<double,2,2> avg_matrix(double eval, double muval){
+    MATRIX<double,2,2> result;
+    result[e ][e ] = eval;
+    result[mu][mu] = muval;
+    result[e ][mu] = result[mu][e] = (eval + muval) / 2.;
+    return result;
+  }
+  static MATRIX<double,2,2> tilde_matrix(double eval, double muval){
+    const double sin2thetaW = 0.23122;
+    MATRIX<double,2,2> result;
+    result[e ][e ] = 0;
+    result[mu][mu] = 0;
+    result[e ][mu] = result[mu][e] = (eval - muval) / (4.*sin2thetaW);
+    return result;
+  }
+  static MATRIX<complex<double>,2,2> blocking_term0(MATRIX<double,2,2> Phi0matrix, MATRIX<complex<double>,2,2> f, MATRIX<complex<double>,2,2> fp){
+    MATRIX<complex<double>,2,2> result;
+    for(flavour fa=e; fa<=mu; fa++)
+      for(flavour fb=e; fb<=mu; fb++){
+	result[fa][fb] = 0;
+	for(flavour fc=e; fc<=mu; fc++){
+	  result[fa][fb] += 0.5 * (Phi0matrix[fc][fb]*f[fa][fc]*fp[fc][fb] + Phi0matrix[fa][fc]*fp[fa][fc]*f[fc][fb]);
+	}
+      }
+    return result;
   }
 };
 EAS eas;

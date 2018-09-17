@@ -31,7 +31,8 @@ void set_Ebins(vector<double>& E){
   }
   cout.flush();
 }
-double phaseVolDensity(const double density, const unsigned i){
+template<typename T>
+T phaseVolDensity(const T density, const unsigned i){
   double phaseSpaceVol = 4.*M_PI * dE3(i)/3. / pow(2.*M_PI*cgs::constants::hbarc,3);
   return density / phaseSpaceVol;
 }
@@ -144,14 +145,16 @@ void getPunosc(const double r, const state m, const unsigned ig,
 void my_interact(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
 		 vector<vector<MATRIX<complex<double>,NF,NF> > >& Scumulative,
 		 double rho, double T, double Ye, double r, double dr){
-  const double sin2thetaW = 0.23122;
-  
-  // set up rate matrix
-  MATRIX<complex<double>,NF,NF> dfdr, dfbardr, fBackground, fbarBackground;
-
   // don't do anything if too sparse
   if(log10(rho) <= __nulibtable_MOD_nulibtable_logrho_min)
     return;
+  
+  // set up rate matrix
+  MATRIX<complex<double>,NF,NF> dfdr, dfbardr, block, blockbar;
+  MATRIX<double,NF,NF> Phi0avg, Phi0tilde, Phi0avgbar, Phi0tildebar, Phi0, Phi0bar;
+  vector<MATRIX<complex<double>,NF,NF>> DBackground, DbarBackground;
+  DBackground.resize(eas.ng);
+  DbarBackground.resize(eas.ng);
 
   // T should be MeV
   nulibtable_range_species_range_energy_(&rho, &T, &Ye, &eas.eas.front(),
@@ -159,7 +162,34 @@ void my_interact(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
   					 &__nulibtable_MOD_nulibtable_number_groups,
   					 &__nulibtable_MOD_nulibtable_number_easvariables);
 
-  double tmp = 0;
+  // get background density
+  for(int ig=0; ig<NE; ig++){
+    DBackground[ig][e ][e ]    =    eD[ig](r);
+    DBackground[ig][mu][mu]    =    xD[ig](r);
+    DbarBackground[ig][e ][e ] = eBarD[ig](r);
+    DbarBackground[ig][mu][mu] =    xD[ig](r);
+    DBackground[ig][e][mu]     = 0;
+    DBackground[ig][mu][e]     = 0;
+    DbarBackground[ig][e][mu]  = 0;
+    DbarBackground[ig][mu][e]  = 0;
+    DBackground[ig] = U0[matter][ig]
+      * Scumulative[matter][ig]
+      * Adjoint(U0[matter][ig])
+      * DBackground[ig]
+      * U0[matter][ig]
+      * Adjoint(Scumulative[matter][ig])
+      * Adjoint(U0[matter][ig]);
+    DbarBackground[ig] = U0[antimatter][ig]
+      * Scumulative[antimatter][ig]
+      * Adjoint(U0[antimatter][ig])
+      * DbarBackground[ig]
+      * U0[antimatter][ig]
+      * Adjoint(Scumulative[antimatter][ig])
+      * Adjoint(U0[antimatter][ig]);
+  }
+
+  double kappa_e, kappa_ebar, kappa_mu, kappa_avg, kappa_avgbar;
+  double Phi0_e, Phi0_ebar, Phi0_mu, Phi0_avg, Phi0_avgbar, Phi0_tilde, Phi0_tildebar, Phi0_emu, Phi0_emubar;
   for(int i=0; i<NE; i++){
     // reset dfdr
     for(flavour f1=e; f1<=mu; f1++)
@@ -167,63 +197,56 @@ void my_interact(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
 	dfdr   [f1][f2] = 0;
 	dfbardr[f1][f2] = 0;
       }
-
-    // absorption and out-scattering
-    double kappa_e    = eas.abs(0,i) + eas.scat(0,i);
-    double kappa_ebar = eas.abs(1,i) + eas.scat(1,i);
-    double kappa_mu   = eas.abs(2,i) + eas.scat(2,i);
-    double kappa_avg    = 0.5*(kappa_e   +kappa_mu);
-    double kappa_avgbar = 0.5*(kappa_ebar+kappa_mu);
-    dfdr   [e ][e ] -= kappa_e      * fmatrixf[    matter][i][e ][e ];
-    dfbardr[e ][e ] -= kappa_ebar   * fmatrixf[antimatter][i][e ][e ];
-    dfdr   [mu][mu] -= kappa_mu     * fmatrixf[    matter][i][mu][mu];
-    dfbardr[mu][mu] -= kappa_mu     * fmatrixf[antimatter][i][mu][mu];
-    dfdr   [e ][mu] -= kappa_avg    * fmatrixf[    matter][i][e ][mu];
-    dfbardr[e ][mu] -= kappa_avgbar * fmatrixf[antimatter][i][e ][mu];
-
+    
     // emission
     dfdr   [e ][e ] += eas.emis(0,i);
     dfbardr[e ][e ] += eas.emis(1,i);
     dfdr   [mu][mu] += eas.emis(2,i);
     dfbardr[mu][mu] += eas.emis(2,i);
-    
-    // in-scattering
-    fBackground[e ][e ]    = phaseVolDensity(   eD[i](r), i);
-    fBackground[mu][mu]    = phaseVolDensity(   xD[i](r), i);
-    fbarBackground[e ][e ] = phaseVolDensity(eBarD[i](r), i);
-    fbarBackground[mu][mu] = phaseVolDensity(   xD[i](r), i);
-    fBackground[e][mu]     = 0;
-    fBackground[mu][e]     = 0;
-    fbarBackground[e][mu]  = 0;
-    fbarBackground[mu][e]  = 0;
-    fBackground = U0[matter][i]
-      * Scumulative[matter][i]
-      * Adjoint(U0[matter][i])
-      * fBackground
-      * U0[matter][i]
-      * Adjoint(Scumulative[matter][i])
-      * Adjoint(U0[matter][i]);
-    fbarBackground = U0[antimatter][i]
-      * Scumulative[antimatter][i]
-      * Adjoint(U0[antimatter][i])
-      * fbarBackground
-      * U0[antimatter][i]
-      * Adjoint(Scumulative[antimatter][i])
-      * Adjoint(U0[antimatter][i]);
-    kappa_e    = eas.scat(0,i);
-    kappa_ebar = eas.scat(1,i);
-    kappa_mu   = eas.scat(2,i);
-    kappa_avg       = (kappa_e    + kappa_mu) / 2.;
-    kappa_avgbar    = (kappa_ebar + kappa_mu) / 2.;
-    double kappa_tilde     = (kappa_e    - kappa_mu) / (4.*sin2thetaW);
-    double kappa_tildebar  = (kappa_ebar - kappa_mu) / (4.*sin2thetaW);
-    dfdr   [e ][e ] +=    fBackground[e ][e ] * eas.scat(0,i);
-    dfdr   [mu][mu] +=    fBackground[mu][mu] * eas.scat(2,i);
-    dfbardr[e ][e ] += fbarBackground[e ][e ] * eas.scat(1,i);
-    dfbardr[mu][mu] += fbarBackground[mu][mu] * eas.scat(2,i);
-    // assume x scatter contains all the neutral-current contribution
-    dfdr   [e ][mu] +=    fBackground[e ][mu] * (kappa_avg    - kappa_tilde);
-    dfbardr[e ][mu] += fbarBackground[e ][mu] * (kappa_avgbar - kappa_tildebar);
+
+    // absorption
+    Phi0avg    = eas.avg_matrix(eas.abs(0,i), eas.abs(2,i));
+    Phi0avgbar = eas.avg_matrix(eas.abs(1,i), eas.abs(2,i));
+    for(flavour f1=e; f1<=mu; f1++)
+      for(flavour f2=e; f2<=mu; f2++){
+	dfdr   [f1][f2] -= Phi0avg   [f1][f2] * fmatrixf[    matter][i][f1][f2];
+	dfbardr[f1][f2] -= Phi0avgbar[f1][f2] * fmatrixf[antimatter][i][f1][f2];
+      }
+
+    // scattering
+    // no factor of 1/2 in front of Phi0 because integrated over outgoing theta, assumed isotropic
+    for(int j=0; j<NE; j++){
+      // in-scattering from j to i. D*Phi0 give density scattered, divide by phase space vol in i to get f
+      Phi0avg      = eas.avg_matrix(  eas.Phi0(0,j,i), eas.Phi0(2,j,i));
+      Phi0avgbar   = eas.avg_matrix(  eas.Phi0(1,j,i), eas.Phi0(2,j,i));
+      Phi0tilde    = eas.tilde_matrix(eas.Phi0(0,j,i), eas.Phi0(2,j,i));
+      Phi0tildebar = eas.tilde_matrix(eas.Phi0(1,j,i), eas.Phi0(2,j,i));
+      Phi0     = Phi0avg    - Phi0tilde;
+      Phi0bar  = Phi0avgbar - Phi0tildebar;
+      block    = eas.blocking_term0(Phi0,    fmatrixf[    matter][i],    DBackground[j]);
+      blockbar = eas.blocking_term0(Phi0bar, fmatrixf[antimatter][i], DbarBackground[j]);
+      
+      for(flavour f1=e; f1<=mu; f1++)
+	for(flavour f2=e; f2<=mu; f2++){
+	  dfdr   [f1][f2] += phaseVolDensity(   DBackground[j][f1][f2]*Phi0   [f1][f2] - block[f1][f2], i);
+	  dfbardr[f1][f2] += phaseVolDensity(DbarBackground[j][f1][f2]*Phi0bar[f1][f2] - block[f1][f2], i);
+	}
+
+      // out-scattering from i to j. for blocking, get phase space vol from D[j] in j
+      Phi0avg      = eas.avg_matrix(eas.Phi0(0,i,j), eas.Phi0(2,i,j));
+      Phi0avgbar   = eas.avg_matrix(eas.Phi0(1,i,j), eas.Phi0(2,i,j));
+      Phi0tilde    = eas.avg_matrix(eas.Phi0(0,i,j), eas.Phi0(2,i,j));
+      Phi0tildebar = eas.avg_matrix(eas.Phi0(1,i,j), eas.Phi0(2,i,j));
+      Phi0    = Phi0avg    - Phi0tilde;
+      Phi0bar = Phi0avgbar - Phi0tildebar;
+      block    = eas.blocking_term0(Phi0   , fmatrixf[    matter][i],    DBackground[j] );
+      blockbar = eas.blocking_term0(Phi0bar, fmatrixf[antimatter][i], DbarBackground[j] );
+      for(flavour f1=e; f1<=mu; f1++)
+	for(flavour f2=e; f2<=mu; f2++){
+	  dfdr   [f1][f2] += fmatrixf[    matter][i][f1][f2]*Phi0avg   [f1][f2] - phaseVolDensity(block   [f1][f2], j);
+	  dfbardr[f1][f2] += fmatrixf[antimatter][i][f1][f2]*Phi0avgbar[f1][f2] - phaseVolDensity(blockbar[f1][f2], j);
+	}
+    }
     
     // Make sure dfdr is Hermitian
     dfdr   [mu][e ] = conj(dfdr   [e][mu]);
@@ -237,10 +260,13 @@ void my_interact(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
       }
 
     // check that everything makes sense
-    for(state s=matter; s<=antimatter; s++)
+    for(state s=matter; s<=antimatter; s++){
       for(flavour f1=e; f1<=mu; f1++)
 	for(flavour f2=e; f2<=mu; f2++){
 	  assert(fmatrixf[s][i][f1][f2] == fmatrixf[s][i][f1][f2]);
       }
+      assert(abs(fmatrixf[s][i][e ][e ]) < 1.);
+      assert(abs(fmatrixf[s][i][mu][mu]) < 1.);
+    }
   }
 }
