@@ -78,8 +78,6 @@ void Outputvsr(ofstream &fout,
 	       ofstream &foutP,
 	       ofstream &foutf,
 	       ofstream &foutdangledr,	       
-	       ofstream *foutPvsr,
-	       ofstream *foutFvsr,
 	       double r,
 	       vector<vector<vector<vector<double> > > > Y,
 	       vector<vector<vector<MATRIX<complex<double>,NF,NF> > > > C0,
@@ -349,16 +347,7 @@ int main(int argc, char *argv[]){
     foutdangledr << endl;
     foutdangledr.flush();
     
-    ofstream foutPvsr[NE],foutFvsr[NE];
     ofstream fPvsE, fFvsE;
-    
-    for(int i=0;i<=NE-1;i++){
-      foutPvsr[i].open(outputfilename+"/g"+std::to_string(i)+"_Pvsr.dat");
-      foutPvsr[i].precision(12);
-      
-      foutFvsr[i].open(outputfilename+"/g"+std::to_string(i)+"_Fvsr.dat");
-      foutFvsr[i].precision(12);
-    }
     
     // unit conversion to cgs
     //Emin *= 1.*mega*cgs::units::eV;
@@ -592,7 +581,7 @@ int main(int argc, char *argv[]){
 	
       finish=output=false;
       counterout=1;
-      Outputvsr(fout,foutP,foutf,foutdangledr,foutPvsr,foutFvsr,r,Y,C,A,Scumulative);
+      Outputvsr(fout,foutP,foutf,foutdangledr,r,Y,C,A,Scumulative);
 	
       for(state m=matter; m<=antimatter; m++)
 	for(int i=0; i<NE; i++)
@@ -766,7 +755,7 @@ int main(int argc, char *argv[]){
 	else counterout++;
 	
 	if(output==true || finish==true){
-	  Outputvsr(fout,foutP,foutf,foutdangledr,foutPvsr,foutFvsr,r,Y,C,A,Scumulative);
+	  Outputvsr(fout,foutP,foutf,foutdangledr,r,Y,C,A,Scumulative);
 	  output=false;
 	}
 
@@ -789,15 +778,11 @@ int main(int argc, char *argv[]){
 	A=UpdateA(C,C0,A0);
       }
       else{ // output at the end of the code
-	Outputvsr(fout,foutP,foutf,foutdangledr,foutPvsr,foutFvsr,rs[d+1],Y,C,A,Scumulative);
+	Outputvsr(fout,foutP,foutf,foutdangledr,rs[d+1],Y,C,A,Scumulative);
       }
 
     }// end of r loop
 
-    for(int i=0;i<=NE-1;i++){
-      foutPvsr[i].close();
-      foutFvsr[i].close();
-    }
     fPvsE.close();
     fFvsE.close();
 
@@ -1071,8 +1056,6 @@ void Outputvsr(ofstream &fout,
 	       ofstream &foutP,
 	       ofstream &foutf,
 	       ofstream &foutdangledr,
-	       ofstream *foutPvsr,
-	       ofstream *foutFvsr,
 	       double r,
 	       vector<vector<vector<vector<double> > > > Y,
 	       vector<vector<vector<MATRIX<complex<double>,NF,NF> > > > C0,
