@@ -40,13 +40,10 @@ using std::numeric_limits;
 using std::vector;
 
 #include "mstl.h"
-using namespace physics;
-using namespace prefixes;
 using interpolation::DISCONTINUOUS;
 
 // global variables
 DISCONTINUOUS rho, lnrho, Ye, temperature; // rho is the mass density
-//double NSI;
 bool do_interact;
 
 // headers

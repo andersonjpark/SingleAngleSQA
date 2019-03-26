@@ -58,7 +58,7 @@ void Initialize_MeanEnergies(string spectrapath, double t){
   
   for(state m=matter;m<=antimatter;m++)
     for(flavour f=e;f<=mu;f++)
-      meanE[m][f] *= mega*cgs::units::eV;
+      meanE[m][f] *= 1e6*cgs::units::eV;
 }
 
 //============================//
@@ -73,17 +73,17 @@ void Initialize_PinchParameters(string spectrapath, double t){
   rmsEanux.Open((spectrapath + string("rmsE.anux.dat")).c_str());
   
   double CE;
-  CE = rmsEnue(t)*mega*cgs::units::eV/meanE[matter][e] ;
+  CE = rmsEnue(t)*1e6*cgs::units::eV/meanE[matter][e] ;
   pinch[matter][e] = (2.-CE*CE)/(CE*CE-1.);
   
-  CE = rmsEanue(t)*mega*cgs::units::eV/meanE[antimatter][e] ;
+  CE = rmsEanue(t)*1e6*cgs::units::eV/meanE[antimatter][e] ;
   pinch[antimatter][e] = (2.-CE*CE)/(CE*CE-1.);
   
-  CE = rmsEnux(t)*mega*cgs::units::eV/meanE[matter][mu];
+  CE = rmsEnux(t)*1e6*cgs::units::eV/meanE[matter][mu];
   pinch[matter][mu]  = (2.-CE*CE)/(CE*CE-1.); 
   //pinch[matter][tau] = pinch[matter][mu];
   
-  CE = rmsEanux(t)*mega*cgs::units::eV/meanE[antimatter][mu];
+  CE = rmsEanux(t)*1e6*cgs::units::eV/meanE[antimatter][mu];
   pinch[antimatter][mu]  = (2.-CE*CE)/(CE*CE-1.); 
   //pinch[antimatter][tau] = pinch[antimatter][mu];
   
