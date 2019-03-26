@@ -12,11 +12,8 @@ const int NY=6;
 // number of nuclei followed 
 const int NN=1; 
 
-// mass of mass state1, delta m^2 differences
-double m1,dm21;
-
 // number of energy bins, min and max energy
-int NE;
+const int NE = 16;
 double Emin, Emax;
 vector<double> E; 
 
@@ -28,7 +25,6 @@ solution operator++(solution &n,int){ solution tmp=n; n=(solution)( (int)n+1 ); 
 // vacuum eigenvalues
 vector<vector<double> > kV;
 vector<int> ordering(NF);
-int a1,a2;
 
 // vacuum Hamiltonian and mixing matrices
 vector<vector<MATRIX<complex<double>,NF,NF> > > HfV(NM);
@@ -42,10 +38,6 @@ vector<vector<vector<double> > > AV;
 
 // initial mixing matrices, needs to be global
 vector<vector<MATRIX<complex<double>,NF,NF> > > U0(NM); 
-
-double theta12V;
-vector<double> alphaV(NF), betaV(NF-1);
-double c12V,s12V;
 
 // neutron star radius
 double Rnu;
@@ -63,4 +55,21 @@ vector<vector<double(*)(double)> > F0(NM,vector<double(*)(double)>(NF));
 //
 
 
+// mass of mass state1, delta m^2 differences
+const double eV = 1.60218e-12; //erg
+const double c = 2.99792458e10; // cm/s
+const double c2 = c*c;
+const double c4 = c2*c2;
+const double m1 = 0.; // g, mass of state 1
+const double dm21 = 2.43e-3/*eV^2*/ *eV*eV/c4; // g^2, delta m2^2-m1^2
+const double a1 = dm21>0 ? -1. : +1.; // sign of eigenvalue 1 of vacuum Hamiltonian
+const double a2 = dm21>0 ? +1. : -1.; // sign of eigenvalue 2 of vacuum Hamiltonian
+
+// mixing angles
+const double theta12V = 9. * M_PI/180.; // rad
+const double c12V = cos(theta12V);
+const double s12V = sin(theta12V);
+const double alphaV[NF] = {0,0};
+const double betaV[NF-1] = {0};
+const double sin2thetaW = 0.23122;
 

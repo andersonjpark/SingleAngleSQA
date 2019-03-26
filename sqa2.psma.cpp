@@ -202,19 +202,8 @@ int main(int argc, char *argv[]){
     double rmin, rmax;
     fin>>rmin>>rmax; // cm
     
-    fin>>NE; //>>Emin>>Emax; // MeV
-    
     //fin>>Rnu; // cm
     //fin>>t;   // s
-    
-    m1=0.;
-    fin>>dm21;
-    fin>>theta12V;
-    
-    alphaV[0]=0.;
-    alphaV[1]=0.;
-    
-    betaV[0]=0.;
     
     double accuracy;
     fin>>accuracy;
@@ -349,15 +338,6 @@ int main(int argc, char *argv[]){
     
     ofstream fPvsE, fFvsE;
     
-    // unit conversion to cgs
-    //Emin *= 1.*mega*cgs::units::eV;
-    //Emax *= 1.*mega*cgs::units::eV;
-    m1   *= 1.*cgs::units::eV/cgs::constants::c2;
-    dm21 *= 1.*cgs::units::eV*cgs::units::eV/cgs::constants::c4;
-    theta12V *= M_PI/180.;
-    c12V = cos(theta12V);
-    s12V = sin(theta12V);
-    
     // *************************************************
     // set up global variables defined in parameters.h *
     // *************************************************
@@ -373,18 +353,14 @@ int main(int argc, char *argv[]){
     Sort(tempkV,ordering,ascending);
     
     if(kV[0][1]>kV[0][0]){
-      a1=-1;
-      a2=+1;
       cout<<"\n\nNormal hierarchy";
     }
     else{ 
       if(kV[0][1]<kV[0][0]){
-	a1=+1; 
-	a2=-1; 
 	cout<<"\n\nInverted hierarchy";
       }
       else{ 
-	cout<<endl<<endl<<"Neither normal or Inverted"<<endl; 
+	cout<<endl<<endl<<"Neither normal or Inverted"<<endl;
 	abort();
       }
     }
