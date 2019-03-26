@@ -790,7 +790,6 @@ int main(int argc, char *argv[]){
       }
       else{ // output at the end of the code
 	Outputvsr(fout,foutP,foutf,foutdangledr,foutPvsr,foutFvsr,rs[d+1],Y,C,A,Scumulative);
-	//OutputvsE(fPvsE,fFvsE,rs[d+1],Y,C,A,Scumulative);
       }
 
     }// end of r loop
@@ -1191,88 +1190,6 @@ void Outputvsr(ofstream &fout,
   //VfSI[matter]*=NSI*CSI(r);
   VfSI[antimatter] = -Conjugate(VfSI[matter]);
 
-  /*
-  for(int i=0;i<=NE-1;i++){
-    //foutPvsr[i]<<"\n"<<E[i]/(giga*cgs::units::eV);
-    foutPvsr[i]<<"\n"<<r;
-
-    foutPvsr[i]<<"\t"<<norm(Sm[matter][i][0][0])<<"\t"<<norm(Sm[matter][i][0][1]);
-    foutPvsr[i]<<"\t"<<norm(Sm[matter][i][1][0])<<"\t"<<norm(Sm[matter][i][1][1]);
-
-    foutPvsr[i]<<"\t"<<norm(Sm[antimatter][i][0][0])<<"\t"<<norm(Sm[antimatter][i][0][1]);
-    foutPvsr[i]<<"\t"<<norm(Sm[antimatter][i][1][0])<<"\t"<<norm(Sm[antimatter][i][1][1]);
-
-    //foutPvsr[i]<<"\t"<<norm(BB[matter][i][msw][0][0])<<"\t"<<norm(BB[matter][i][msw][0][1]);
-    //foutPvsr[i]<<"\t"<<norm(BB[matter][i][msw][1][0])<<"\t"<<norm(BB[matter][i][msw][1][1]);
-
-    //foutPvsr[i]<<"\t"<<norm(BB[antimatter][i][msw][0][0])<<"\t"<<norm(BB[antimatter][i][msw][0][1]);
-    //foutPvsr[i]<<"\t"<<norm(BB[antimatter][i][msw][1][0])<<"\t"<<norm(BB[antimatter][i][msw][1][1]);
-
-    //foutPvsr[i]<<"\t"<<norm(BB[matter][i][si][0][0])<<"\t"<<norm(BB[matter][i][si][0][1]);
-    //foutPvsr[i]<<"\t"<<norm(BB[matter][i][si][1][0])<<"\t"<<norm(BB[matter][i][si][1][1]);
-
-    //foutPvsr[i]<<"\t"<<norm(BB[antimatter][i][si][0][0])<<"\t"<<norm(BB[antimatter][i][si][0][1]);
-    //foutPvsr[i]<<"\t"<<norm(BB[antimatter][i][si][1][0])<<"\t"<<norm(BB[antimatter][i][si][1][1]);
-
-    foutPvsr[i]<<"\t"<<norm(Sf[matter][i][e][e])<<"\t"<<norm(Sf[matter][i][e][mu]);
-    foutPvsr[i]<<"\t"<<norm(Sf[matter][i][mu][e])<<"\t"<<norm(Sf[matter][i][mu][mu]);
-
-    foutPvsr[i]<<"\t"<<norm(Sf[antimatter][i][e][e])<<"\t"<<norm(Sf[antimatter][i][e][mu]);
-    foutPvsr[i]<<"\t"<<norm(Sf[antimatter][i][mu][e])<<"\t"<<norm(Sf[antimatter][i][mu][mu]);
-
-    foutPvsr[i]<<"\t"<<kk[matter][i][0]<<"\t"<<kk[matter][i][1];
-    //foutPvsr[i]<<"\t"<<dkk[matter][i][0];
-    foutPvsr[i]<<"\t"<<kk[antimatter][i][0]<<"\t"<<kk[antimatter][i][1];
-    //foutPvsr[i]<<"\t"<<dkk[antimatter][i][0];
-    if(kV[i][1]>kV[i][0]){
-      foutPvsr[i]<<"\t"<<kk[matter][i][1]-kk[matter][i][0];
-      foutPvsr[i]<<"\t"<<kk[antimatter][i][1]-kk[antimatter][i][0];
-    }
-    if(kV[i][0]>kV[i][1]){
-      foutPvsr[i]<<"\t"<<kk[matter][i][0]-kk[matter][i][1];
-      foutPvsr[i]<<"\t"<<kk[antimatter][i][0]-kk[antimatter][i][1];
-    }
-
-    //foutPvsr[i]<<"\t"<<real(UU[matter][i][e][0])<<"\t"<<real(UU[matter][i][e][1]);
-    //foutPvsr[i]<<"\t"<<real(UU[matter][i][mu][0])<<"\t"<<real(UU[matter][i][mu][1]);
-
-    //foutPvsr[i]<<"\t"<<real(UU[antimatter][i][e][0])<<"\t"<<real(UU[antimatter][i][e][1]);
-    //foutPvsr[i]<<"\t"<<real(UU[antimatter][i][mu][0])<<"\t"<<real(UU[antimatter][i][mu][1]);
-
-    foutPvsr[i]<<"\t"<<YYe;
-    foutPvsr[i]<<"\t"<<real(VfMSW[matter][e][e]);
-    foutPvsr[i]<<"\t"<<real(VfSI[matter][e ][e ])<<"\t"<<imag(VfSI[matter][e ][e ]);
-    foutPvsr[i]<<"\t"<<real(VfSI[matter][e ][mu])<<"\t"<<imag(VfSI[matter][e ][mu]);
-    foutPvsr[i]<<"\t"<<real(VfSI[matter][mu][mu])<<"\t"<<imag(VfSI[matter][mu][mu]);
-
-    //vector<double> dkkdr = dkdr(UU[matter][i],dVfMSWdr[matter]);
-    //vector<double> QQ = Q(Hf[matter][i],dVfMSWdr[matter],UU[matter][i],kk[matter][i],dkk[matter][i],dkkdr);
-    //MATRIX<complex<double>,NF,NF> GG=Gamma(dVfMSWdr[matter],UU[matter][i],kk[matter][i],QQ);
-    //foutPvsr[i]<<"\t"<<abs(GG[0][1]);
-
-    //dkkdr = dkdr(UU[antimatter][i],dVfMSWdr[antimatter]);
-    //QQ = Q(Hf[antimatter][i],dVfMSWdr[antimatter],UU[antimatter][i],kk[antimatter][i],dkk[antimatter][i],dkkdr);
-    //GG=Gamma(dVfMSWdr[antimatter],UU[antimatter][i],kk[antimatter][i],QQ);
-    //foutPvsr[i]<<"\t"<<abs(GG[0][1]);
-
-    foutPvsr[i].flush();
-
-    // **************
-
-    rhomatrix[matter]=Smf[matter][i]*pmatrixf0[matter][i]*Adjoint(Smf[matter][i]);
-    rhomatrix[antimatter]=Smf[antimatter][i]*pmatrixf0[antimatter][i]*Adjoint(Smf[antimatter][i]);
-
-    //foutFvsr[i]<<"\n"<<E[i]/(giga*cgs::units::eV);
-    //foutFvsr[i]<<"\n"<<r;
-    //foutFvsr[i]<<"\t"<<real( norm(UV[matter][e][0])*rhomatrix[matter][0][0] +norm(UV[matter][e][1])*rhomatrix[matter][1][1] ) * (0.2*mega*cgs::units::eV)*cgs::constants::c*pow(Rnu/(10.*kilo*cgs::units::pc),2.)
-    //        <<"\t"<<real( norm(UV[matter][mu][0])*rhomatrix[matter][0][0] +norm(UV[matter][mu][1])*rhomatrix[matter][1][1] ) * (0.2*mega*cgs::units::eV)*cgs::constants::c*pow(Rnu/(10.*kilo*cgs::units::pc),2.);
-    //foutFvsr[i]<<"\t"<<real( norm(UV[antimatter][e][0])*rhomatrix[antimatter][0][0] +norm(UV[antimatter][e][1])*rhomatrix[antimatter][1][1] ) * (0.2*mega*cgs::units::eV)*cgs::constants::c*pow(Rnu/(10.*kilo*cgs::units::pc),2.)
-    //        <<"\t"<<real( norm(UV[antimatter][mu][0])*rhomatrix[antimatter][0][0] +norm(UV[antimatter][mu][1])*rhomatrix[antimatter][1][1] ) * (0.2*mega*cgs::units::eV)*cgs::constants::c*pow(Rnu/(10.*kilo*cgs::units::pc),2.);
-
-    foutFvsr[i].flush();
-  }
-  */
-  /////////////////////////////////////////////////////////////////////
 
   fout << r << "\t";
   for(int i=0; i<NE; i++)
@@ -1286,18 +1203,6 @@ void Outputvsr(ofstream &fout,
   fout << endl;
   fout.flush();
   for(int i=0;i<NE;i++){
-  //   fout<<norm(Sf[    matter][i][e ][e ])<<"\t"<<norm(Sf[antimatter][i][e ][e ])<<"\t";
-  //   fout<<real(Sf[    matter][i][e ][e ])<<"\t"<<imag(Sf[    matter][i][e ][e ])<<"\t";
-  //   fout<<real(Sf[antimatter][i][e ][e ])<<"\t"<<imag(Sf[antimatter][i][e ][e ])<<"\t";
-  //   fout<<real(Sf[    matter][i][e ][mu])<<"\t"<<imag(Sf[    matter][i][e ][mu])<<"\t";
-  //   fout<<real(Sf[antimatter][i][e ][mu])<<"\t"<<imag(Sf[antimatter][i][e ][mu])<<"\t";
-  //   fout<<real(Sf[    matter][i][mu][e ])<<"\t"<<imag(Sf[    matter][i][mu][e ])<<"\t";
-  //   fout<<real(Sf[antimatter][i][mu][e ])<<"\t"<<imag(Sf[antimatter][i][mu][e ])<<"\t";
-  //   fout<<real(Sf[    matter][i][mu][mu])<<"\t"<<imag(Sf[    matter][i][mu][mu])<<"\t";
-  //   fout<<real(Sf[antimatter][i][mu][mu])<<"\t"<<imag(Sf[antimatter][i][mu][mu])<<"\t";
-  //   fout<<norm(Sf[    matter][i][mu][mu])<<"\t"<<norm(Sf[antimatter][i][mu][mu])<<"\t";
-  //   fout<<dm21/(4*E[i])*cgs::constants::c4<<"\t";
-
     fout.flush();
     Pe    [i] = norm(Sf[    matter][i][e ][e ]);
     Pebar [i] = norm(Sf[antimatter][i][e ][e ]);
@@ -1307,14 +1212,6 @@ void Outputvsr(ofstream &fout,
   foutP<<r<<"\t"<<Ve(rrho,YYe)<<"\t";//1,2
   foutP<<real(VfSI[    matter][e ][e ])<<"\t"<<real(VfSI[    matter][mu][mu])<<"\t";
   foutP<<real(VfSI[antimatter][e ][e ])<<"\t"<<real(VfSI[antimatter][mu][mu])<<"\t";//3,4,5,6
-  /*
-  fout <<real(VfSI[    matter][e ][e ])<<"\t"<<imag(VfSI[    matter][e ][e ])<<"\t";
-  fout <<real(VfSI[    matter][mu][mu])<<"\t"<<imag(VfSI[    matter][mu][mu]);
-  fout <<real(VfSI[antimatter][e ][e ])<<"\t"<<imag(VfSI[antimatter][e ][e ])<<"\t";
-  fout <<real(VfSI[antimatter][mu][mu])<<"\t"<<imag(VfSI[antimatter][mu][mu]);
-  fout<<endl;
-  fout.flush();
-  */
   Pvalues = averageProbability(Pe,Pebar,Pheavy,ebarPotentialSum,ePotentialSum,heavyPotentialSum);
   totalNuFlux = Pvalues[3];
   totalANuFlux =Pvalues[4];
