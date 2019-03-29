@@ -175,7 +175,6 @@ void interact(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
 // MAIN //
 //======//
 int main(int argc, char *argv[]){
-  try{ 
     int in=1;
     string inputfilename,potential_directory;
     ofstream fout,foutC,foutP,foutS, foutf, foutdangledr;
@@ -724,15 +723,6 @@ int main(int argc, char *argv[]){
 
     fPvsE.close();
     fFvsE.close();
-
-  }
-  catch(OUT_OF_RANGE<unsigned int> OOR){ OOR.Message();}
-  catch(OUT_OF_RANGE<int> OOR){ OOR.Message();}
-  catch(OUT_OF_RANGE<double> OOR){ OOR.Message();}
-  catch(EMPTY E){ E.Message();}
-  catch(FUNCTION_ERROR FE){ FE.Message();}
-  catch(BASIC_ERROR BE){ BE.Message();}
-  catch(...){ UNKNOWN_ERROR("main");}
 
   cout<<"\nFinished\n\a"; cout.flush();
 
