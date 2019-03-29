@@ -43,8 +43,7 @@ using std::array;
 #include<hdf5.h>
 
 #include "mstl.h"
-using interpolation::DISCONTINUOUS;
-//#include "headers/DISCONTINUOUS.h"
+#include "headers/DISCONTINUOUS.h"
 
 // global variables
 DISCONTINUOUS rho, lnrho, Ye, temperature; // rho is the mass density
@@ -212,9 +211,7 @@ int main(int argc, char *argv[]){
     assert(rmin >= rho.XMin());
     assert(rmin <= rho.XMax());
 
-    lnrho=rho;
-    //lnrho.TransformX(log);
-    lnrho.TransformY(log);
+    lnrho = rho.copy_logy();
     
     // load and compute spectral data    
     eP.resize(NE);
