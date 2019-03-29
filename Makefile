@@ -9,7 +9,7 @@ LIBRARY = ${NULIB_LOC}/src/nulib.a -L${HDF5_LOC}/lib -lhdf5 -lhdf5_fortran -lhdf
 
 WHICHCODE = sqa2.psma
 
-COMP = g++ -fopenmp -g -funit-at-a-time -funroll-loops -std=gnu++11 -fPIC -O2
+COMP = g++ -fopenmp -g -std=gnu++11 -O2
 
 ${WHICHCODE}.o: ${WHICHCODE}.cpp
 	rm -f sqa2.psma.x sqa.tar.gz
