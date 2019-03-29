@@ -7,7 +7,7 @@
 
 #include <cmath>
 
-vector<double> isospin(MATRIX<complex<double> > Sf, MATRIX<complex<double> > Sfbar){
+vector<double> isospin(MATRIX<complex<double>,NF,NF> Sf, MATRIX<complex<double>,NF,NF> Sfbar){
   //int NE=E.size();
   vector<double> s(6);
   //vector<double> delta(NE);

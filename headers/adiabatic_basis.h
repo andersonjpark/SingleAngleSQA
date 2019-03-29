@@ -1,3 +1,8 @@
+#ifndef ADIABATICBASIS_H
+#define ADIABATICBASIS_H
+
+#include "parameters.h"
+
 //===//
 // W //
 //===//
@@ -84,3 +89,5 @@ MATRIX<complex<double>,NF,NF> Gamma(MATRIX<complex<double>,NF,NF> dHfdr,
 
   return Gamma;
 }
+
+#endif

@@ -101,59 +101,6 @@ void Initialize_PinchParameters(string spectrapath, double t){
   cout << endl;
 }
 
-//======//
-// Fnu0 //
-//======//
-// differential spectrum in units of /erg/s
-double Fnue0(double E){
-  return pow(pinch[matter][e]+1., pinch[matter][e]+1.)
-    / meanE[matter][e]
-    / Gamma(pinch[matter][e]+1.)
-    * pow(E/meanE[matter][e], pinch[matter][e])
-    * exp(-(pinch[matter][e]+1.) * E/meanE[matter][e]);
-}
-
-double Fanue0(double E){
-  return pow(pinch[antimatter][e]+1., pinch[antimatter][e]+1.)
-    / meanE[antimatter][e]
-    / Gamma(pinch[antimatter][e]+1.)
-    * pow(E/meanE[antimatter][e], pinch[antimatter][e])
-    * exp(-(pinch[antimatter][e]+1.) * E/meanE[antimatter][e]);
-}
-
-double Fnumu0(double E){
-  return pow(pinch[matter][mu]+1., pinch[matter][mu]+1.)
-    / meanE[matter][mu]
-    / Gamma(pinch[matter][mu]+1.)
-    * pow(E/meanE[matter][mu],pinch[matter][mu])
-    * exp(-(pinch[matter][mu]+1.)*E/meanE[matter][mu]);
-}
-
-double Fanumu0(double E){
-  return pow(pinch[antimatter][mu]+1., pinch[antimatter][mu]+1.)
-    / meanE[antimatter][mu]
-    / Gamma(pinch[antimatter][mu]+1.)
-    * pow(E/meanE[antimatter][mu], pinch[antimatter][mu])
-    * exp(-(pinch[antimatter][mu]+1.)*E/meanE[antimatter][mu]);
-}
-
-/*
-double Fnutau0(double E){
-  return pow(pinch[matter][tau]+1.,pinch[matter][tau]+1.)
-    / meanE[matter][tau]
-    / Gamma(pinch[matter][tau]+1.)
-    * pow(E/meanE[matter][tau],pinch[matter][tau])
-    * exp(-(pinch[matter][tau]+1.) * E/meanE[matter][tau]);
-}
-
-double Fanutau0(double E){
-  return pow(pinch[antimatter][tau]+1.,pinch[antimatter][tau]+1.)
-    / meanE[antimatter][tau]
-    / Gamma(pinch[antimatter][tau]+1.)
-    * pow(E/meanE[antimatter][tau],pinch[antimatter][tau])
-    * exp(-(pinch[antimatter][tau]+1.)*E/meanE[antimatter][tau]);
-}
-*/
 
 //=======//
 // Cflux //

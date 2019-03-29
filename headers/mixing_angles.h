@@ -1,3 +1,6 @@
+#ifndef MIXINGANGLES_H
+#define MIXINGANGLES_H
+
 //=======//
 // theta //
 //=======//
@@ -330,3 +333,33 @@ void Evaluate_AV(void){
     }
   }
 } 
+
+//===================//
+// Vacuum Potentials //
+//===================//
+vector<vector<double> > set_kV(const vector<double>& E){
+  assert(NF==2);
+  vector<vector<double> > kV(NE,vector<double>(NF));
+  for(int i=0;i<NE;i++){
+    kV[i][0] = m1*m1             * cgs::constants::c4 /2./E[i];
+    kV[i][1] = (kV[i][0] + dm21) * cgs::constants::c4 /2./E[i];
+  }
+
+  // determine eigenvalue ordering
+  if(kV[0][1]>kV[0][0])
+    cout<<"\n\nNormal hierarchy" << endl;
+  else{
+    if(kV[0][1]<kV[0][0])
+      cout<<"\n\nInverted hierarchy" << endl;
+    else{
+      cout<<endl<<endl<<"Neither normal or Inverted"<<endl;
+      abort();
+    }
+  }
+  
+  return kV;
+}
+
+
+
+#endif

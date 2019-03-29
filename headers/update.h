@@ -10,7 +10,7 @@ UpdateSm(double rminus,
 	 vector<vector<vector<MATRIX<complex<double>,NF,NF> > > > C0,
 	 vector<vector<vector<vector<double> > > > A0,vector<vector<MATRIX<complex<double>,NF,NF> > > Smprior){
 
-  vector<MATRIX<complex<double>,NF,NF> > VfMSW(NM,MATRIX<complex<double>,NF,NF>(NF,NF));
+  vector<MATRIX<complex<double>,NF,NF> > VfMSW(NM,MATRIX<complex<double>,NF,NF>());
   MATRIX<complex<double>,NF,NF> Hf,Hfbar;
   MATRIX<complex<double>,NF,NF> UU,UUbar; 
 

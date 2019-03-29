@@ -1,3 +1,6 @@
+#ifndef PARAMETERS_H
+#define PARAMETERS_H
+
 const int NM=2;
 enum state { matter,antimatter};
 state operator++(state &n,int){ state tmp=n; n=(state)( (int)n+1 ); return tmp;};
@@ -54,6 +57,24 @@ vector<vector<double> > pinch(NM,vector<double>(NF));
 vector<vector<double(*)(double)> > F0(NM,vector<double(*)(double)>(NF));
 //
 
+const double M_2PI = 2.*M_PI;
+const complex<double> I = 1i;
+// units, etc
+namespace cgs{
+  namespace units{
+    const double cm = 1.; //cm
+    const double eV = 1.60218e-12; //erg
+  }
+  namespace constants{
+    const double hbar = 1.05457266e-27; // erg s
+    const double c = 2.99792458e10; //cm/s
+    const double c2 = c*c;
+    const double c4 = c2*c2;
+    const double hbarc = hbar*c;
+    const double GF = 1.1663787e-5/*GeV^-2*//(1e9*1e9*units::eV*units::eV) * hbarc*hbarc*hbarc; //erg cm^3
+    const double Mp = 1.6726219e-24; // g
+  }
+}
 
 // mass of mass state1, delta m^2 differences
 const double eV = 1.60218e-12; //erg
@@ -73,3 +94,6 @@ const double alphaV[NF] = {0,0};
 const double betaV[NF-1] = {0};
 const double sin2thetaW = 0.23122;
 
+
+
+#endif

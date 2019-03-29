@@ -1,3 +1,8 @@
+#ifndef EIGENVALUES_H
+#define EIGENVALUES_H
+
+#include "misc.h"
+
 //===//
 // D //
 //===//
@@ -160,7 +165,4 @@ vector<double> dkdr(MATRIX<complex<double>,NF,NF> U,MATRIX<complex<double>,NF,NF
   return dkdx;
 }  
 
-
-
-
-
+#endif

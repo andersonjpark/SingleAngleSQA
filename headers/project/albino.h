@@ -103,14 +103,6 @@ double deltaV(const double E){ // erg
   return abs(dm21)*cgs::constants::c4 / (2.*E);
 }
 
-void set_kV(vector<vector<double> >& kV){
-  assert(NF==2);
-  for(int i=0;i<NE;i++){
-    kV[i][0] = m1*m1 * cgs::constants::c4 /2./E[i];
-    kV[i][1] = kV[i][0] + deltaV(E[i]);
-  }
-}
-
 //===================//
 // Matter Potentials //
 //===================//

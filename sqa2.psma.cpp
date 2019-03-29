@@ -42,7 +42,6 @@ using std::vector;
 using std::array;
 #include<hdf5.h>
 
-#include "mstl.h"
 #include "headers/DISCONTINUOUS.h"
 
 // global variables
@@ -50,6 +49,7 @@ DISCONTINUOUS rho, lnrho, Ye, temperature; // rho is the mass density
 bool do_interact;
 
 // headers
+#include "headers/MATRIX.h"
 #include "headers/parameters.h"
 #include "headers/potentials.h"
 #include "headers/single_angle.h"
@@ -288,27 +288,8 @@ int main(int argc, char *argv[]){
     // *************************************************
 
     // vectors of energies and vacuum eigenvalues
-    kV = vector<vector<double> >(NE,vector<double>(NF));
     set_Ebins(E);
-    set_kV(kV);
-
-    // determine eigenvalue ordering
-    ordering[0]=0; ordering[1]=1;
-    vector<double> tempkV(kV[0]);
-    Sort(tempkV,ordering,ascending);
-    
-    if(kV[0][1]>kV[0][0]){
-      cout<<"\n\nNormal hierarchy";
-    }
-    else{ 
-      if(kV[0][1]<kV[0][0]){
-	cout<<"\n\nInverted hierarchy";
-      }
-      else{ 
-	cout<<endl<<endl<<"Neither normal or Inverted"<<endl;
-	abort();
-      }
-    }
+    kV = set_kV(E);
     
     // vaccum mixing matrices and Hamiltonians
     Evaluate_UV();
@@ -349,7 +330,14 @@ int main(int argc, char *argv[]){
     
     // accumulated S matrices from prior integration domains
     vector<vector<MATRIX<complex<double>,NF,NF> > > 
-      Scumulative(NM,vector<MATRIX<complex<double>,NF,NF> >(NE,UnitMatrix<complex<double> >(NF)));
+      Scumulative(NM,vector<MATRIX<complex<double>,NF,NF> >(NE));
+    for(int m=0; m<NM; m++)
+      for(int ig=0; ig<NE; ig++)
+	for(int f1=0; f1<NF; f1++){
+	  for(int f2=0; f2<NF; f2++)
+	    Scumulative[m][ig][f1][f2] = 0.;
+	  Scumulative[m][ig][f1][f1] = 1.;
+	}
 
     // mixing angles to MSW basis at initial point
     U0[matter] = vector<MATRIX<complex<double>,NF,NF> >(NE);
@@ -430,9 +418,6 @@ int main(int argc, char *argv[]){
     // ************************
     // Runge-Kutta quantities *
     // ************************
-    int NRK,NRKOrder;
-    const double *AA=NULL,**BB=NULL,*CC=NULL,*DD=NULL;
-    RungeKuttaCashKarpParameters(NRK,NRKOrder,AA,BB,CC,DD);
     
     vector<vector<vector<vector<vector<double> > > > > 
       Ks(NRK,vector<vector<vector<vector<double> > > >
