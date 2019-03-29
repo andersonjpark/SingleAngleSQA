@@ -181,7 +181,6 @@ int main(int argc, char *argv[]){
     ofstream fout,foutC,foutP,foutS, foutf, foutdangledr;
     string outputfilename,rhofilename, Yefilename, vfilename, spectrapath, nulibfilename, temperaturefilename;
     string outputfilenamestem;
-    string note;
     
     inputfilename=string(argv[in]);
     ifstream fin(inputfilename.c_str());
@@ -202,22 +201,11 @@ int main(int argc, char *argv[]){
     double rmin, rmax;
     fin>>rmin>>rmax; // cm
     
-    //fin>>Rnu; // cm
-    //fin>>t;   // s
-    
     double accuracy;
     fin>>accuracy;
-    fin>>note;
     int iNT,fNT;
     string id;
-    // fin>>iNT;
-    // fin>>fNT;
-    // fin>>id;//number of tracer
 
-    double artificial_scaling;
-    fin >> artificial_scaling;
-    rmin *= artificial_scaling;
-    rmax *= artificial_scaling;
     fin >> do_interact;
     
     cout<<"\n\n*********************************************************\n";
@@ -226,17 +214,7 @@ int main(int argc, char *argv[]){
     cout<<"\nT\t"<<temperaturefilename;
     cout<<"\noutput\t"<<outputfilename;
     cout<<"\nrmin\t"<<rmin<<"\trmax\t"<<rmax;
-    cout<<"\nartificial_scaling\t"<<artificial_scaling;
     cout<<"\ndo_interact\t"<<do_interact;
-    //cout<<"\nRnu\t"<<Rnu<<"\nt\t"<<t;
-    
-    //cout << "\n\nNE\t" << NE << "\tEmin\t" << Emin << "\tEmax\t" << Emax;
-    
-    cout<<"\n\nm1\t"<<m1<<"\tdm21^2\t"<<dm21;
-    cout<<"\ntheta12V\t"<<theta12V;
-    cout<<"\nalpha1V\t"<<alphaV[0]<<"\talpha2V\t"<<alphaV[1];
-    cout<<"\nbeta1V\t"<<betaV[0];
-    
     cout<<"\naccuracy\t"<<accuracy<<"\n";
     cout.flush();
     
@@ -244,12 +222,6 @@ int main(int argc, char *argv[]){
     rho.Open(rhofilename,'#');
     Ye.Open(Yefilename,'#');
     temperature.Open(temperaturefilename,'#');
-    vector<double> newX = rho.X();
-    for(unsigned i=0; i<newX.size(); i++)
-      newX[i] *= artificial_scaling;
-    rho.SetX(newX);
-    Ye.SetX(newX);
-    temperature.SetX(newX);
     rmin=max(rmin,max(rho.XMin(),Ye.XMin()) );
     rmin = max(rmin, temperature.XMin() );
     rmax=min(rmax,min(rho.XMax(),Ye.XMax()) );
@@ -273,21 +245,12 @@ int main(int argc, char *argv[]){
     
     // load and compute spectral data
     for(int i=0;i<=NE-1;i++){
-      eP   [i].Open(potential_directory+"/potential_s1_g"+patch::to_string(i+1)+note+".txt",'#');
-      eBarP[i].Open(potential_directory+"/potential_s2_g"+patch::to_string(i+1)+note+".txt",'#');
-      xP   [i].Open(potential_directory+"/potential_s3_g"+patch::to_string(i+1)+note+".txt",'#');
-      eD   [i].Open(potential_directory+"/density_s1_g"+patch::to_string(i+1)+note+".txt",'#');
-      eBarD[i].Open(potential_directory+"/density_s2_g"+patch::to_string(i+1)+note+".txt",'#');
-      xD   [i].Open(potential_directory+"/density_s3_g"+patch::to_string(i+1)+note+".txt",'#');
-      newX = eP[i].X();
-      for(unsigned i=0; i<newX.size(); i++)
-	newX[i] *= artificial_scaling;
-      eP[i].SetX(newX);
-      eBarP[i].SetX(newX);
-      xP[i].SetX(newX);
-      eD[i].SetX(newX);
-      eBarD[i].SetX(newX);
-      xD[i].SetX(newX);
+      eP   [i].Open(potential_directory+"/potential_s1_g"+patch::to_string(i+1)+"_.txt",'#');
+      eBarP[i].Open(potential_directory+"/potential_s2_g"+patch::to_string(i+1)+"_.txt",'#');
+      xP   [i].Open(potential_directory+"/potential_s3_g"+patch::to_string(i+1)+"_.txt",'#');
+      eD   [i].Open(potential_directory+"/density_s1_g"+patch::to_string(i+1)+"_.txt",'#');
+      eBarD[i].Open(potential_directory+"/density_s2_g"+patch::to_string(i+1)+"_.txt",'#');
+      xD   [i].Open(potential_directory+"/density_s3_g"+patch::to_string(i+1)+"_.txt",'#');
     }
 
     // output filestreams: the arrays of ofstreams cannot use the vector container - bug in g++
