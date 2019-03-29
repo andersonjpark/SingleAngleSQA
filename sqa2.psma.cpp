@@ -44,6 +44,7 @@ using std::array;
 
 #include "mstl.h"
 using interpolation::DISCONTINUOUS;
+//#include "headers/DISCONTINUOUS.h"
 
 // global variables
 DISCONTINUOUS rho, lnrho, Ye, temperature; // rho is the mass density
@@ -422,8 +423,6 @@ int main(int argc, char *argv[]){
     // quantities needed for the calculation *
     // ***************************************
     double r,r0,dr,drmin,dr_this_step;
-    int ND;
-    vector<double> rs;
     
     double maxerror,increase=3.;
     bool repeat, finish, resetflag, output;
@@ -431,9 +430,6 @@ int main(int argc, char *argv[]){
     
     // comment out if not following as a function of r
     fin>>step;
-    
-    // self-interaction integration factor
-    //NSI=M_SQRT2*cgs::constants::GF*(Emax-Emin)/(NE-1.);
     
     // ***************************************
     // variables followed as a function of r *
@@ -467,38 +463,7 @@ int main(int argc, char *argv[]){
     // temporaries
     MATRIX<complex<double>,NF,NF> SSMSW,SSSI,SThisStep;
     
-    // *********************
-    // integration domians *
-    // *********************
     
-    rho.FindDomains();
-    
-    rs.push_back(rmin);
-    for(int d=1;d<=rho.NDomains();d++){
-      r=rho.Discontinuity(d);
-      if(r>rmin && r<rmax) rs.push_back(r);
-    }
-    rs.push_back(rmax);
-    
-    sort(rs.begin(),rs.end());
-    ND=rs.size()-1;
-    
-    // **********************
-    // start of calculation *
-    // **********************
-    
-    for(int d=0;d<=ND-1;d++){
-      if(d==0) rmin=rs.front();
-      else rmin=rs[d]+1.*cgs::units::cm;
-      
-      if(d==ND-1) rmax=rs.back();
-      else rmax=rs[d+1]-1.*cgs::units::cm;
-      
-      cout<<"\n"<<d<<"\t"<<rmin<<"\t"<<rmax << endl;
-      cout << endl;
-      cout << "r(km)  dr(cm) rho(g/ccm) T(MeV) Ye" << endl;
-      cout.flush();
-      
       // *****************************************
       // initialize at beginning of every domain *
       // *****************************************
@@ -709,21 +674,7 @@ int main(int argc, char *argv[]){
 
       } while(finish==false);
 
-      // if this is not the last domain then carry the S matrix across the discontinuities
-      if(d<=ND-2){
-	double rminus=rs[d+1]-1.*cgs::units::cm;
-	double rplus=rs[d+1]+1.*cgs::units::cm;
-	Scumulative = UpdateSm(rminus,rplus,Ye(rminus),Ye(rplus),Y,C,A,Scumulative);
-	C0=C;
-	C=UpdateC(rplus,Ye(rplus));
-	A=UpdateA(C,C0,A0);
-      }
-      else{ // output at the end of the code
-	Outputvsr(fout,foutP,foutf,foutdangledr,rs[d+1],Y,C,A,Scumulative);
-      }
-
-    }// end of r loop
-
+    Outputvsr(fout,foutP,foutf,foutdangledr,r,Y,C,A,Scumulative);
     fPvsE.close();
     fFvsE.close();
 
