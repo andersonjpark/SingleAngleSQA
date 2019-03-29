@@ -1,43 +1,45 @@
+/*
+//  Copyright (c) 2018, James Kneller and Sherwood Richers
+//
+//  This file is part of IsotropicSQA.
+//
+//  IsotropicSQA is free software: you can redistribute it and/or modify
+//  it under the terms of the GNU General Public License as published by
+//  the Free Software Foundation, either version 3 of the License, or
+//  (at your option) any later version.
+//
+//  IsotropicSQA is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//  GNU General Public License for more details.
+//
+//  You should have received a copy of the GNU General Public License
+//  along with IsotropicSQA.  If not, see <http://www.gnu.org/licenses/>.
+//
+*/
 
 #include <complex>
 using std::complex;
-using std::polar;
-using std::abs;
-using std::arg;
-using std::real;
-using std::imag;
-#include <cstdarg>
-using std::va_list;
-#include <cstdlib>
-
 #include<iostream>
 using std::cout;
 #include<ostream>
-using std::ostream;
 using std::endl;
 using std::flush;
 #include<fstream>
 using std::ifstream;
 using std::ofstream;
-#include<sstream>
-using std::stringstream;
-
 #include<algorithm>
 using std::min;
 using std::max;
-using std::swap;
-using std::lower_bound;
 #include<string>
 using std::string;
-#include <utility>
-using std::pair;
-
-#include<functional>
 #include<limits>
 using std::numeric_limits;
-
 #include<vector>
 using std::vector;
+#include<array>
+using std::array;
+#include<hdf5.h>
 
 #include "mstl.h"
 using interpolation::DISCONTINUOUS;
