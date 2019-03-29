@@ -20,6 +20,7 @@
 
 #include <complex>
 using std::complex;
+using std::abs;
 #include<iostream>
 using std::cout;
 #include<ostream>
