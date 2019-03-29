@@ -24,7 +24,7 @@ UpdateSm(double rminus,
   double rrho, YYe;
 
   // multiply SMSW by the mixing matrix at rminus
-  rrho = exp(lnrho(log(rminus)));
+  rrho = exp(lnrho(rminus));
   YYe = Ye(rminus); 
     
   VfMSW[matter][e][e] = Ve(rrho,YYe); 
@@ -57,7 +57,7 @@ UpdateSm(double rminus,
   }
   
   // multiply SMSW by the adjoint of the mixing matrix at rplus
-  rrho = exp(lnrho(log(rplus)));
+  rrho = exp(lnrho(rplus));
   YYe = Ye(rplus); 
   
   VfMSW[matter][e][e] = Ve(rrho,YYe); 
@@ -97,7 +97,7 @@ vector<vector<vector<MATRIX<complex<double>,NF,NF> > > > UpdateC(double r,double
   vector<vector<vector<MATRIX<complex<double>,NF,NF> > > > 
     CC(NM,vector<vector<MATRIX<complex<double>,NF,NF> > >(NE,vector<MATRIX<complex<double>,NF,NF> >(NF)));
 
-  double rrho = exp(lnrho(log(r)));
+  double rrho = exp(lnrho(r));
     
   VfMSW[matter][e][e] = Ve(rrho,Ye); 
   VfMSW[matter][mu][mu] = Vmu(rrho,Ye); 

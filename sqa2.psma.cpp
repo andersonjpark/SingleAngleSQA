@@ -213,7 +213,7 @@ int main(int argc, char *argv[]){
     assert(rmin <= rho.XMax());
 
     lnrho=rho;
-    lnrho.TransformX(log);
+    //lnrho.TransformX(log);
     lnrho.TransformY(log);
     
     // load and compute spectral data    

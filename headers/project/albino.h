@@ -84,10 +84,10 @@ void initialize(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
 }
 
 double get_rho(const double r){
-  return exp(lnrho(log(r)));
+  return exp(lnrho(r));
 }
 double get_drhodr(const double rrho, const double r){
-  return rrho*lnrho.Derivative(log(r))/r;
+  return rrho*lnrho.Derivative(r);
 }
 double get_Ye(const double r){
   return Ye(r);
