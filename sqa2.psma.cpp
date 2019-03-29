@@ -62,6 +62,7 @@ bool do_interact;
 #include "headers/jacobians.h"
 #include "headers/multiEnergy.h"
 #include "headers/MNR.h"
+#include "headers/misc.h"
 
 //vector<vector<MATRIX<complex<double>,NF,NF> > > rhomatrixf0(NM), rhomatrixm0(NM);
 vector<vector<MATRIX<complex<double>,NF,NF> > > pmatrixf0(NM), pmatrixm0(NM);
@@ -179,56 +180,37 @@ void interact(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
 // MAIN //
 //======//
 int main(int argc, char *argv[]){
-    int in=1;
-    string inputfilename,potential_directory;
+    string inputfilename;
     ofstream fout,foutC,foutP,foutS, foutf, foutdangledr;
-    string outputfilename,rhofilename, Yefilename, vfilename, spectrapath, nulibfilename, temperaturefilename;
-    string outputfilenamestem;
     
-    inputfilename=string(argv[in]);
+    inputfilename=string(argv[1]);
     ifstream fin(inputfilename.c_str());
     
     // load the nulib table
-    fin>>nulibfilename;
-    fin>>potential_directory;
-    cout << nulibfilename << endl;
+    const string nulibfilename = get_parameter<string>(fin,"nulibfilename");
+    const string potential_directory = get_parameter<string>(fin,"potential_directory");
+    const string rhofilename = get_parameter<string>(fin, "rhofilename");
+    const string Yefilename = get_parameter<string>(fin, "Yefilename");
+    const string temperaturefilename = get_parameter<string>(fin, "temparaturefilename");
+    const string outputfilename = get_parameter<string>(fin, "outputfilename");
+    const double rmin = get_parameter<double>(fin, "rmin"); // cm
+    const double rmax = get_parameter<double>(fin, "rmax"); // cm
+    const double accuracy = get_parameter<double>(fin, "accuracy");
+    const bool do_interact = get_parameter<bool>(fin, "do_interact");
+    const int out_every = get_parameter<int>(fin, "out_every");
+    fin.close();
+    
+    const string outputfilenamestem = outputfilename+"/";
+
     nulib_init(nulibfilename, 0);
 
-    fin>>rhofilename;
-    fin>>Yefilename;
-    fin>>temperaturefilename;
-    //fin>>spectrapath;
-    fin>>outputfilename;
-    outputfilenamestem = outputfilename+"/";
-    
-    double rmin, rmax;
-    fin>>rmin>>rmax; // cm
-    
-    double accuracy;
-    fin>>accuracy;
-    int iNT,fNT;
-    string id;
-
-    fin >> do_interact;
-    
-    cout<<"\n\n*********************************************************\n";
-    cout<<"\nrho\t"<<rhofilename;
-    cout<<"\nYe\t"<<Yefilename;
-    cout<<"\nT\t"<<temperaturefilename;
-    cout<<"\noutput\t"<<outputfilename;
-    cout<<"\nrmin\t"<<rmin<<"\trmax\t"<<rmax;
-    cout<<"\ndo_interact\t"<<do_interact;
-    cout<<"\naccuracy\t"<<accuracy<<"\n";
-    cout.flush();
     
     // load rho and Ye data
     rho.Open(rhofilename,'#');
     Ye.Open(Yefilename,'#');
     temperature.Open(temperaturefilename,'#');
-    rmin=max(rmin,max(rho.XMin(),Ye.XMin()) );
-    rmin = max(rmin, temperature.XMin() );
-    rmax=min(rmax,min(rho.XMax(),Ye.XMax()) );
-    rmax = min(rmax, temperature.XMax() );
+    assert(rmin >= rho.XMin());
+    assert(rmin <= rho.XMax());
 
     lnrho=rho;
     lnrho.TransformX(log);
@@ -426,10 +408,9 @@ int main(int argc, char *argv[]){
     
     double maxerror,increase=3.;
     bool repeat, finish, resetflag, output;
-    int counterout,step;
+    int counterout;
     
     // comment out if not following as a function of r
-    fin>>step;
     
     // ***************************************
     // variables followed as a function of r *
@@ -654,7 +635,7 @@ int main(int argc, char *argv[]){
 	}
 
 	// comment out if not following as a function of r
-	if(counterout==step){
+	if(counterout==out_every){
 	  output=true;
 	  counterout=1;
 	}

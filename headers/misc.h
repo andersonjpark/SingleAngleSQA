@@ -1,0 +1,37 @@
+#ifndef MISC_H
+#define MISC_H
+
+#include <sstream>
+using std::stringstream;
+
+template<typename T>
+T get_parameter(ifstream& fin, const char* name){
+  stringstream line;
+  string linestring;
+  T to_set;
+  std::getline(fin, linestring);
+  line = stringstream(linestring);
+  line >> to_set;
+  cout << "PARAMETER " << name << " = " << to_set << endl;
+  return to_set;
+}
+
+inline double Sign(const double input){
+  return input>0 ? 1 : -1;
+}
+
+// Cash-Karp RK parameters
+const int NRK=6;
+const int NRKOrder=5;
+static const double AA[]={ 0., 1./5., 3./10., 3./5., 1., 7./8. };
+static const double b0[]={};
+static const double b1[]={ 1./5. };
+static const double b2[]={ 3./40.,9./40. };
+static const double b3[]={ 3./10.,-9./10.,6./5. };
+static const double b4[]={ -11./54.,5./2.,-70./27.,35./27. };
+static const double b5[]={ 1631./55296.,175./512.,575./13824.,44275./110592.,253./4096. };
+static const double* BB[]={ b0,b1,b2,b3,b4,b5 };
+static const double CC[]={ 37./378.,0.,250./621.,125./594.,0.,512./1771. };
+static const double DD[]={ 2825./27648.,0.,18575./48384.,13525./55296.,277./14336.,1./4. };
+
+#endif
