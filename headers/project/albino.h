@@ -40,7 +40,7 @@ T phaseVolDensity(const T density, const unsigned i){
 //============//
 // Initialize //
 //============//
-void initialize(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
+void initialize(array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& fmatrixf,
 		double r, double rho, double T, double Ye){
   // T should be MeV
   cout << "Setting initial data." << endl;
@@ -134,7 +134,7 @@ void getPunosc(const double r, const state m, const unsigned ig,
 }
 
 
-void my_interact(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
+void my_interact(array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& fmatrixf,
 		 vector<vector<MATRIX<complex<double>,NF,NF> > >& Scumulative,
 		 double rho, double T, double Ye, double r, double dr){
   // don't do anything if too sparse

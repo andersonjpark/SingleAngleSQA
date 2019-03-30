@@ -64,8 +64,8 @@ bool do_interact;
 #include "headers/misc.h"
 
 //vector<vector<MATRIX<complex<double>,NF,NF> > > rhomatrixf0(NM), rhomatrixm0(NM);
-vector<vector<MATRIX<complex<double>,NF,NF> > > pmatrixf0(NM), pmatrixm0(NM);
-vector<vector<MATRIX<complex<double>,NF,NF> > > fmatrixf(NM), fmatrixm(NM);
+array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> pmatrixf0, pmatrixm0;
+array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> fmatrixf, fmatrixm;
 vector<DISCONTINUOUS> eP,eBarP,xP;
 vector<DISCONTINUOUS> eD,eBarD,xD;
 array<array<double,NM>,NE> dphi_dr_interact, dtheta_dr_interact;
@@ -95,8 +95,8 @@ void Outputvsr(ofstream &fout,
 void getP(const double r,
 	  const vector<vector<MATRIX<complex<double>,NF,NF> > > U0, 
 	  const vector<vector<MATRIX<complex<double>,NF,NF> > > Scumulative, 
-	  vector<vector<MATRIX<complex<double>,NF,NF> > >& pmatrixf0,
-	  vector<vector<MATRIX<complex<double>,NF,NF> > >& pmatrixm0){
+	  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& pmatrixf0,
+	  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& pmatrixm0){
 
   for(int i=0;i<=NE-1;i++){
     for(state m=matter; m<=antimatter; m++){
@@ -114,12 +114,12 @@ void getP(const double r,
   }
 }
 
-void interact(vector<vector<MATRIX<complex<double>,NF,NF> > >& fmatrixf,
+void interact(array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& fmatrixf,
 	      vector<vector<MATRIX<complex<double>,NF,NF> > >& Scumulative,
 	      vector<vector<MATRIX<complex<double>,NF,NF> > >& U0,
 	      double rho, double T, double Ye, double r, double dr){
   // save old fmatrix
-  vector<vector<MATRIX<complex<double>,NF,NF> > > old_fmatrixf = fmatrixf;
+  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> old_fmatrixf = fmatrixf;
 
   // let neutrinos interact
   if(do_interact) my_interact(fmatrixf, Scumulative, rho, T, Ye, r, dr);
@@ -368,13 +368,6 @@ int main(int argc, char *argv[]){
     
     vector<vector<vector<double> > > P0 (NM,vector<vector<double> >(NF,vector <double>(NE)));
 
-    // density matrices at initial point, rhomatrixm0 - but not rhomatrixf0
-    // will be updated whenever discontinuities are crossed and/or S is reset
-    pmatrixf0[matter]=pmatrixf0[antimatter]=vector<MATRIX<complex<double>,NF,NF> >(NE);
-    pmatrixm0[matter]=pmatrixm0[antimatter]=vector<MATRIX<complex<double>,NF,NF> >(NE);
-    fmatrixf[matter]=fmatrixf[antimatter]=vector<MATRIX<complex<double>,NF,NF> >(NE);
-    fmatrixm[matter]=fmatrixm[antimatter]=vector<MATRIX<complex<double>,NF,NF> >(NE);
-
     // yzhu14 density/potential matrices art rmin
     double rho0 = rho(rmin);
     double T0 = temperature(rmin);
@@ -556,7 +549,7 @@ int main(int argc, char *argv[]){
 		assert(fmatrixf[m][i][f1][f2] == fmatrixf[m][i][f1][f2]);
 
 	// accumulate S and reset variables
-	vector<vector<MATRIX<complex<double>,NF,NF> > > old_fmatrixf = fmatrixf;
+	array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> old_fmatrixf = fmatrixf;
 	for(state m=matter;m<=antimatter;m++){
 	  for(int i=0;i<=NE-1;i++){
 	    SSMSW = W(Y[m][i][msw])*B(Y[m][i][msw]);
