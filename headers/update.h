@@ -8,7 +8,8 @@ UpdateSm(double rminus,
 	 double Yeplus,
 	 vector<vector<vector<vector<double> > > > Y,
 	 vector<vector<vector<MATRIX<complex<double>,NF,NF> > > > C0,
-	 vector<vector<vector<vector<double> > > > A0,vector<vector<MATRIX<complex<double>,NF,NF> > > Smprior){
+	 vector<vector<vector<vector<double> > > > A0,vector<vector<MATRIX<complex<double>,NF,NF> > > Smprior,
+	 const State& s){
 
   vector<MATRIX<complex<double>,NF,NF> > VfMSW(NM,MATRIX<complex<double>,NF,NF>());
   MATRIX<complex<double>,NF,NF> Hf,Hfbar;
@@ -33,7 +34,7 @@ UpdateSm(double rminus,
   VfMSW[antimatter] = -Conjugate(VfMSW[matter]);
 
   for(int i=0;i<=NE-1;i++){
-    Hf=HfV[matter][i]+VfMSW[matter];
+    Hf=s.HfV[matter][i]+VfMSW[matter];
     kk=k(Hf);
     dkk=deltak(Hf);
     UU=U(dkk,C0[matter][i],A0[matter][i]);    
@@ -44,7 +45,7 @@ UpdateSm(double rminus,
       * B(Y[matter][i][si])
       * Smprior[matter][i];
     
-    Hfbar = HfV[antimatter][i]+VfMSW[antimatter];
+    Hfbar = s.HfV[antimatter][i]+VfMSW[antimatter];
     kkbar = kbar(Hfbar);
     dkkbar = deltakbar(Hfbar);
     UUbar = Conjugate(U(dkkbar,C0[antimatter][i],A0[antimatter][i]));
@@ -66,7 +67,7 @@ UpdateSm(double rminus,
   VfMSW[antimatter] = -Conjugate(VfMSW[matter]);
 
   for(int i=0;i<=NE-1;i++){
-    Hf = HfV[matter][i]+VfMSW[matter];
+    Hf = s.HfV[matter][i]+VfMSW[matter];
     kk = k(Hf);
     dkk = deltak(Hf);
     CC = CofactorMatrices(Hf,kk);
@@ -74,7 +75,7 @@ UpdateSm(double rminus,
     UU = U(dkk,CC,AA);    
     Sm[matter][i] = Adjoint(UU)*MATRIX<complex<double>,NF,NF>(Sm[matter][i]); 
     
-    Hfbar = HfV[antimatter][i] + VfMSW[antimatter];
+    Hfbar = s.HfV[antimatter][i] + VfMSW[antimatter];
     kkbar = kbar(Hfbar);
     dkkbar = deltakbar(Hfbar);
     CC = CofactorMatrices(Hfbar,kkbar);
@@ -89,7 +90,7 @@ UpdateSm(double rminus,
 //=========//
 // UpdateC //
 //=========//
-vector<vector<vector<MATRIX<complex<double>,NF,NF> > > > UpdateC(double r,double Ye){
+vector<vector<vector<MATRIX<complex<double>,NF,NF> > > > UpdateC(double r,double Ye, const State& s){
   vector<MATRIX<complex<double>,NF,NF> > VfMSW(NM);
   MATRIX<complex<double>,NF,NF> Hf,Hfbar;
   vector<double> kk,kkbar;
@@ -107,11 +108,11 @@ vector<vector<vector<MATRIX<complex<double>,NF,NF> > > > UpdateC(double r,double
   int i;
 #pragma omp parallel for schedule(auto) private(Hf,Hfbar,kk,kkbar)
   for(i=0;i<=NE-1;i++){
-    Hf = HfV[matter][i] + VfMSW[matter]; 
+    Hf = s.HfV[matter][i] + VfMSW[matter]; 
     kk = k(Hf);
     CC[matter][i] = CofactorMatrices(Hf,kk);
     
-    Hfbar = HfV[antimatter][i]+VfMSW[antimatter];
+    Hfbar = s.HfV[antimatter][i]+VfMSW[antimatter];
     kkbar = kbar(Hfbar);
     CC[antimatter][i] = CofactorMatrices(Hfbar,kkbar);
   }

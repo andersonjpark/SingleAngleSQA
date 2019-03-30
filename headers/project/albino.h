@@ -136,7 +136,7 @@ void getPunosc(const double r, const state m, const unsigned ig,
 
 void my_interact(array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& fmatrixf,
 		 vector<vector<MATRIX<complex<double>,NF,NF> > >& Scumulative,
-		 double rho, double T, double Ye, double r, double dr){
+		 double rho, double T, double Ye, double r, double dr, const State& s){
   // don't do anything if too sparse
   if(log10(rho) <= __nulibtable_MOD_nulibtable_logrho_min)
     return;
@@ -164,20 +164,20 @@ void my_interact(array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& fmatrixf,
     DBackground[ig][mu][e]     = 0;
     DbarBackground[ig][e][mu]  = 0;
     DbarBackground[ig][mu][e]  = 0;
-    DBackground[ig] = U0[matter][ig]
+    DBackground[ig] = s.U0[matter][ig]
       * Scumulative[matter][ig]
-      * Adjoint(U0[matter][ig])
+      * Adjoint(s.U0[matter][ig])
       * DBackground[ig]
-      * U0[matter][ig]
+      * s.U0[matter][ig]
       * Adjoint(Scumulative[matter][ig])
-      * Adjoint(U0[matter][ig]);
-    DbarBackground[ig] = U0[antimatter][ig]
+      * Adjoint(s.U0[matter][ig]);
+    DbarBackground[ig] = s.U0[antimatter][ig]
       * Scumulative[antimatter][ig]
-      * Adjoint(U0[antimatter][ig])
+      * Adjoint(s.U0[antimatter][ig])
       * DbarBackground[ig]
-      * U0[antimatter][ig]
+      * s.U0[antimatter][ig]
       * Adjoint(Scumulative[antimatter][ig])
-      * Adjoint(U0[antimatter][ig]);
+      * Adjoint(s.U0[antimatter][ig]);
   }
 
   double kappa_e, kappa_ebar, kappa_mu, kappa_avg, kappa_avgbar;

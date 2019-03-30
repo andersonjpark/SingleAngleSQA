@@ -25,18 +25,18 @@ const int NS=2;
 enum solution { msw, si};
 solution operator++(solution &n,int){ solution tmp=n; n=(solution)( (int)n+1 ); return tmp;};
 
-// vacuum Hamiltonian and mixing matrices
-vector<vector<MATRIX<complex<double>,NF,NF> > > HfV(NM);
-vector<MATRIX<complex<double>,NF,NF> > UV(NM);
+/* // vacuum Hamiltonian and mixing matrices */
+/* vector<vector<MATRIX<complex<double>,NF,NF> > > HfV(NM); */
+/* vector<MATRIX<complex<double>,NF,NF> > UV(NM); */
 
-// vacuum values of the off-diagonal elements of the cofactor matrices
-vector<vector<MATRIX<complex<double>,NF,NF> > > CV;
+/* // vacuum values of the off-diagonal elements of the cofactor matrices */
+/* vector<vector<MATRIX<complex<double>,NF,NF> > > CV; */
 
-// mixing matrix element prefactors
-vector<vector<vector<double> > > AV;
+/* // mixing matrix element prefactors */
+/* vector<vector<vector<double> > > AV; */
 
-// initial mixing matrices, needs to be global
-vector<vector<MATRIX<complex<double>,NF,NF> > > U0(NM); 
+/* // initial mixing matrices, needs to be global */
+/* vector<vector<MATRIX<complex<double>,NF,NF> > > U0(NM);  */
 
 // neutron star radius
 double Rnu;

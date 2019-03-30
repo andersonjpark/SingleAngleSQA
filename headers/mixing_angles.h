@@ -291,29 +291,46 @@ vector<MATRIX<complex<double>,NF,NF> >
 //=============//
 // Evaluate_UV //
 //=============//
-void Evaluate_UV(void){
+array<MATRIX<complex<double>,NF,NF>,NM> Evaluate_UV(void){
+  array<MATRIX<complex<double>,NF,NF>,NM> UV;
+  
   UV[matter][0][0] = c12V * exp(-I*alphaV[0]                  );
   UV[matter][0][1] = s12V * exp(-I*alphaV[1]                  );  
   UV[matter][1][0] =-s12V * exp( I* betaV[0])*exp(-I*alphaV[0]);
   UV[matter][1][1] = c12V * exp( I* betaV[0])*exp(-I*alphaV[1]);
   
   UV[antimatter]=Conjugate(UV[matter]);
+
+  return UV;
 }
 
 //=============//
 // Evaluate_CV //
 //=============//
-void Evaluate_CV(const array<array<double,NF>,NE>& kV){
+array<array<MATRIX<complex<double>,NF,NF>,NF>,NE>
+  Evaluate_CV(const array<array<double,NF>,NE>& kV,
+	      const array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& HfV){
+
+  array<array<MATRIX<complex<double>,NF,NF>,NF>,NE> CV;
+  
   for(int i=0;i<=NE-1;i++){
     CV[i][0][e][mu]=C<e,mu>(HfV[matter][i],kV[i][0]); CV[i][1][e][mu]=C<e,mu>(HfV[matter][i],kV[i][1]);
     CV[i][0][mu][e]=C<mu,e>(HfV[matter][i],kV[i][0]); CV[i][1][mu][e]=C<mu,e>(HfV[matter][i],kV[i][1]);
-  } 
+  }
+
+  return CV;
 }
 
 //=============//
 // Evaluate_AV //
 //=============//
-void Evaluate_AV(const array<array<double,NF>,NE>& kV){
+array<array<array<double,NF>,NF>,NE>
+  Evaluate_AV(const array<array<double,NF>,NE>& kV,
+	      const array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& HfV,
+	      const array<MATRIX<complex<double>,NF,NF>,NM>& UV){
+  
+  array<array<array<double,NF>,NF>,NE> AV;
+
   double Delta;
   for(int i=0;i<=NE-1;i++){
     for(int j=0;j<=NF-1;j++){
@@ -333,6 +350,7 @@ void Evaluate_AV(const array<array<double,NF>,NE>& kV){
       }
     }
   }
+  return AV;
 } 
 
 //===================//

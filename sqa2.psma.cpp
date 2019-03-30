@@ -78,7 +78,8 @@ void K(double r,
        vector<vector<vector<vector<double> > > > &Y,
        vector<vector<vector<MATRIX<complex<double>,NF,NF> > > > &C0,
        vector<vector<vector<vector<double> > > > &A0,
-       vector<vector<vector<vector<double> > > > &K);
+       vector<vector<vector<vector<double> > > > &K,
+       const State& s);
 void Outputvsr(ofstream &fout,
 	       ofstream &foutP,
 	       ofstream &foutf,
@@ -87,17 +88,18 @@ void Outputvsr(ofstream &fout,
 	       vector<vector<vector<vector<double> > > > Y,
 	       vector<vector<vector<MATRIX<complex<double>,NF,NF> > > > C0,
 	       vector<vector<vector<vector<double> > > > A0,
-	       vector<vector<MATRIX<complex<double>,NF,NF> > > Scumulative);
+	       vector<vector<MATRIX<complex<double>,NF,NF> > > Scumulative,
+	       const State& s);
 
 #include "headers/update.h"
 #include "headers/project/albino.h"
 //#include "headers/project/test_case_B.h"
 
 void getP(const double r,
-	  const vector<vector<MATRIX<complex<double>,NF,NF> > > U0, 
 	  const vector<vector<MATRIX<complex<double>,NF,NF> > > Scumulative, 
 	  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& pmatrixf0,
-	  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& pmatrixm0){
+	  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& pmatrixm0,
+	  const State& s){
 
   for(int i=0;i<=NE-1;i++){
     for(state m=matter; m<=antimatter; m++){
@@ -106,27 +108,26 @@ void getP(const double r,
 
       // oscillate the potential and put into the mass basis
       pmatrixm0[m][i] = Scumulative[m][i]
-	* Adjoint(U0[m][i])
+	* Adjoint(s.U0[m][i])
 	* pmatrixf0[m][i]
-	* U0[m][i]
+	* s.U0[m][i]
 	* Adjoint(Scumulative[m][i]);
-      pmatrixf0[m][i] =  U0[m][i] * pmatrixm0[m][i] * Adjoint(U0[m][i]);
+      pmatrixf0[m][i] =  s.U0[m][i] * pmatrixm0[m][i] * Adjoint(s.U0[m][i]);
     }
   }
 }
 
 void interact(array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& fmatrixf,
 	      vector<vector<MATRIX<complex<double>,NF,NF> > >& Scumulative,
-	      vector<vector<MATRIX<complex<double>,NF,NF> > >& U0,
-	      double rho, double T, double Ye, double r, double dr){
+	      double rho, double T, double Ye, double r, double dr, const State& s){
   // save old fmatrix
   array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> old_fmatrixf = fmatrixf;
 
   // let neutrinos interact
-  if(do_interact) my_interact(fmatrixf, Scumulative, rho, T, Ye, r, dr);
+  if(do_interact) my_interact(fmatrixf, Scumulative, rho, T, Ye, r, dr, s);
   for(int i=0; i<NE; i++){
     for(state m=matter; m<=antimatter; m++){
-      fmatrixm[m][i] = Adjoint(U0[m][i]) * fmatrixf[m][i] * U0[m][i];
+      fmatrixm[m][i] = Adjoint(s.U0[m][i]) * fmatrixf[m][i] * s.U0[m][i];
     }
   }
   
@@ -169,7 +170,7 @@ void interact(array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& fmatrixf,
       pauli_reconstruct(Rcoeff, R);
 
       // apply to Scumulative
-      Scumulative[m][i] = MATRIX<complex<double>,NF,NF>(Adjoint(U0[m][i]) * R * U0[m][i] * Scumulative[m][i]);
+      Scumulative[m][i] = MATRIX<complex<double>,NF,NF>(Adjoint(s.U0[m][i]) * R * s.U0[m][i] * Scumulative[m][i]);
     }
   }
 }
@@ -290,19 +291,18 @@ int main(int argc, char *argv[]){
     //s.kV = set_kV(E);
     
     // vaccum mixing matrices and Hamiltonians
-    Evaluate_UV();
+    //Evaluate_UV();
     
-    HfV[matter] = vector<MATRIX<complex<double>,NF,NF> >(NE);
-    HfV[antimatter] = vector<MATRIX<complex<double>,NF,NF> >(NE);
-    Evaluate_HfV(s.kV);
+    //HfV[matter] = vector<MATRIX<complex<double>,NF,NF> >(NE);
+    //HfV[antimatter] = vector<MATRIX<complex<double>,NF,NF> >(NE);
+    //Evaluate_HfV(s.kV);
     
     // cofactor matrices in vacuum
-    CV=vector<vector<MATRIX<complex<double>,NF,NF> > >(NE,vector<MATRIX<complex<double>,NF,NF> >(NF));
-    Evaluate_CV(s.kV);
+    //CV = Evaluate_CV(s.kV);
     
     // mixing matrix element prefactors in vacuum
-    AV=vector<vector<vector<double> > >(NE,vector<vector<double> >(NF,vector<double>(NF)));
-    Evaluate_AV(s.kV);
+    //AV=vector<vector<vector<double> > >(NE,vector<vector<double> >(NF,vector<double>(NF)));
+    //Evaluate_AV(s.kV);
     
     // **************************************
     // quantities evaluated at inital point *
@@ -338,36 +338,33 @@ int main(int argc, char *argv[]){
 	}
 
     // mixing angles to MSW basis at initial point
-    U0[matter] = vector<MATRIX<complex<double>,NF,NF> >(NE);
-    U0[antimatter] = vector<MATRIX<complex<double>,NF,NF> >(NE);
-    
     for(int i=0;i<=NE-1;i++){
-      Hf0=HfV[matter][i]+VfMSW0;
+      Hf0=s.HfV[matter][i]+VfMSW0;
       k0=k(Hf0);
       deltak0=deltak(Hf0);
       C0[matter][i]=CofactorMatrices(Hf0,k0);
       
       for(int j=0;j<=NF-1;j++){
-	if(real(C0[matter][i][j][mu][e]*CV[i][j][mu][e]) < 0.)
-	  A0[matter][i][j][e]=-AV[i][j][e];
-	else A0[matter][i][j][e]=AV[i][j][e];
-	A0[matter][i][j][mu]=AV[i][j][mu];
+	if(real(C0[matter][i][j][mu][e]*s.CV[i][j][mu][e]) < 0.)
+	  A0[matter][i][j][e]=-s.AV[i][j][e];
+	else A0[matter][i][j][e]=s.AV[i][j][e];
+	A0[matter][i][j][mu]=s.AV[i][j][mu];
       }
-      U0[matter][i]=U(deltak0,C0[matter][i],A0[matter][i]);
+      s.U0[matter][i]=U(deltak0,C0[matter][i],A0[matter][i]);
       
-      Hf0=HfV[antimatter][i]-VfMSW0;
+      Hf0=s.HfV[antimatter][i]-VfMSW0;
       k0=kbar(Hf0);
       deltak0=deltakbar(Hf0);
       C0[antimatter][i]=CofactorMatrices(Hf0,k0);
       for(int j=0;j<=NF-1;j++){
-	if(real(C0[antimatter][i][j][mu][e]*CV[i][j][mu][e]) < 0.)
-	  A0[antimatter][i][j][e]=-AV[i][j][e];
-	else A0[antimatter][i][j][e]=AV[i][j][e];
-	A0[antimatter][i][j][mu]=AV[i][j][mu];
+	if(real(C0[antimatter][i][j][mu][e]*s.CV[i][j][mu][e]) < 0.)
+	  A0[antimatter][i][j][e]=-s.AV[i][j][e];
+	else A0[antimatter][i][j][e]=s.AV[i][j][e];
+	A0[antimatter][i][j][mu]=s.AV[i][j][mu];
       }
-      U0[antimatter][i]=Conjugate(U(deltak0,C0[antimatter][i],A0[antimatter][i]));
+      s.U0[antimatter][i]=Conjugate(U(deltak0,C0[antimatter][i],A0[antimatter][i]));
     }
-    
+
     vector<vector<vector<double> > > P0 (NM,vector<vector<double> >(NF,vector <double>(NE)));
 
     // yzhu14 density/potential matrices art rmin
@@ -375,7 +372,7 @@ int main(int argc, char *argv[]){
     double T0 = temperature(rmin);
     double ye0 = Ye(rmin);
     initialize(fmatrixf,rmin,rho0,T0,ye0);
-    getP(rmin,U0,Scumulative,pmatrixf0,pmatrixm0);
+    getP(rmin,Scumulative,pmatrixf0,pmatrixm0,s);
 
     // ***************************************
     // quantities needed for the calculation *
@@ -441,7 +438,7 @@ int main(int argc, char *argv[]){
 	
       finish=output=false;
       counterout=1;
-      Outputvsr(fout,foutP,foutf,foutdangledr,r,Y,C,A,Scumulative);
+      Outputvsr(fout,foutP,foutf,foutdangledr,r,Y,C,A,Scumulative,s);
 	
       for(state m=matter; m<=antimatter; m++)
 	for(int i=0; i<NE; i++)
@@ -490,8 +487,8 @@ int main(int argc, char *argv[]){
 		    for(int l=0;l<=k-1;l++)
 		      Y[m][i][x][j] += BB[k][l] * Ks[l][m][i][x][j];
 
-	    getP(r,U0,Scumulative,pmatrixf0,pmatrixm0);
-	    K(r,dr,Y,C,A,Ks[k]);
+	    getP(r,Scumulative,pmatrixf0,pmatrixm0,s);
+	    K(r,dr,Y,C,A,Ks[k],s);
 	  }
 	  
 	  // increment all quantities and update C and A arrays
@@ -514,7 +511,7 @@ int main(int argc, char *argv[]){
 	    }
 	  }
 	  
-	  C=UpdateC(r,get_Ye(r));
+	  C=UpdateC(r,get_Ye(r),s);
 	  A=UpdateA(C,C0,A0);
 	    
 	  // find largest error
@@ -543,7 +540,7 @@ int main(int argc, char *argv[]){
 	}while(repeat==true); // end of RK section
 
 	// interact with the matter
-	interact(fmatrixf, Scumulative, U0, rho(r), temperature(r), Ye(r), r, dr_this_step);
+	interact(fmatrixf, Scumulative, rho(r), temperature(r), Ye(r), r, dr_this_step, s);
 	for(state m=matter; m<=antimatter; m++)
 	  for(int i=0; i<NE; i++)
 	    for(flavour f1=e; f1<=mu; f1++)
@@ -569,13 +566,13 @@ int main(int argc, char *argv[]){
 		assert(fmatrixf[m][i][f1][f2] == fmatrixf[m][i][f1][f2]);
 	      }
 	    fmatrixm[m][i] = SThisStep
-	      * Adjoint( U0[m][i] ) 
+	      * Adjoint( s.U0[m][i] ) 
 	      * fmatrixf[m][i] 
-	      * U0[m][i]
+	      * s.U0[m][i]
 	      * Adjoint( SThisStep );
-	    fmatrixf[m][i] = U0[m][i]
+	    fmatrixf[m][i] = s.U0[m][i]
 	      * fmatrixm[m][i] 
-	      * Adjoint(  U0[m][i] );
+	      * Adjoint(  s.U0[m][i] );
 	    for(flavour f1=e; f1<=mu; f1++)
 	      for(flavour f2=e; f2<=mu; f2++){
 		assert(fmatrixm[m][i][f1][f2] == fmatrixm[m][i][f1][f2]);
@@ -615,7 +612,7 @@ int main(int argc, char *argv[]){
 	else counterout++;
 	
 	if(output==true || finish==true){
-	  Outputvsr(fout,foutP,foutf,foutdangledr,r,Y,C,A,Scumulative);
+	  Outputvsr(fout,foutP,foutf,foutdangledr,r,Y,C,A,Scumulative,s);
 	  output=false;
 	}
 
@@ -628,7 +625,7 @@ int main(int argc, char *argv[]){
 
       } while(finish==false);
 
-    Outputvsr(fout,foutP,foutf,foutdangledr,r,Y,C,A,Scumulative);
+      Outputvsr(fout,foutP,foutf,foutdangledr,r,Y,C,A,Scumulative,s);
     fPvsE.close();
     fFvsE.close();
 
@@ -663,7 +660,8 @@ void K(double r,
        vector<vector<vector<vector<double> > > > &Y,
        vector<vector<vector<MATRIX<complex<double>,NF,NF> > > > &C0,
        vector<vector<vector<vector<double> > > > &A0,
-       vector<vector<vector<vector<double> > > > &K){
+       vector<vector<vector<vector<double> > > > &K,
+       const State& s){
 
   MATRIX<complex<double>,NF,NF> VfSI,VfSIbar;  // self-interaction potential
   vector<MATRIX<complex<double>,NF,NF> > VfSIE(NE); // contribution to self-interaction potential from each energy
@@ -701,7 +699,7 @@ void K(double r,
 
 #pragma omp parallel for schedule(auto) private(Hf,Hfbar,UU,UUbar,kk,kkbar,dkk,dkkbar,dkkdr,dkkbardr,QQ,QQbar,AA,CC,dCCdr,BB,BBbar,Sfm,Sfmbar,JI) firstprivate(Ha,HB,dvdr,phase)
   for(i=0;i<=NE-1;i++){
-    Hf  = HfV[matter][i]+VfMSW;
+    Hf  = s.HfV[matter][i]+VfMSW;
     kk  = k(Hf);
     dkk = deltak(Hf);
     CC  = CofactorMatrices(Hf,kk);
@@ -711,7 +709,7 @@ void K(double r,
     Sa[i][si] = B(Y[matter][i][si]);
     UWBW[i] = UU * W(Y[matter][i][msw]) * BB * W(Y[matter][i][si]);
     
-    Hfbar = HfV[antimatter][i] + VfMSWbar;
+    Hfbar = s.HfV[antimatter][i] + VfMSWbar;
     kkbar = kbar(Hfbar);
     dkkbar = deltakbar(Hfbar);
     CC = CofactorMatrices(Hfbar,kkbar);
@@ -897,7 +895,8 @@ void Outputvsr(ofstream &fout,
 	       vector<vector<vector<vector<double> > > > Y,
 	       vector<vector<vector<MATRIX<complex<double>,NF,NF> > > > C0,
 	       vector<vector<vector<vector<double> > > > A0,
-	       vector<vector<MATRIX<complex<double>,NF,NF> > > Scumulative){
+	       vector<vector<MATRIX<complex<double>,NF,NF> > > Scumulative,
+	       const State& s){
 
   vector<MATRIX<complex<double>,NF,NF> > VfMSW(NM), dVfMSWdr(NM);
   vector<MATRIX<complex<double>,NF,NF> > VfSI(NM);
@@ -939,7 +938,6 @@ void Outputvsr(ofstream &fout,
   double totalHeavyFlux(0.);
   vector<double> Pe(NE),Pebar(NE),Pheavy(NE);
   vector<double> Pvalues(6);
-  vector<double> s(6);
   vector<double> predP((NE+2)*(2));
 
   MATRIX<complex<double>,NF,NF> p_unosc;
@@ -955,7 +953,7 @@ void Outputvsr(ofstream &fout,
 
   for(int i=0;i<=NE-1;i++){
     //---- matter
-    Hf[matter][i]  = HfV[matter][i] + VfMSW[matter];
+    Hf[matter][i]  = s.HfV[matter][i] + VfMSW[matter];
     kk[matter][i]  = k(Hf[matter][i]);
     dkk[matter][i] = deltak(Hf[matter][i]);
     UU[matter][i]  = U(dkk[matter][i],C0[matter][i],A0[matter][i]);
@@ -970,11 +968,11 @@ void Outputvsr(ofstream &fout,
       * WW[matter][i][si]
       * BB[matter][i][si]
       * Scumulative[matter][i];
-    Smf[matter][i]= Sm[matter][i] * Adjoint(U0[matter][i]);
+    Smf[matter][i]= Sm[matter][i] * Adjoint(s.U0[matter][i]);
     Sf[matter][i] = UU[matter][i] * Smf[matter][i];
     
     //---- antimatter
-    Hf[antimatter][i]  = HfV[antimatter][i] + VfMSW[antimatter];
+    Hf[antimatter][i]  = s.HfV[antimatter][i] + VfMSW[antimatter];
     kk[antimatter][i]  = kbar(Hf[antimatter][i]);
     dkk[antimatter][i] = deltakbar(Hf[antimatter][i]);
     UU[antimatter][i]  = Conjugate(U(dkk[antimatter][i],C0[antimatter][i],A0[antimatter][i]));
@@ -989,7 +987,7 @@ void Outputvsr(ofstream &fout,
       * WW[antimatter][i][si]
       * BB[antimatter][i][si]
       * Scumulative[antimatter][i];
-    Smf[antimatter][i]= Sm[antimatter][i] * Adjoint(U0[antimatter][i]);
+    Smf[antimatter][i]= Sm[antimatter][i] * Adjoint(s.U0[antimatter][i]);
     Sf[antimatter][i] = UU[antimatter][i] * Smf[antimatter][i];
     
     // compute contribution to self interaction potential
