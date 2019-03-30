@@ -66,7 +66,6 @@ bool do_interact;
 
 //vector<vector<MATRIX<complex<double>,NF,NF> > > rhomatrixf0(NM), rhomatrixm0(NM);
 array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> pmatrixf0, pmatrixm0;
-array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> fmatrixm;
 vector<DISCONTINUOUS> eP,eBarP,xP;
 vector<DISCONTINUOUS> eD,eBarD,xD;
 array<array<double,NM>,NE> dphi_dr_interact, dtheta_dr_interact;
@@ -126,7 +125,7 @@ void interact(vector<vector<MATRIX<complex<double>,NF,NF> > >& Scumulative,
   if(do_interact) my_interact(s.fmatrixf, Scumulative, rho, T, Ye, r, dr, s);
   for(int i=0; i<NE; i++){
     for(state m=matter; m<=antimatter; m++){
-      fmatrixm[m][i] = Adjoint(s.U0[m][i]) * s.fmatrixf[m][i] * s.U0[m][i];
+      s.fmatrixm[m][i] = Adjoint(s.U0[m][i]) * s.fmatrixf[m][i] * s.U0[m][i];
     }
   }
   
@@ -561,20 +560,20 @@ int main(int argc, char *argv[]){
 	    // don't need to modify pmatrix since it's re-read at each timestep
 	    for(flavour f1=e; f1<=mu; f1++)
 	      for(flavour f2=e; f2<=mu; f2++){
-		assert(fmatrixm[m][i][f1][f2] == fmatrixm[m][i][f1][f2]);
+		assert(s.fmatrixm[m][i][f1][f2] == s.fmatrixm[m][i][f1][f2]);
 		assert(s.fmatrixf[m][i][f1][f2] == s.fmatrixf[m][i][f1][f2]);
 	      }
-	    fmatrixm[m][i] = SThisStep
+	    s.fmatrixm[m][i] = SThisStep
 	      * Adjoint( s.U0[m][i] ) 
 	      * s.fmatrixf[m][i] 
 	      * s.U0[m][i]
 	      * Adjoint( SThisStep );
 	    s.fmatrixf[m][i] = s.U0[m][i]
-	      * fmatrixm[m][i] 
+	      * s.fmatrixm[m][i] 
 	      * Adjoint(  s.U0[m][i] );
 	    for(flavour f1=e; f1<=mu; f1++)
 	      for(flavour f2=e; f2<=mu; f2++){
-		assert(fmatrixm[m][i][f1][f2] == fmatrixm[m][i][f1][f2]);
+		assert(s.fmatrixm[m][i][f1][f2] == s.fmatrixm[m][i][f1][f2]);
 		assert(s.fmatrixf[m][i][f1][f2] == s.fmatrixf[m][i][f1][f2]);
 	      }
 	    
