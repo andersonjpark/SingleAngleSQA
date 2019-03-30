@@ -68,8 +68,8 @@ vector<vector<MATRIX<complex<double>,NF,NF> > > pmatrixf0(NM), pmatrixm0(NM);
 vector<vector<MATRIX<complex<double>,NF,NF> > > fmatrixf(NM), fmatrixm(NM);
 vector<DISCONTINUOUS> eP,eBarP,xP;
 vector<DISCONTINUOUS> eD,eBarD,xD;
-vector<vector<double> > dphi_dr_interact, dtheta_dr_interact;
-vector<vector<double> > dphi_dr_osc,      dtheta_dr_osc;
+array<array<double,NM>,NE> dphi_dr_interact, dtheta_dr_interact;
+array<array<double,NM>,NE> dphi_dr_osc,      dtheta_dr_osc;
 
 MATRIX<complex<double>,NF,NF> B(vector<double> y);
 void K(double r,
@@ -220,10 +220,6 @@ int main(int argc, char *argv[]){
     eD.resize(NE);
     eBarD.resize(NE);
     xD.resize(NE);
-    dtheta_dr_interact = vector< vector<double> > (NE, vector<double>(2,0) );
-    dphi_dr_interact = vector< vector<double> > (NE, vector<double>(2,0) );
-    dtheta_dr_osc      = vector< vector<double> > (NE, vector<double>(2,0) );
-    dphi_dr_osc      = vector< vector<double> > (NE, vector<double>(2,0) );
     
     // load and compute spectral data
     for(int i=0;i<=NE-1;i++){
