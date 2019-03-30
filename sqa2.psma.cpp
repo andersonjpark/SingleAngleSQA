@@ -62,6 +62,7 @@ bool do_interact;
 #include "headers/multiEnergy.h"
 #include "headers/MNR.h"
 #include "headers/misc.h"
+#include "headers/State.h"
 
 //vector<vector<MATRIX<complex<double>,NF,NF> > > rhomatrixf0(NM), rhomatrixm0(NM);
 array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> pmatrixf0, pmatrixm0;
@@ -283,24 +284,25 @@ int main(int argc, char *argv[]){
     // set up global variables defined in parameters.h *
     // *************************************************
 
-    // vectors of energies and vacuum eigenvalues
     set_Ebins(E);
-    kV = set_kV(E);
+    State s(E);
+    // vectors of energies and vacuum eigenvalues
+    //s.kV = set_kV(E);
     
     // vaccum mixing matrices and Hamiltonians
     Evaluate_UV();
     
     HfV[matter] = vector<MATRIX<complex<double>,NF,NF> >(NE);
     HfV[antimatter] = vector<MATRIX<complex<double>,NF,NF> >(NE);
-    Evaluate_HfV();
+    Evaluate_HfV(s.kV);
     
     // cofactor matrices in vacuum
     CV=vector<vector<MATRIX<complex<double>,NF,NF> > >(NE,vector<MATRIX<complex<double>,NF,NF> >(NF));
-    Evaluate_CV();
+    Evaluate_CV(s.kV);
     
     // mixing matrix element prefactors in vacuum
     AV=vector<vector<vector<double> > >(NE,vector<vector<double> >(NF,vector<double>(NF)));
-    Evaluate_AV();
+    Evaluate_AV(s.kV);
     
     // **************************************
     // quantities evaluated at inital point *

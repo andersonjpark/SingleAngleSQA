@@ -1,6 +1,7 @@
 #ifndef MIXINGANGLES_H
 #define MIXINGANGLES_H
 
+
 //=======//
 // theta //
 //=======//
@@ -302,7 +303,7 @@ void Evaluate_UV(void){
 //=============//
 // Evaluate_CV //
 //=============//
-void Evaluate_CV(void){
+void Evaluate_CV(const array<array<double,NF>,NE>& kV){
   for(int i=0;i<=NE-1;i++){
     CV[i][0][e][mu]=C<e,mu>(HfV[matter][i],kV[i][0]); CV[i][1][e][mu]=C<e,mu>(HfV[matter][i],kV[i][1]);
     CV[i][0][mu][e]=C<mu,e>(HfV[matter][i],kV[i][0]); CV[i][1][mu][e]=C<mu,e>(HfV[matter][i],kV[i][1]);
@@ -312,7 +313,7 @@ void Evaluate_CV(void){
 //=============//
 // Evaluate_AV //
 //=============//
-void Evaluate_AV(void){
+void Evaluate_AV(const array<array<double,NF>,NE>& kV){
   double Delta;
   for(int i=0;i<=NE-1;i++){
     for(int j=0;j<=NF-1;j++){
@@ -337,9 +338,9 @@ void Evaluate_AV(void){
 //===================//
 // Vacuum Potentials //
 //===================//
-vector<vector<double> > set_kV(const vector<double>& E){
+array<array<double,NF>,NE> set_kV(const vector<double>& E){
   assert(NF==2);
-  vector<vector<double> > kV(NE,vector<double>(NF));
+  array<array<double,NF>,NE> kV;
   for(int i=0;i<NE;i++){
     kV[i][0] = m1*m1             * cgs::constants::c4 /2./E[i];
     kV[i][1] = (kV[i][0] + dm21) * cgs::constants::c4 /2./E[i];

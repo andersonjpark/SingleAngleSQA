@@ -1,4 +1,9 @@
-void Evaluate_HfV(void){
+#ifndef FLAVORBASIS_H
+#define FLAVORBASIS_H
+
+#include "misc.h"
+
+void Evaluate_HfV(const array<array<double,NF>,NE>& kV){
   MATRIX<complex<double>,NF,NF> KV;
   
   for(int i=0;i<=NE-1;i++){
@@ -7,3 +12,5 @@ void Evaluate_HfV(void){
     HfV[antimatter][i]=Conjugate(HfV[matter][i]);
   }
 }
+
+#endif

@@ -25,10 +25,6 @@ const int NS=2;
 enum solution { msw, si};
 solution operator++(solution &n,int){ solution tmp=n; n=(solution)( (int)n+1 ); return tmp;};
 
-// vacuum eigenvalues
-vector<vector<double> > kV;
-vector<int> ordering(NF);
-
 // vacuum Hamiltonian and mixing matrices
 vector<vector<MATRIX<complex<double>,NF,NF> > > HfV(NM);
 vector<MATRIX<complex<double>,NF,NF> > UV(NM);
