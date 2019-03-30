@@ -64,8 +64,6 @@ bool do_interact;
 #include "headers/misc.h"
 #include "headers/State.h"
 
-//vector<vector<MATRIX<complex<double>,NF,NF> > > rhomatrixf0(NM), rhomatrixm0(NM);
-array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> pmatrixf0, pmatrixm0;
 vector<DISCONTINUOUS> eP,eBarP,xP;
 vector<DISCONTINUOUS> eD,eBarD,xD;
 array<array<double,NM>,NE> dphi_dr_interact, dtheta_dr_interact;
@@ -78,6 +76,7 @@ void K(double r,
        vector<vector<vector<MATRIX<complex<double>,NF,NF> > > > &C0,
        vector<vector<vector<vector<double> > > > &A0,
        vector<vector<vector<vector<double> > > > &K,
+       array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> pmatrixm0,
        const State& s);
 void Outputvsr(ofstream &fout,
 	       ofstream &foutP,
@@ -88,6 +87,7 @@ void Outputvsr(ofstream &fout,
 	       vector<vector<vector<MATRIX<complex<double>,NF,NF> > > > C0,
 	       vector<vector<vector<vector<double> > > > A0,
 	       vector<vector<MATRIX<complex<double>,NF,NF> > > Scumulative,
+	       array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> pmatrixf0,
 	       const State& s);
 
 #include "headers/update.h"
@@ -370,6 +370,8 @@ int main(int argc, char *argv[]){
     double T0 = temperature(rmin);
     double ye0 = Ye(rmin);
     initialize(s.fmatrixf,rmin,rho0,T0,ye0);
+
+    array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> pmatrixf0, pmatrixm0;
     getP(rmin,Scumulative,pmatrixf0,pmatrixm0,s);
 
     // ***************************************
@@ -436,7 +438,7 @@ int main(int argc, char *argv[]){
 	
       finish=output=false;
       counterout=1;
-      Outputvsr(fout,foutP,foutf,foutdangledr,r,Y,C,A,Scumulative,s);
+      Outputvsr(fout,foutP,foutf,foutdangledr,r,Y,C,A,Scumulative,pmatrixf0,s);
 	
       for(state m=matter; m<=antimatter; m++)
 	for(int i=0; i<NE; i++)
@@ -486,7 +488,7 @@ int main(int argc, char *argv[]){
 		      Y[m][i][x][j] += BB[k][l] * Ks[l][m][i][x][j];
 
 	    getP(r,Scumulative,pmatrixf0,pmatrixm0,s);
-	    K(r,dr,Y,C,A,Ks[k],s);
+	    K(r,dr,Y,C,A,Ks[k],pmatrixm0,s);
 	  }
 	  
 	  // increment all quantities and update C and A arrays
@@ -610,7 +612,7 @@ int main(int argc, char *argv[]){
 	else counterout++;
 	
 	if(output==true || finish==true){
-	  Outputvsr(fout,foutP,foutf,foutdangledr,r,Y,C,A,Scumulative,s);
+	  Outputvsr(fout,foutP,foutf,foutdangledr,r,Y,C,A,Scumulative,pmatrixf0,s);
 	  output=false;
 	}
 
@@ -623,7 +625,7 @@ int main(int argc, char *argv[]){
 
       } while(finish==false);
 
-      Outputvsr(fout,foutP,foutf,foutdangledr,r,Y,C,A,Scumulative,s);
+      Outputvsr(fout,foutP,foutf,foutdangledr,r,Y,C,A,Scumulative,pmatrixf0,s);
     fPvsE.close();
     fFvsE.close();
 
@@ -659,6 +661,7 @@ void K(double r,
        vector<vector<vector<MATRIX<complex<double>,NF,NF> > > > &C0,
        vector<vector<vector<vector<double> > > > &A0,
        vector<vector<vector<vector<double> > > > &K,
+       array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> pmatrixm0,
        const State& s){
 
   MATRIX<complex<double>,NF,NF> VfSI,VfSIbar;  // self-interaction potential
@@ -894,6 +897,7 @@ void Outputvsr(ofstream &fout,
 	       vector<vector<vector<MATRIX<complex<double>,NF,NF> > > > C0,
 	       vector<vector<vector<vector<double> > > > A0,
 	       vector<vector<MATRIX<complex<double>,NF,NF> > > Scumulative,
+	       array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> pmatrixf0,
 	       const State& s){
 
   vector<MATRIX<complex<double>,NF,NF> > VfMSW(NM), dVfMSWdr(NM);

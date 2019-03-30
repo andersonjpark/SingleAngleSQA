@@ -10,7 +10,7 @@ class State{
   double r, dr_block, dr_osc, dr_int;
   int counter;
   //EAS eas;
-  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> fmatrixf;
+  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> fmatrixf, fmatrixm;
   hid_t dset_f, dset_r, dset_dr_osc, dset_dr_int, dset_dr_block;
 
   // temporaries
