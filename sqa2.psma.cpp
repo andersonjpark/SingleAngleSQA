@@ -66,7 +66,7 @@ bool do_interact;
 
 //vector<vector<MATRIX<complex<double>,NF,NF> > > rhomatrixf0(NM), rhomatrixm0(NM);
 array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> pmatrixf0, pmatrixm0;
-array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> fmatrixf, fmatrixm;
+array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> fmatrixm;
 vector<DISCONTINUOUS> eP,eBarP,xP;
 vector<DISCONTINUOUS> eD,eBarD,xD;
 array<array<double,NM>,NE> dphi_dr_interact, dtheta_dr_interact;
@@ -117,17 +117,16 @@ void getP(const double r,
   }
 }
 
-void interact(array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& fmatrixf,
-	      vector<vector<MATRIX<complex<double>,NF,NF> > >& Scumulative,
-	      double rho, double T, double Ye, double r, double dr, const State& s){
+void interact(vector<vector<MATRIX<complex<double>,NF,NF> > >& Scumulative,
+	      double rho, double T, double Ye, double r, double dr, State& s){
   // save old fmatrix
-  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> old_fmatrixf = fmatrixf;
+  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> old_fmatrixf = s.fmatrixf;
 
   // let neutrinos interact
-  if(do_interact) my_interact(fmatrixf, Scumulative, rho, T, Ye, r, dr, s);
+  if(do_interact) my_interact(s.fmatrixf, Scumulative, rho, T, Ye, r, dr, s);
   for(int i=0; i<NE; i++){
     for(state m=matter; m<=antimatter; m++){
-      fmatrixm[m][i] = Adjoint(s.U0[m][i]) * fmatrixf[m][i] * s.U0[m][i];
+      fmatrixm[m][i] = Adjoint(s.U0[m][i]) * s.fmatrixf[m][i] * s.U0[m][i];
     }
   }
   
@@ -137,7 +136,7 @@ void interact(array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& fmatrixf,
   for(int i=0; i<NE; i++){
     for(state m=matter; m<=antimatter; m++){
       pauli_decompose(old_fmatrixf[m][i], hold);
-      pauli_decompose(    fmatrixf[m][i], hnew);
+      pauli_decompose(  s.fmatrixf[m][i], hnew);
 
       // get the theta and phi contribution
       double oldmag2   = hold[0]*hold[0] + hold[1]*hold[1] + hold[2]*hold[2];
@@ -371,7 +370,7 @@ int main(int argc, char *argv[]){
     double rho0 = rho(rmin);
     double T0 = temperature(rmin);
     double ye0 = Ye(rmin);
-    initialize(fmatrixf,rmin,rho0,T0,ye0);
+    initialize(s.fmatrixf,rmin,rho0,T0,ye0);
     getP(rmin,Scumulative,pmatrixf0,pmatrixm0,s);
 
     // ***************************************
@@ -444,7 +443,7 @@ int main(int argc, char *argv[]){
 	for(int i=0; i<NE; i++)
 	  for(flavour f1=e; f1<=mu; f1++)
 	    for(flavour f2=e; f2<=mu; f2++)
-	      assert(fmatrixf[m][i][f1][f2] == fmatrixf[m][i][f1][f2]);
+	      assert(s.fmatrixf[m][i][f1][f2] == s.fmatrixf[m][i][f1][f2]);
       
       // ***********************
       // start the loop over r *
@@ -471,7 +470,7 @@ int main(int argc, char *argv[]){
 	  for(int i=0; i<NE; i++)
 	    for(flavour f1=e; f1<=mu; f1++)
 	      for(flavour f2=e; f2<=mu; f2++)
-		assert(fmatrixf[m][i][f1][f2] == fmatrixf[m][i][f1][f2]);
+		assert(s.fmatrixf[m][i][f1][f2] == s.fmatrixf[m][i][f1][f2]);
 	
 	// beginning of RK section
 	do{ 
@@ -540,15 +539,15 @@ int main(int argc, char *argv[]){
 	}while(repeat==true); // end of RK section
 
 	// interact with the matter
-	interact(fmatrixf, Scumulative, rho(r), temperature(r), Ye(r), r, dr_this_step, s);
+	interact(Scumulative, rho(r), temperature(r), Ye(r), r, dr_this_step, s);
 	for(state m=matter; m<=antimatter; m++)
 	  for(int i=0; i<NE; i++)
 	    for(flavour f1=e; f1<=mu; f1++)
 	      for(flavour f2=e; f2<=mu; f2++)
-		assert(fmatrixf[m][i][f1][f2] == fmatrixf[m][i][f1][f2]);
+		assert(s.fmatrixf[m][i][f1][f2] == s.fmatrixf[m][i][f1][f2]);
 
 	// accumulate S and reset variables
-	array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> old_fmatrixf = fmatrixf;
+	array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> old_fmatrixf = s.fmatrixf;
 	for(state m=matter;m<=antimatter;m++){
 	  for(int i=0;i<=NE-1;i++){
 	    SSMSW = W(Y[m][i][msw])*B(Y[m][i][msw]);
@@ -563,20 +562,20 @@ int main(int argc, char *argv[]){
 	    for(flavour f1=e; f1<=mu; f1++)
 	      for(flavour f2=e; f2<=mu; f2++){
 		assert(fmatrixm[m][i][f1][f2] == fmatrixm[m][i][f1][f2]);
-		assert(fmatrixf[m][i][f1][f2] == fmatrixf[m][i][f1][f2]);
+		assert(s.fmatrixf[m][i][f1][f2] == s.fmatrixf[m][i][f1][f2]);
 	      }
 	    fmatrixm[m][i] = SThisStep
 	      * Adjoint( s.U0[m][i] ) 
-	      * fmatrixf[m][i] 
+	      * s.fmatrixf[m][i] 
 	      * s.U0[m][i]
 	      * Adjoint( SThisStep );
-	    fmatrixf[m][i] = s.U0[m][i]
+	    s.fmatrixf[m][i] = s.U0[m][i]
 	      * fmatrixm[m][i] 
 	      * Adjoint(  s.U0[m][i] );
 	    for(flavour f1=e; f1<=mu; f1++)
 	      for(flavour f2=e; f2<=mu; f2++){
 		assert(fmatrixm[m][i][f1][f2] == fmatrixm[m][i][f1][f2]);
-		assert(fmatrixf[m][i][f1][f2] == fmatrixf[m][i][f1][f2]);
+		assert(s.fmatrixf[m][i][f1][f2] == s.fmatrixf[m][i][f1][f2]);
 	      }
 	    
 	    // reset the evolution matrix to identity
@@ -593,7 +592,7 @@ int main(int argc, char *argv[]){
 	    // get rate of change of fmatrix from oscillation
 	    double hold[4], hnew[4];
 	    pauli_decompose(old_fmatrixf[m][i], hold);
-	    pauli_decompose(    fmatrixf[m][i], hnew);
+	    pauli_decompose(  s.fmatrixf[m][i], hnew);
 	    double oldmag   = sqrt(hold[0]*hold[0] + hold[1]*hold[1] + hold[2]*hold[2]);
 	    double newmag   = sqrt(hnew[0]*hnew[0] + hnew[1]*hnew[1] + hnew[2]*hnew[2]);
 	    double costheta = (hold[0]*hnew[0] + hold[1]*hnew[1] + hold[2]*hnew[2]) / (newmag*oldmag);
@@ -1051,8 +1050,8 @@ void Outputvsr(ofstream &fout,
     for(state m=matter; m<=antimatter; m++)
       for(flavour f1=e; f1<=mu; f1++)
 	for(flavour f2=e; f2<=mu; f2++) {
-	  foutf << real( fmatrixf[m][i][f1][f2] ) << "\t";
-	  foutf << imag( fmatrixf[m][i][f1][f2] ) << "\t";
+	  foutf << real( s.fmatrixf[m][i][f1][f2] ) << "\t";
+	  foutf << imag( s.fmatrixf[m][i][f1][f2] ) << "\t";
 	}
   
 
