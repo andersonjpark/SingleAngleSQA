@@ -604,6 +604,7 @@ void K(double dr,
     array<array<array<double,NF>,NF>,NM> AA;
     array<MATRIX<complex<double>,NF,NF>,NM> UU;
     array<MATRIX<complex<double>,NF,NF>,NM> BB;
+    array<MATRIX<complex<double>,NF,NF>,NM> Ha,HB;
       
     for(int m=matter; m<=antimatter; m++){
       Hf[m]  = s.HfV[m][i]+s.VfMSW[m];
@@ -620,27 +621,26 @@ void K(double dr,
     // ****************
     // Matter section *
     // ****************
-    MATRIX<complex<double>,NF,NF> Ha,HB;
     array<double,NF-1> phase;
     phase[0] = M_2PI*(Y[matter][i][msw][4]-Y[matter][i][msw][5]);
-    Ha[0][1]=0.;
+    Ha[matter][0][1]=0.;
     for(int j=0;j<=NF-2;j++)
       for(int k=j+1;k<=NF-1;k++)
 	for(flavour f=e;f<=mu;f++)
-	  Ha[j][k]+= conj(UU[matter][f][j])*s.dVfMSWdr[matter][f][f]*UU[matter][f][k];
+	  Ha[matter][j][k]+= conj(UU[matter][f][j])*s.dVfMSWdr[matter][f][f]*UU[matter][f][k];
     
-    Ha[0][1] *= I*cgs::constants::hbarc/dkk[matter][0]*exp(I*phase[0]);
-    Ha[1][0] = conj(Ha[0][1]);
+    Ha[matter][0][1] *= I*cgs::constants::hbarc/dkk[matter][0]*exp(I*phase[0]);
+    Ha[matter][1][0] = conj(Ha[matter][0][1]);
     
     // HB = -I/cgs::constants::hbarc*Ha*BB;
-    HB[0][0]=-I/cgs::constants::hbarc*( Ha[0][1]*BB[matter][1][0] );
-    HB[0][1]=-I/cgs::constants::hbarc*( Ha[0][1]*BB[matter][1][1] );
+    HB[matter][0][0]=-I/cgs::constants::hbarc*( Ha[matter][0][1]*BB[matter][1][0] );
+    HB[matter][0][1]=-I/cgs::constants::hbarc*( Ha[matter][0][1]*BB[matter][1][1] );
     
     array<double,4> dvdr;
-    dvdr[0]=real(HB[0][1]);
-    dvdr[1]=imag(HB[0][1]);
-    dvdr[2]=real(HB[0][0]);
-    dvdr[3]=imag(HB[0][0]);
+    dvdr[0]=real(HB[matter][0][1]);
+    dvdr[1]=imag(HB[matter][0][1]);
+    dvdr[2]=real(HB[matter][0][0]);
+    dvdr[3]=imag(HB[matter][0][0]);
     
     MATRIX<double,3,4> JI = JInverse(Y[matter][i][msw]);
     
@@ -662,23 +662,23 @@ void K(double dr,
     // Antimatter section *
     // ********************
     phase[0] = M_2PI*(Y[antimatter][i][msw][4]-Y[antimatter][i][msw][5]);
-    Ha[0][1] = 0.;
+    Ha[antimatter][0][1] = 0.;
     for(int j=0;j<=NF-2;j++)
       for(int k=j+1;k<=NF-1;k++)
 	for(flavour f=e;f<=mu;f++)
-	  Ha[j][k]+=conj(UU[antimatter][f][j])*s.dVfMSWdr[antimatter][f][f]*UU[antimatter][f][k];
+	  Ha[antimatter][j][k]+=conj(UU[antimatter][f][j])*s.dVfMSWdr[antimatter][f][f]*UU[antimatter][f][k];
     
-    Ha[0][1] *= I*cgs::constants::hbarc/dkk[antimatter][0]*exp(I*phase[0]);
-    Ha[1][0] = conj(Ha[0][1]);
+    Ha[antimatter][0][1] *= I*cgs::constants::hbarc/dkk[antimatter][0]*exp(I*phase[0]);
+    Ha[antimatter][1][0] = conj(Ha[antimatter][0][1]);
     
     //HB=-I/cgs::constants::hbarc*Ha*BBbar;
-    HB[0][0]=-I/cgs::constants::hbarc*( Ha[0][1]*BB[antimatter][1][0] );
-    HB[0][1]=-I/cgs::constants::hbarc*( Ha[0][1]*BB[antimatter][1][1] );
+    HB[antimatter][0][0]=-I/cgs::constants::hbarc*( Ha[antimatter][0][1]*BB[antimatter][1][0] );
+    HB[antimatter][0][1]=-I/cgs::constants::hbarc*( Ha[antimatter][0][1]*BB[antimatter][1][1] );
     
-    dvdr[0]=real(HB[0][1]);
-    dvdr[1]=imag(HB[0][1]);
-    dvdr[2]=real(HB[0][0]);
-    dvdr[3]=imag(HB[0][0]);
+    dvdr[0]=real(HB[antimatter][0][1]);
+    dvdr[1]=imag(HB[antimatter][0][1]);
+    dvdr[2]=real(HB[antimatter][0][0]);
+    dvdr[3]=imag(HB[antimatter][0][0]);
 
     JI = JInverse(Y[antimatter][i][msw]);
 
@@ -691,10 +691,10 @@ void K(double dr,
     K[antimatter][i][msw][3] = 0.;
     dkkdr[antimatter] = dkdr(UU[antimatter],s.dVfMSWdr[antimatter]);
     dCCdr = CofactorMatricesDerivatives(Hf[antimatter],s.dVfMSWdr[antimatter],dkkdr[antimatter]);
-    array<double,NF> QQbar = Q(UU[antimatter],dkk[antimatter],CC[antimatter],dCCdr);
+    QQ = Q(UU[antimatter],dkk[antimatter],CC[antimatter],dCCdr);
 
-    K[antimatter][i][msw][4] = (kk[antimatter][0]+QQbar[0])*dr/M_2PI/cgs::constants::hbarc;
-    K[antimatter][i][msw][5] = (kk[antimatter][1]+QQbar[1])*dr/M_2PI/cgs::constants::hbarc;
+    K[antimatter][i][msw][4] = (kk[antimatter][0]+QQ[0])*dr/M_2PI/cgs::constants::hbarc;
+    K[antimatter][i][msw][5] = (kk[antimatter][1]+QQ[1])*dr/M_2PI/cgs::constants::hbarc;
 
     // *****************************************************************
     // contribution to the self-interaction potential from this energy *
