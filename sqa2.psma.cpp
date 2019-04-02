@@ -46,7 +46,6 @@ using std::array;
 
 // global variables
 DISCONTINUOUS rho, lnrho, Ye, temperature; // rho is the mass density
-bool do_interact;
 
 // headers
 #include "headers/MATRIX.h"
@@ -122,7 +121,7 @@ void interact(vector<vector<MATRIX<complex<double>,NF,NF> > >& Scumulative,
   array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> old_fmatrixf = s.fmatrixf;
 
   // let neutrinos interact
-  if(do_interact) my_interact(s.fmatrixf, Scumulative, rho, T, Ye, r, dr, s);
+  my_interact(s.fmatrixf, Scumulative, rho, T, Ye, r, dr, s);
   for(int i=0; i<NE; i++){
     for(state m=matter; m<=antimatter; m++){
       s.fmatrixm[m][i] = Adjoint(s.U0[m][i]) * s.fmatrixf[m][i] * s.U0[m][i];
@@ -540,7 +539,8 @@ int main(int argc, char *argv[]){
 	}while(repeat==true); // end of RK section
 
 	// interact with the matter
-	interact(Scumulative, rho(r), temperature(r), Ye(r), r, dr_this_step, s);
+	if(do_interact)
+	  interact(Scumulative, rho(r), temperature(r), Ye(r), r, dr_this_step, s);
 	for(state m=matter; m<=antimatter; m++)
 	  for(int i=0; i<NE; i++)
 	    for(flavour f1=e; f1<=mu; f1++)
