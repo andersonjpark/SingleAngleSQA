@@ -69,9 +69,7 @@ void K(double r,
        vector<vector<vector<MATRIX<complex<double>,NF,NF> > > > &C0,
        vector<vector<vector<vector<double> > > > &A0,
        vector<vector<vector<vector<double> > > > &K,
-       State& s,
-       const DISCONTINUOUS& lnrho,
-       const DISCONTINUOUS& Ye);
+       State& s);
 void Outputvsr(ofstream &fout,
 	       ofstream &foutP,
 	       ofstream &foutf,
@@ -83,9 +81,7 @@ void Outputvsr(ofstream &fout,
 	       State& s,
 	       const vector<DISCONTINUOUS>& eP,
 	       const vector<DISCONTINUOUS>& eBarP,
-	       const vector<DISCONTINUOUS>& xP,
-	       const DISCONTINUOUS& lnrho,
-	       const DISCONTINUOUS& Ye);
+	       const vector<DISCONTINUOUS>& xP);
 
 #include "headers/update.h"
 #include "headers/project/albino.h"
@@ -312,8 +308,7 @@ int main(int argc, char *argv[]){
     // **************************************
     
     // MSW potential matrix
-    s.rho = exp(lnrho(rmin));
-    s.Ye  = Ye(rmin);
+    s.update_background(rmin, lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP);
     
     
     // cofactor matrices at initial point - will be recycled as cofactor matrices at beginning of every step
@@ -359,10 +354,8 @@ int main(int argc, char *argv[]){
     vector<vector<vector<double> > > P0 (NM,vector<vector<double> >(NF,vector <double>(NE)));
 
     // yzhu14 density/potential matrices art rmin
-    double rho0 = rho(rmin);
-    double T0 = temperature(rmin);
-    double ye0 = Ye(rmin);
-    initialize(s.fmatrixf,rmin,rho0,T0,ye0,eD,eBarD,xD);
+    s.update_background(rmin,lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP);
+    initialize(s,rmin,eD,eBarD,xD);
 
     getP(rmin,s, eP,eBarP,xP);
 
@@ -430,7 +423,8 @@ int main(int argc, char *argv[]){
 	
       finish=output=false;
       counterout=1;
-      Outputvsr(fout,foutP,foutf,foutdangledr,r,Y,C,A,s,eP,eBarP,xP,lnrho,Ye);
+      s.update_background(r, lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP);
+      Outputvsr(fout,foutP,foutf,foutdangledr,r,Y,C,A,s,eP,eBarP,xP);
 	
       for(state m=matter; m<=antimatter; m++)
 	for(int i=0; i<NE; i++)
@@ -479,8 +473,9 @@ int main(int argc, char *argv[]){
 		    for(int l=0;l<=k-1;l++)
 		      Y[m][i][x][j] += BB[k][l] * Ks[l][m][i][x][j];
 
+	    s.update_background(r, lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP);
 	    getP(r,s,eP,eBarP,xP);
-	    K(r,dr,Y,C,A,Ks[k],s,lnrho,Ye);
+	    K(r,dr,Y,C,A,Ks[k],s);
 	  }
 	  
 	  // increment all quantities and update C and A arrays
@@ -605,7 +600,8 @@ int main(int argc, char *argv[]){
 	else counterout++;
 	
 	if(output==true || finish==true){
-	  Outputvsr(fout,foutP,foutf,foutdangledr,r,Y,C,A,s,eP,eBarP,xP,lnrho,Ye);
+	  s.update_background(r, lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP);
+	  Outputvsr(fout,foutP,foutf,foutdangledr,r,Y,C,A,s,eP,eBarP,xP);
 	  output=false;
 	}
 
@@ -618,7 +614,8 @@ int main(int argc, char *argv[]){
 
       } while(finish==false);
 
-      Outputvsr(fout,foutP,foutf,foutdangledr,r,Y,C,A,s,eP,eBarP,xP,lnrho,Ye);
+      s.update_background(r, lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP);
+      Outputvsr(fout,foutP,foutf,foutdangledr,r,Y,C,A,s,eP,eBarP,xP);
     fPvsE.close();
     fFvsE.close();
 
@@ -654,9 +651,7 @@ void K(double r,
        vector<vector<vector<MATRIX<complex<double>,NF,NF> > > > &C0,
        vector<vector<vector<vector<double> > > > &A0,
        vector<vector<vector<vector<double> > > > &K,
-       State& s,
-       const DISCONTINUOUS& lnrho,
-       const DISCONTINUOUS& Ye){
+       State& s){
 
   MATRIX<complex<double>,NF,NF> VfSI,VfSIbar;  // self-interaction potential
   vector<MATRIX<complex<double>,NF,NF> > VfSIE(NE); // contribution to self-interaction potential from each energy
@@ -673,7 +668,6 @@ void K(double r,
     Sabar(NE,vector<MATRIX<complex<double>,NF,NF> >(NS));
   vector<MATRIX<complex<double>,NF,NF> > UWBW(NE);
   vector<MATRIX<complex<double>,NF,NF> > UWBWbar(NE);
-  double drrhodr, dYYedr;
   MATRIX<double,3,4> JI;
   int i;
   MATRIX<complex<double>,NF,NF> Ha;
@@ -681,15 +675,11 @@ void K(double r,
   vector<double> phase(1);
   vector<double> dvdr(4);
   // *************
-  s.rho=exp(lnrho(r));
-  drrhodr=s.rho*lnrho.Derivative(r);
-  s.Ye=Ye(r);
-  dYYedr=Ye.Derivative(r);
   VfMSW[e][e]=Ve(s.rho,s.Ye);
   VfMSW[mu][mu]=Vmu(s.rho,s.Ye);
   VfMSWbar=-Conjugate(VfMSW);
-  dVfMSWdr[e][e]=dVedr(s.rho,drrhodr,s.Ye,dYYedr);
-  dVfMSWdr[mu][mu]=dVmudr(s.rho,drrhodr,s.Ye,dYYedr);
+  dVfMSWdr[e][e]=dVedr(s.rho,s.drhodr,s.Ye,s.dYedr);
+  dVfMSWdr[mu][mu]=dVmudr(s.rho,s.drhodr,s.Ye,s.dYedr);
   dVfMSWbardr=-Conjugate(dVfMSWdr);
 
 #pragma omp parallel for schedule(auto) private(Hf,Hfbar,UU,UUbar,kk,kkbar,dkk,dkkbar,dkkdr,dkkbardr,QQ,QQbar,AA,CC,dCCdr,BB,BBbar,Sfm,Sfmbar,JI) firstprivate(Ha,HB,dvdr,phase)
@@ -893,27 +883,19 @@ void Outputvsr(ofstream &fout,
 	       State& s,
 	       const vector<DISCONTINUOUS>& eP,
 	       const vector<DISCONTINUOUS>& eBarP,
-	       const vector<DISCONTINUOUS>& xP,
-	       const DISCONTINUOUS& lnrho,
-	       const DISCONTINUOUS& Ye){
+	       const vector<DISCONTINUOUS>& xP){
 
   vector<MATRIX<complex<double>,NF,NF> > VfMSW(NM), dVfMSWdr(NM);
   vector<MATRIX<complex<double>,NF,NF> > VfSI(NM);
 
   vector<MATRIX<complex<double>,NF,NF> > rhomatrix(NM);
 
-  s.rho=exp(lnrho(r));
-  double drrhodr=s.rho*lnrho.Derivative(r);
-
-  s.Ye=Ye(r);
-  double dYYedr=Ye.Derivative(r);
-
   VfMSW[matter][e][e]=Ve(s.rho,s.Ye);
   VfMSW[matter][mu][mu]=Vmu(s.rho,s.Ye);
   VfMSW[antimatter]=-VfMSW[matter];
 
-  dVfMSWdr[matter][e][e]=dVedr(s.rho,drrhodr,s.Ye,dYYedr);
-  dVfMSWdr[matter][mu][mu]=dVmudr(s.rho,drrhodr,s.Ye,dYYedr);
+  dVfMSWdr[matter][e][e]=dVedr(s.rho,s.drhodr,s.Ye,s.dYedr);
+  dVfMSWdr[matter][mu][mu]=dVmudr(s.rho,s.drhodr,s.Ye,s.dYedr);
   dVfMSWdr[antimatter]=-dVfMSWdr[matter];
 
   vector<vector<MATRIX<complex<double>,NF,NF> > >

@@ -7,6 +7,7 @@
 class State{
  public:
   double rho, T, Ye;
+  double drhodr, dYedr;
   double r, dr_block, dr_osc, dr_int;
   int counter;
   //EAS eas;
@@ -80,7 +81,25 @@ class State{
 	  Scumulative[m][ig][f1][f1] = 1.;
 	}
   }
-  
+
+
+  void update_background(double r,
+			 const DISCONTINUOUS& lnrho,
+			 const DISCONTINUOUS& temperature,
+			 const DISCONTINUOUS& electronfraction,
+			 const vector<DISCONTINUOUS>& eD,
+			 const vector<DISCONTINUOUS>& eBarD,
+			 const vector<DISCONTINUOUS>& xD,
+			 const vector<DISCONTINUOUS>& eP,
+			 const vector<DISCONTINUOUS>& eBarP,
+			 const vector<DISCONTINUOUS>& xP){
+    // fluid background
+    rho = exp(lnrho(r));
+    T = temperature(r);
+    Ye = electronfraction(r);
+    drhodr=rho*lnrho.Derivative(r);
+    dYedr=electronfraction.Derivative(r);
+  }
 };
 
 

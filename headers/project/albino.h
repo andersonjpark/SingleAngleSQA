@@ -40,18 +40,18 @@ T phaseVolDensity(const T density, const unsigned i){
 //============//
 // Initialize //
 //============//
-void initialize(array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& fmatrixf,
-		double r, double rho, double T, double Ye,
+void initialize(State& s,
+		double r,
 		const vector<DISCONTINUOUS>& eD,
 		const vector<DISCONTINUOUS>& eBarD,
 		const vector<DISCONTINUOUS>& xD){
   // T should be MeV
   cout << "Setting initial data." << endl;
-  cout << "rho = " << rho << " g/ccm" << endl;
-  cout << "T = " << T << " MeV" << endl;
-  cout << "Ye = " << Ye << endl;
-  double Ye_in = max(Ye,__nulibtable_MOD_nulibtable_ye_min);
-  nulibtable_range_species_range_energy_(&rho, &T, &Ye_in, &eas.eas.front(),
+  cout << "rho = " << s.rho << " g/ccm" << endl;
+  cout << "T = " << s.T << " MeV" << endl;
+  cout << "Ye = " << s.Ye << endl;
+  s.Ye = max(s.Ye,__nulibtable_MOD_nulibtable_ye_min);
+  nulibtable_range_species_range_energy_(&s.rho, &s.T, &s.Ye, &eas.eas.front(),
   					 &__nulibtable_MOD_nulibtable_number_species,
   					 &__nulibtable_MOD_nulibtable_number_groups,
   					 &__nulibtable_MOD_nulibtable_number_easvariables);
@@ -60,15 +60,15 @@ void initialize(array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& fmatrixf,
     for(state m=matter; m<=antimatter; m++)
       for(flavour f1=e; f1<=mu; f1++)
 	for(flavour f2=e; f2<=mu; f2++) 
-	  fmatrixf[m][i][f1][f2] = 0;
+	  s.fmatrixf[m][i][f1][f2] = 0;
     double De = phaseVolDensity(eD[i](r)   , i); //eas.emis(0,i) / eas.abs(0,i); //
     double Da = phaseVolDensity(eBarD[i](r), i); //eas.emis(1,i) / eas.abs(1,i); //
     double Dx = phaseVolDensity(xD[i](r)   , i); //eas.emis(2,i) / eas.abs(2,i); //
     
-    fmatrixf[    matter][i][e ][e ] = De; 
-    fmatrixf[    matter][i][mu][mu] = Dx;
-    fmatrixf[antimatter][i][e ][e ] = Da;
-    fmatrixf[antimatter][i][mu][mu] = Dx;
+    s.fmatrixf[    matter][i][e ][e ] = De; 
+    s.fmatrixf[    matter][i][mu][mu] = Dx;
+    s.fmatrixf[antimatter][i][e ][e ] = Da;
+    s.fmatrixf[antimatter][i][mu][mu] = Dx;
       
     cout << "GROUP " << i << endl;
     cout << "\teas.emis = {" << eas.emis(0,i) << ", " << eas.emis(1,i) << ", " << eas.emis(2,i) << "}" << endl;
@@ -76,14 +76,14 @@ void initialize(array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& fmatrixf,
     cout << "\tBB = {" << eas.emis(0,i)/eas.abs(0,i) << ", " << eas.emis(1,i)/eas.abs(1,i) << ", " << eas.emis(2,i)/eas.abs(2,i) << "}" << endl;
     cout << "\teas.scat = {" << eas.scat(0,i) << ", " << eas.scat(1,i) << ", " << eas.scat(2,i) << "}" << endl;
 
-    cout << "\tf = {" << real(fmatrixf[matter][i][e][e]) << ", " << real(fmatrixf[antimatter][i][e][e]) << ", " << real(fmatrixf[matter][i][mu][mu]) << ", " << real(fmatrixf[antimatter][i][mu][mu]) << "}" << endl;
+    cout << "\tf = {" << real(s.fmatrixf[matter][i][e][e]) << ", " << real(s.fmatrixf[antimatter][i][e][e]) << ", " << real(s.fmatrixf[matter][i][mu][mu]) << ", " << real(s.fmatrixf[antimatter][i][mu][mu]) << "}" << endl;
   }
   
   for(state m=matter; m<=antimatter; m++)
     for(int i=0; i<NE; i++)
       for(flavour f1=e; f1<=mu; f1++)
 	for(flavour f2=e; f2<=mu; f2++)
-	  assert(fmatrixf[m][i][f1][f2] == fmatrixf[m][i][f1][f2]);
+	  assert(s.fmatrixf[m][i][f1][f2] == s.fmatrixf[m][i][f1][f2]);
 }
 
 
