@@ -99,6 +99,28 @@ class State{
     Ye = electronfraction(r);
     drhodr=rho*lnrho.Derivative(r);
     dYedr=electronfraction.Derivative(r);
+
+    // potential
+    for(state m=matter; m<=antimatter; m++){
+      for(int i=0;i<=NE-1;i++){
+	// decompose unoscillated potential
+	double P0 = (m==matter ? eP[i](r) : eBarP[i](r));
+	double P1 = xP[i](r);
+	pmatrixf0[m][i][e ][e ] = complex<double>(P0,0);
+	pmatrixf0[m][i][mu][e ] = complex<double>(0,0);
+	pmatrixf0[m][i][e ][mu] = complex<double>(0,0);
+	pmatrixf0[m][i][mu][mu] = complex<double>(P1,0);
+	
+	// oscillate the potential and put into the mass basis
+	pmatrixm0[m][i] = Scumulative[m][i]
+	  * Adjoint(U0[m][i])
+	  * pmatrixf0[m][i]
+	  * U0[m][i]
+	  * Adjoint(Scumulative[m][i]);
+	pmatrixf0[m][i] =  U0[m][i] * pmatrixm0[m][i] * Adjoint(U0[m][i]);
+      }
+    }
+
   }
 };
 

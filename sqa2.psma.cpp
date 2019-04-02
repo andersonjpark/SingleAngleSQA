@@ -87,28 +87,6 @@ void Outputvsr(ofstream &fout,
 #include "headers/project/albino.h"
 //#include "headers/project/test_case_B.h"
 
-void getP(const double r,
-	  State& s,
-	  const vector<DISCONTINUOUS>& eP,
-	  const vector<DISCONTINUOUS>& eBarP,
-	  const vector<DISCONTINUOUS>& xP){
-
-  for(int i=0;i<=NE-1;i++){
-    for(state m=matter; m<=antimatter; m++){
-      // get unoscillated potential
-      getPunosc(r, m, i, s.pmatrixf0[m][i], eP,eBarP,xP);
-
-      // oscillate the potential and put into the mass basis
-      s.pmatrixm0[m][i] = s.Scumulative[m][i]
-	* Adjoint(s.U0[m][i])
-	* s.pmatrixf0[m][i]
-	* s.U0[m][i]
-	* Adjoint(s.Scumulative[m][i]);
-      s.pmatrixf0[m][i] =  s.U0[m][i] * s.pmatrixm0[m][i] * Adjoint(s.U0[m][i]);
-    }
-  }
-}
-
 void interact(double r, double dr, State& s,
 	      const vector<DISCONTINUOUS>& eD,
 	      const vector<DISCONTINUOUS>& eBarD,
@@ -357,8 +335,6 @@ int main(int argc, char *argv[]){
     s.update_background(rmin,lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP);
     initialize(s,rmin,eD,eBarD,xD);
 
-    getP(rmin,s, eP,eBarP,xP);
-
     // ***************************************
     // quantities needed for the calculation *
     // ***************************************
@@ -474,7 +450,6 @@ int main(int argc, char *argv[]){
 		      Y[m][i][x][j] += BB[k][l] * Ks[l][m][i][x][j];
 
 	    s.update_background(r, lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP);
-	    getP(r,s,eP,eBarP,xP);
 	    K(r,dr,Y,C,A,Ks[k],s);
 	  }
 	  
@@ -923,12 +898,9 @@ void Outputvsr(ofstream &fout,
 
   MATRIX<complex<double>,NF,NF> p_unosc;
   for(int i=0;i<=NE-1;i++){
-    getPunosc(r, matter, i, p_unosc, eP,eBarP,xP);
-    ePotentialSum[i]=real(p_unosc[e][e]);
-    heavyPotentialSum[i]=real(p_unosc[mu][mu]);
-
-    getPunosc(r, antimatter, i, p_unosc, eP,eBarP,xP);
-    ebarPotentialSum[i]=real(p_unosc[e][e]);
+    ePotentialSum[i]=eP[i](r);
+    ebarPotentialSum[i]=eBarP[i](r);
+    heavyPotentialSum[i]=xP[i](r);
   }
 
 

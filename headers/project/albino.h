@@ -109,24 +109,6 @@ double Vmu(double rho, double Ye){ return 0.;}
 
 double dVmudr(double rho, double drhodr, double Ye, double dYedr){ return 0.;}
 
-//=============================//
-// Self-Interaction Potentials //
-//=============================//
-void getPunosc(const double r, const state m, const unsigned ig,
-	       MATRIX<complex<double>,NF,NF>& p_unosc,
-	       const vector<DISCONTINUOUS>& eP,
-	       const vector<DISCONTINUOUS>& eBarP,
-	       const vector<DISCONTINUOUS>& xP){
-  
-  // decompose unoscillated potential
-  double P0 = (m==matter ? eP[ig](r) : eBarP[ig](r));
-  double P1 = xP[ig](r);
-  p_unosc[e ][e ] = complex<double>(P0,0);
-  p_unosc[mu][e ] = complex<double>(0,0);
-  p_unosc[e ][mu] = complex<double>(0,0);
-  p_unosc[mu][mu] = complex<double>(P1,0);
-}
-
 
 void my_interact(array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& fmatrixf,
 		 double r, double dr, const State& s,
