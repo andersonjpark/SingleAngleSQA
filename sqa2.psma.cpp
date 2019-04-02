@@ -69,7 +69,6 @@ void K(double r,
        vector<vector<vector<MATRIX<complex<double>,NF,NF> > > > &C0,
        vector<vector<vector<vector<double> > > > &A0,
        vector<vector<vector<vector<double> > > > &K,
-       array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> pmatrixm0,
        const State& s,
        const DISCONTINUOUS& lnrho,
        const DISCONTINUOUS& Ye);
@@ -82,7 +81,6 @@ void Outputvsr(ofstream &fout,
 	       vector<vector<vector<MATRIX<complex<double>,NF,NF> > > > C0,
 	       vector<vector<vector<vector<double> > > > A0,
 	       vector<vector<MATRIX<complex<double>,NF,NF> > > Scumulative,
-	       array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> pmatrixf0,
 	       const State& s,
 	       const vector<DISCONTINUOUS>& eP,
 	       const vector<DISCONTINUOUS>& eBarP,
@@ -96,9 +94,7 @@ void Outputvsr(ofstream &fout,
 
 void getP(const double r,
 	  const vector<vector<MATRIX<complex<double>,NF,NF> > > Scumulative, 
-	  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& pmatrixf0,
-	  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& pmatrixm0,
-	  const State& s,
+	  State& s,
 	  const vector<DISCONTINUOUS>& eP,
 	  const vector<DISCONTINUOUS>& eBarP,
 	  const vector<DISCONTINUOUS>& xP){
@@ -106,15 +102,15 @@ void getP(const double r,
   for(int i=0;i<=NE-1;i++){
     for(state m=matter; m<=antimatter; m++){
       // get unoscillated potential
-      getPunosc(r, m, i, pmatrixf0[m][i], eP,eBarP,xP);
+      getPunosc(r, m, i, s.pmatrixf0[m][i], eP,eBarP,xP);
 
       // oscillate the potential and put into the mass basis
-      pmatrixm0[m][i] = Scumulative[m][i]
+      s.pmatrixm0[m][i] = Scumulative[m][i]
 	* Adjoint(s.U0[m][i])
-	* pmatrixf0[m][i]
+	* s.pmatrixf0[m][i]
 	* s.U0[m][i]
 	* Adjoint(Scumulative[m][i]);
-      pmatrixf0[m][i] =  s.U0[m][i] * pmatrixm0[m][i] * Adjoint(s.U0[m][i]);
+      s.pmatrixf0[m][i] =  s.U0[m][i] * s.pmatrixm0[m][i] * Adjoint(s.U0[m][i]);
     }
   }
 }
@@ -383,8 +379,7 @@ int main(int argc, char *argv[]){
     double ye0 = Ye(rmin);
     initialize(s.fmatrixf,rmin,rho0,T0,ye0,eD,eBarD,xD);
 
-    array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> pmatrixf0, pmatrixm0;
-    getP(rmin,Scumulative,pmatrixf0,pmatrixm0,s, eP,eBarP,xP);
+    getP(rmin,Scumulative,s, eP,eBarP,xP);
 
     // ***************************************
     // quantities needed for the calculation *
@@ -450,7 +445,7 @@ int main(int argc, char *argv[]){
 	
       finish=output=false;
       counterout=1;
-      Outputvsr(fout,foutP,foutf,foutdangledr,r,Y,C,A,Scumulative,pmatrixf0,s,eP,eBarP,xP,lnrho,Ye);
+      Outputvsr(fout,foutP,foutf,foutdangledr,r,Y,C,A,Scumulative,s,eP,eBarP,xP,lnrho,Ye);
 	
       for(state m=matter; m<=antimatter; m++)
 	for(int i=0; i<NE; i++)
@@ -499,8 +494,8 @@ int main(int argc, char *argv[]){
 		    for(int l=0;l<=k-1;l++)
 		      Y[m][i][x][j] += BB[k][l] * Ks[l][m][i][x][j];
 
-	    getP(r,Scumulative,pmatrixf0,pmatrixm0,s,eP,eBarP,xP);
-	    K(r,dr,Y,C,A,Ks[k],pmatrixm0,s,lnrho,Ye);
+	    getP(r,Scumulative,s,eP,eBarP,xP);
+	    K(r,dr,Y,C,A,Ks[k],s,lnrho,Ye);
 	  }
 	  
 	  // increment all quantities and update C and A arrays
@@ -625,7 +620,7 @@ int main(int argc, char *argv[]){
 	else counterout++;
 	
 	if(output==true || finish==true){
-	  Outputvsr(fout,foutP,foutf,foutdangledr,r,Y,C,A,Scumulative,pmatrixf0,s,eP,eBarP,xP,lnrho,Ye);
+	  Outputvsr(fout,foutP,foutf,foutdangledr,r,Y,C,A,Scumulative,s,eP,eBarP,xP,lnrho,Ye);
 	  output=false;
 	}
 
@@ -638,7 +633,7 @@ int main(int argc, char *argv[]){
 
       } while(finish==false);
 
-      Outputvsr(fout,foutP,foutf,foutdangledr,r,Y,C,A,Scumulative,pmatrixf0,s,eP,eBarP,xP,lnrho,Ye);
+      Outputvsr(fout,foutP,foutf,foutdangledr,r,Y,C,A,Scumulative,s,eP,eBarP,xP,lnrho,Ye);
     fPvsE.close();
     fFvsE.close();
 
@@ -674,7 +669,6 @@ void K(double r,
        vector<vector<vector<MATRIX<complex<double>,NF,NF> > > > &C0,
        vector<vector<vector<vector<double> > > > &A0,
        vector<vector<vector<vector<double> > > > &K,
-       array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> pmatrixm0,
        const State& s,
        const DISCONTINUOUS& lnrho,
        const DISCONTINUOUS& Ye){
@@ -816,8 +810,8 @@ void K(double r,
     // *****************************************************************
     Sfm    = UWBW   [i]*Sa   [i][si];
     Sfmbar = UWBWbar[i]*Sabar[i][si];
-    VfSIE[i] =     Sfm   *pmatrixm0[    matter][i]*Adjoint(Sfm   )
-      - Conjugate( Sfmbar*pmatrixm0[antimatter][i]*Adjoint(Sfmbar) );
+    VfSIE[i] =     Sfm   *s.pmatrixm0[    matter][i]*Adjoint(Sfm   )
+      - Conjugate( Sfmbar*s.pmatrixm0[antimatter][i]*Adjoint(Sfmbar) );
 
   }//end for loop over i
 
@@ -912,7 +906,6 @@ void Outputvsr(ofstream &fout,
 	       vector<vector<vector<MATRIX<complex<double>,NF,NF> > > > C0,
 	       vector<vector<vector<vector<double> > > > A0,
 	       vector<vector<MATRIX<complex<double>,NF,NF> > > Scumulative,
-	       array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> pmatrixf0,
 	       const State& s,
 	       const vector<DISCONTINUOUS>& eP,
 	       const vector<DISCONTINUOUS>& eBarP,
@@ -1020,7 +1013,7 @@ void Outputvsr(ofstream &fout,
     // getPunosc(r, antimatter, i, p_unosc_antimatter);
     // VfSI[matter] += Sf[    matter][i]*p_unosc_matter    *Adjoint(Sf[    matter][i])
     //   - Conjugate(  Sf[antimatter][i]*p_unosc_antimatter*Adjoint(Sf[antimatter][i]) );
-    VfSI[matter] += pmatrixf0[matter][i] - Conjugate(pmatrixf0[antimatter][i]);
+    VfSI[matter] += s.pmatrixf0[matter][i] - Conjugate(s.pmatrixf0[antimatter][i]);
   }
   
   complex<double> Tr=VfSI[matter][e][e]+VfSI[matter][mu][mu];
