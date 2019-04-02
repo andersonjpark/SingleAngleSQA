@@ -129,7 +129,7 @@ void getPunosc(const double r, const state m, const unsigned ig,
 
 
 void my_interact(array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& fmatrixf,
-		 vector<vector<MATRIX<complex<double>,NF,NF> > >& Scumulative,
+		 array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& Scumulative,
 		 double rho, double T, double Ye, double r, double dr, const State& s,
 		 const vector<DISCONTINUOUS>& eD,
 		 const vector<DISCONTINUOUS>& eBarD,

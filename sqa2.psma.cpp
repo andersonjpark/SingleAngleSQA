@@ -80,7 +80,7 @@ void Outputvsr(ofstream &fout,
 	       vector<vector<vector<vector<double> > > > Y,
 	       vector<vector<vector<MATRIX<complex<double>,NF,NF> > > > C0,
 	       vector<vector<vector<vector<double> > > > A0,
-	       vector<vector<MATRIX<complex<double>,NF,NF> > > Scumulative,
+	       array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> Scumulative,
 	       const State& s,
 	       const vector<DISCONTINUOUS>& eP,
 	       const vector<DISCONTINUOUS>& eBarP,
@@ -93,7 +93,7 @@ void Outputvsr(ofstream &fout,
 //#include "headers/project/test_case_B.h"
 
 void getP(const double r,
-	  const vector<vector<MATRIX<complex<double>,NF,NF> > > Scumulative, 
+	  const array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> Scumulative, 
 	  State& s,
 	  const vector<DISCONTINUOUS>& eP,
 	  const vector<DISCONTINUOUS>& eBarP,
@@ -115,7 +115,7 @@ void getP(const double r,
   }
 }
 
-void interact(vector<vector<MATRIX<complex<double>,NF,NF> > >& Scumulative,
+void interact(array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& Scumulative,
 	      double rho, double T, double Ye, double r, double dr, State& s,
 	      const vector<DISCONTINUOUS>& eD,
 	      const vector<DISCONTINUOUS>& eBarD,
@@ -333,8 +333,7 @@ int main(int argc, char *argv[]){
       A0(NM,vector<vector<vector<double> > >(NE,vector<vector<double> >(NF,vector<double>(NF))));
     
     // accumulated S matrices from prior integration domains
-    vector<vector<MATRIX<complex<double>,NF,NF> > > 
-      Scumulative(NM,vector<MATRIX<complex<double>,NF,NF> >(NE));
+    array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> Scumulative;
     for(int m=0; m<NM; m++)
       for(int ig=0; ig<NE; ig++)
 	for(int f1=0; f1<NF; f1++){
@@ -905,7 +904,7 @@ void Outputvsr(ofstream &fout,
 	       vector<vector<vector<vector<double> > > > Y,
 	       vector<vector<vector<MATRIX<complex<double>,NF,NF> > > > C0,
 	       vector<vector<vector<vector<double> > > > A0,
-	       vector<vector<MATRIX<complex<double>,NF,NF> > > Scumulative,
+	       array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> Scumulative,
 	       const State& s,
 	       const vector<DISCONTINUOUS>& eP,
 	       const vector<DISCONTINUOUS>& eBarP,
