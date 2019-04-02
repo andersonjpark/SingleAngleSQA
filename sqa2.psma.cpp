@@ -287,34 +287,21 @@ int main(int argc, char *argv[]){
     array<array<array<array<double,NF>,NF>,NE>,NM> A0, A;
     
     // mixing angles to MSW basis at initial point
-    MATRIX<complex<double>,NF,NF> Hf0;
-    array<double,NF> k0;
-    array<double,NF-1> deltak0;
-    for(int i=0;i<=NE-1;i++){
-      Hf0=s.HfV[matter][i]+s.VfMSW[matter];
-      k0=k(Hf0);
-      deltak0=deltak(Hf0);
-      C0[matter][i]=CofactorMatrices(Hf0,k0);
-      
-      for(int j=0;j<=NF-1;j++){
-    	if(real(C0[matter][i][j][mu][e]*s.CV[i][j][mu][e]) < 0.)
-    	  A0[matter][i][j][e]=-s.AV[i][j][e];
-    	else A0[matter][i][j][e]=s.AV[i][j][e];
-    	A0[matter][i][j][mu]=s.AV[i][j][mu];
+    for(state m=matter; m<=antimatter; m++){
+      for(int i=0;i<=NE-1;i++){
+	MATRIX<complex<double>,NF,NF> Hf0=s.HfV[m][i]+s.VfMSW[m];
+	array<double,NF> k0=k(Hf0);
+	array<double,NF-1> deltak0=deltak(Hf0);
+	C0[m][i]=CofactorMatrices(Hf0,k0);
+	
+	for(int j=0;j<=NF-1;j++){
+	  if(real(C0[m][i][j][mu][e]*s.CV[i][j][mu][e]) < 0.)
+	    A0[m][i][j][e]=-s.AV[i][j][e];
+	  else A0[m][i][j][e]=s.AV[i][j][e];
+	  A0[m][i][j][mu]=s.AV[i][j][mu];
+	}
+	s.U0[m][i]=U(deltak0,C0[m][i],A0[m][i]);
       }
-      s.U0[matter][i]=U(deltak0,C0[matter][i],A0[matter][i]);
-      
-      Hf0=s.HfV[antimatter][i]+s.VfMSW[antimatter];
-      k0=kbar(Hf0);
-      deltak0=deltakbar(Hf0);
-      C0[antimatter][i]=CofactorMatrices(Hf0,k0);
-      for(int j=0;j<=NF-1;j++){
-    	if(real(C0[antimatter][i][j][mu][e]*s.CV[i][j][mu][e]) < 0.)
-    	  A0[antimatter][i][j][e]=-s.AV[i][j][e];
-    	else A0[antimatter][i][j][e]=s.AV[i][j][e];
-    	A0[antimatter][i][j][mu]=s.AV[i][j][mu];
-      }
-      s.U0[antimatter][i]=Conjugate(U(deltak0,C0[antimatter][i],A0[antimatter][i]));
     }
 
     // yzhu14 density/potential matrices art rmin
