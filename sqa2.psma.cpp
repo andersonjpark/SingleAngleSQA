@@ -44,8 +44,6 @@ using std::array;
 
 #include "headers/DISCONTINUOUS.h"
 
-// global variables
-DISCONTINUOUS rho, lnrho, Ye, temperature; // rho is the mass density
 
 // headers
 #include "headers/MATRIX.h"
@@ -63,8 +61,6 @@ DISCONTINUOUS rho, lnrho, Ye, temperature; // rho is the mass density
 #include "headers/misc.h"
 #include "headers/State.h"
 
-vector<DISCONTINUOUS> eP,eBarP,xP;
-vector<DISCONTINUOUS> eD,eBarD,xD;
 
 MATRIX<complex<double>,NF,NF> B(vector<double> y);
 void K(double r,
@@ -74,18 +70,25 @@ void K(double r,
        vector<vector<vector<vector<double> > > > &A0,
        vector<vector<vector<vector<double> > > > &K,
        array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> pmatrixm0,
-       const State& s);
+       const State& s,
+       const DISCONTINUOUS& lnrho,
+       const DISCONTINUOUS& Ye);
 void Outputvsr(ofstream &fout,
 	       ofstream &foutP,
 	       ofstream &foutf,
-	       ofstream &foutdangledr,	       
+	       ofstream &foutdangledr,
 	       double r,
 	       vector<vector<vector<vector<double> > > > Y,
 	       vector<vector<vector<MATRIX<complex<double>,NF,NF> > > > C0,
 	       vector<vector<vector<vector<double> > > > A0,
 	       vector<vector<MATRIX<complex<double>,NF,NF> > > Scumulative,
 	       array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> pmatrixf0,
-	       const State& s);
+	       const State& s,
+	       const vector<DISCONTINUOUS>& eP,
+	       const vector<DISCONTINUOUS>& eBarP,
+	       const vector<DISCONTINUOUS>& xP,
+	       const DISCONTINUOUS& lnrho,
+	       const DISCONTINUOUS& Ye);
 
 #include "headers/update.h"
 #include "headers/project/albino.h"
@@ -95,12 +98,15 @@ void getP(const double r,
 	  const vector<vector<MATRIX<complex<double>,NF,NF> > > Scumulative, 
 	  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& pmatrixf0,
 	  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& pmatrixm0,
-	  const State& s){
+	  const State& s,
+	  const vector<DISCONTINUOUS>& eP,
+	  const vector<DISCONTINUOUS>& eBarP,
+	  const vector<DISCONTINUOUS>& xP){
 
   for(int i=0;i<=NE-1;i++){
     for(state m=matter; m<=antimatter; m++){
       // get unoscillated potential
-      getPunosc(r, m, i, pmatrixf0[m][i]);
+      getPunosc(r, m, i, pmatrixf0[m][i], eP,eBarP,xP);
 
       // oscillate the potential and put into the mass basis
       pmatrixm0[m][i] = Scumulative[m][i]
@@ -114,12 +120,16 @@ void getP(const double r,
 }
 
 void interact(vector<vector<MATRIX<complex<double>,NF,NF> > >& Scumulative,
-	      double rho, double T, double Ye, double r, double dr, State& s){
+	      double rho, double T, double Ye, double r, double dr, State& s,
+	      const vector<DISCONTINUOUS>& eD,
+	      const vector<DISCONTINUOUS>& eBarD,
+	      const vector<DISCONTINUOUS>& xD){
+  
   // save old fmatrix
   array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> old_fmatrixf = s.fmatrixf;
 
   // let neutrinos interact
-  my_interact(s.fmatrixf, Scumulative, rho, T, Ye, r, dr, s);
+  my_interact(s.fmatrixf, Scumulative, rho, T, Ye, r, dr, s, eD,eBarD,xD);
   for(int i=0; i<NE; i++){
     for(state m=matter; m<=antimatter; m++){
       s.fmatrixm[m][i] = Adjoint(s.U0[m][i]) * s.fmatrixf[m][i] * s.U0[m][i];
@@ -199,6 +209,11 @@ int main(int argc, char *argv[]){
     const string outputfilenamestem = outputfilename+"/";
 
     nulib_init(nulibfilename, 0);
+
+    // interpolation variables
+    DISCONTINUOUS rho, lnrho, Ye, temperature; // rho is the mass density
+    vector<DISCONTINUOUS> eP,eBarP,xP;
+    vector<DISCONTINUOUS> eD,eBarD,xD;
 
     
     // load rho and Ye data
@@ -304,8 +319,8 @@ int main(int argc, char *argv[]){
     // **************************************
     
     // MSW potential matrix
-    double rrho = get_rho(rmin);
-    double YYe  = get_Ye(rmin);
+    double rrho = exp(lnrho(rmin));
+    double YYe  = Ye(rmin);
     
     MATRIX<complex<double>,NF,NF> VfMSW0, Hf0;
     vector<double> k0, deltak0;
@@ -366,10 +381,10 @@ int main(int argc, char *argv[]){
     double rho0 = rho(rmin);
     double T0 = temperature(rmin);
     double ye0 = Ye(rmin);
-    initialize(s.fmatrixf,rmin,rho0,T0,ye0);
+    initialize(s.fmatrixf,rmin,rho0,T0,ye0,eD,eBarD,xD);
 
     array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> pmatrixf0, pmatrixm0;
-    getP(rmin,Scumulative,pmatrixf0,pmatrixm0,s);
+    getP(rmin,Scumulative,pmatrixf0,pmatrixm0,s, eP,eBarP,xP);
 
     // ***************************************
     // quantities needed for the calculation *
@@ -435,7 +450,7 @@ int main(int argc, char *argv[]){
 	
       finish=output=false;
       counterout=1;
-      Outputvsr(fout,foutP,foutf,foutdangledr,r,Y,C,A,Scumulative,pmatrixf0,s);
+      Outputvsr(fout,foutP,foutf,foutdangledr,r,Y,C,A,Scumulative,pmatrixf0,s,eP,eBarP,xP,lnrho,Ye);
 	
       for(state m=matter; m<=antimatter; m++)
 	for(int i=0; i<NE; i++)
@@ -484,8 +499,8 @@ int main(int argc, char *argv[]){
 		    for(int l=0;l<=k-1;l++)
 		      Y[m][i][x][j] += BB[k][l] * Ks[l][m][i][x][j];
 
-	    getP(r,Scumulative,pmatrixf0,pmatrixm0,s);
-	    K(r,dr,Y,C,A,Ks[k],pmatrixm0,s);
+	    getP(r,Scumulative,pmatrixf0,pmatrixm0,s,eP,eBarP,xP);
+	    K(r,dr,Y,C,A,Ks[k],pmatrixm0,s,lnrho,Ye);
 	  }
 	  
 	  // increment all quantities and update C and A arrays
@@ -508,7 +523,7 @@ int main(int argc, char *argv[]){
 	    }
 	  }
 	  
-	  C=UpdateC(r,get_Ye(r),s);
+	  C=UpdateC(r,s,lnrho,Ye);
 	  A=UpdateA(C,C0,A0);
 	    
 	  // find largest error
@@ -538,7 +553,7 @@ int main(int argc, char *argv[]){
 
 	// interact with the matter
 	if(do_interact)
-	  interact(Scumulative, rho(r), temperature(r), Ye(r), r, dr_this_step, s);
+	  interact(Scumulative, rho(r), temperature(r), Ye(r), r, dr_this_step, s,eD,eBarD,xD);
 	for(state m=matter; m<=antimatter; m++)
 	  for(int i=0; i<NE; i++)
 	    for(flavour f1=e; f1<=mu; f1++)
@@ -610,7 +625,7 @@ int main(int argc, char *argv[]){
 	else counterout++;
 	
 	if(output==true || finish==true){
-	  Outputvsr(fout,foutP,foutf,foutdangledr,r,Y,C,A,Scumulative,pmatrixf0,s);
+	  Outputvsr(fout,foutP,foutf,foutdangledr,r,Y,C,A,Scumulative,pmatrixf0,s,eP,eBarP,xP,lnrho,Ye);
 	  output=false;
 	}
 
@@ -623,7 +638,7 @@ int main(int argc, char *argv[]){
 
       } while(finish==false);
 
-      Outputvsr(fout,foutP,foutf,foutdangledr,r,Y,C,A,Scumulative,pmatrixf0,s);
+      Outputvsr(fout,foutP,foutf,foutdangledr,r,Y,C,A,Scumulative,pmatrixf0,s,eP,eBarP,xP,lnrho,Ye);
     fPvsE.close();
     fFvsE.close();
 
@@ -660,7 +675,9 @@ void K(double r,
        vector<vector<vector<vector<double> > > > &A0,
        vector<vector<vector<vector<double> > > > &K,
        array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> pmatrixm0,
-       const State& s){
+       const State& s,
+       const DISCONTINUOUS& lnrho,
+       const DISCONTINUOUS& Ye){
 
   MATRIX<complex<double>,NF,NF> VfSI,VfSIbar;  // self-interaction potential
   vector<MATRIX<complex<double>,NF,NF> > VfSIE(NE); // contribution to self-interaction potential from each energy
@@ -685,10 +702,10 @@ void K(double r,
   vector<double> phase(1);
   vector<double> dvdr(4);
   // *************
-  rrho=get_rho(r);
-  drrhodr=get_drhodr(rrho,r);
-  YYe=get_Ye(r);
-  dYYedr=get_dYedr(r);
+  rrho=exp(lnrho(r));
+  drrhodr=rrho*lnrho.Derivative(r);
+  YYe=Ye(r);
+  dYYedr=Ye.Derivative(r);
   VfMSW[e][e]=Ve(rrho,YYe);
   VfMSW[mu][mu]=Vmu(rrho,YYe);
   VfMSWbar=-Conjugate(VfMSW);
@@ -896,18 +913,23 @@ void Outputvsr(ofstream &fout,
 	       vector<vector<vector<vector<double> > > > A0,
 	       vector<vector<MATRIX<complex<double>,NF,NF> > > Scumulative,
 	       array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> pmatrixf0,
-	       const State& s){
+	       const State& s,
+	       const vector<DISCONTINUOUS>& eP,
+	       const vector<DISCONTINUOUS>& eBarP,
+	       const vector<DISCONTINUOUS>& xP,
+	       const DISCONTINUOUS& lnrho,
+	       const DISCONTINUOUS& Ye){
 
   vector<MATRIX<complex<double>,NF,NF> > VfMSW(NM), dVfMSWdr(NM);
   vector<MATRIX<complex<double>,NF,NF> > VfSI(NM);
 
   vector<MATRIX<complex<double>,NF,NF> > rhomatrix(NM);
 
-  double rrho=get_rho(r);
-  double drrhodr=get_drhodr(rrho,r);
+  double rrho=exp(lnrho(r));
+  double drrhodr=rrho*lnrho.Derivative(r);
 
-  double YYe=get_Ye(r);
-  double dYYedr=get_dYedr(r);
+  double YYe=Ye(r);
+  double dYYedr=Ye.Derivative(r);
 
   VfMSW[matter][e][e]=Ve(rrho,YYe);
   VfMSW[matter][mu][mu]=Vmu(rrho,YYe);
@@ -942,11 +964,11 @@ void Outputvsr(ofstream &fout,
 
   MATRIX<complex<double>,NF,NF> p_unosc;
   for(int i=0;i<=NE-1;i++){
-    getPunosc(r, matter, i, p_unosc);
+    getPunosc(r, matter, i, p_unosc, eP,eBarP,xP);
     ePotentialSum[i]=real(p_unosc[e][e]);
     heavyPotentialSum[i]=real(p_unosc[mu][mu]);
 
-    getPunosc(r, antimatter, i, p_unosc);
+    getPunosc(r, antimatter, i, p_unosc, eP,eBarP,xP);
     ebarPotentialSum[i]=real(p_unosc[e][e]);
   }
 

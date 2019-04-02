@@ -41,7 +41,10 @@ T phaseVolDensity(const T density, const unsigned i){
 // Initialize //
 //============//
 void initialize(array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& fmatrixf,
-		double r, double rho, double T, double Ye){
+		double r, double rho, double T, double Ye,
+		const vector<DISCONTINUOUS>& eD,
+		const vector<DISCONTINUOUS>& eBarD,
+		const vector<DISCONTINUOUS>& xD){
   // T should be MeV
   cout << "Setting initial data." << endl;
   cout << "rho = " << rho << " g/ccm" << endl;
@@ -83,18 +86,6 @@ void initialize(array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& fmatrixf,
 	  assert(fmatrixf[m][i][f1][f2] == fmatrixf[m][i][f1][f2]);
 }
 
-double get_rho(const double r){
-  return exp(lnrho(r));
-}
-double get_drhodr(const double rrho, const double r){
-  return rrho*lnrho.Derivative(r);
-}
-double get_Ye(const double r){
-  return Ye(r);
-}
-double get_dYedr(const double r){
-  return Ye.Derivative(r);
-}
 
 //===================//
 // Vacuum Potentials //
@@ -122,7 +113,10 @@ double dVmudr(double rho, double drhodr, double Ye, double dYedr){ return 0.;}
 // Self-Interaction Potentials //
 //=============================//
 void getPunosc(const double r, const state m, const unsigned ig,
-	       MATRIX<complex<double>,NF,NF>& p_unosc){
+	       MATRIX<complex<double>,NF,NF>& p_unosc,
+	       const vector<DISCONTINUOUS>& eP,
+	       const vector<DISCONTINUOUS>& eBarP,
+	       const vector<DISCONTINUOUS>& xP){
   
   // decompose unoscillated potential
   double P0 = (m==matter ? eP[ig](r) : eBarP[ig](r));
@@ -136,7 +130,11 @@ void getPunosc(const double r, const state m, const unsigned ig,
 
 void my_interact(array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& fmatrixf,
 		 vector<vector<MATRIX<complex<double>,NF,NF> > >& Scumulative,
-		 double rho, double T, double Ye, double r, double dr, const State& s){
+		 double rho, double T, double Ye, double r, double dr, const State& s,
+		 const vector<DISCONTINUOUS>& eD,
+		 const vector<DISCONTINUOUS>& eBarD,
+		 const vector<DISCONTINUOUS>& xD){
+  
   // don't do anything if too sparse
   if(log10(rho) <= __nulibtable_MOD_nulibtable_logrho_min)
     return;
