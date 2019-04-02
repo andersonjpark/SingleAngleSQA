@@ -63,11 +63,10 @@ using std::array;
 
 
 MATRIX<complex<double>,NF,NF> B(array<double,NY> y);
-void K(double dr,
+array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr,
        array<array<array<array<double,NY>,NS>,NE>,NM>& Y,
        array<array<array<MATRIX<complex<double>,NF,NF>,NF>,NE>,NM>& C0,
        array<array<array<array<double,NF>,NF>,NE>,NM> &A0,
-       array<array<array<array<double,NY>,NS>,NE>,NM> &K,
        State& s);
 void Outputvsr(ofstream &fout,
 	       ofstream &foutP,
@@ -412,7 +411,7 @@ int main(int argc, char *argv[]){
 		      Y[m][i][x][j] += BB[k][l] * Ks[l][m][i][x][j];
 
 	    s.update_background(lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP);
-	    K(dr,Y,C,A,Ks[k],s);
+	    Ks[k] = K(dr,Y,C,A,s);
 	  }
 	  
 	  // increment all quantities and update C and A arrays
@@ -582,13 +581,13 @@ MATRIX<complex<double>,NF,NF> B(array<double,NY> y){
 //===//
 // K //
 //===//
-void K(double dr,
+array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr,
        array<array<array<array<double,NY>,NS>,NE>,NM>& Y,
        array<array<array<MATRIX<complex<double>,NF,NF>,NF>,NE>,NM>& C0,
        array<array<array<array<double,NF>,NF>,NE>,NM> &A0,
-       array<array<array<array<double,NY>,NS>,NE>,NM> &K,
        State& s){
 
+  array<array<array<array<double,NY>,NS>,NE>,NM> K;
   array<MATRIX<complex<double>,NF,NF>,NM> VfSI;  // self-interaction potential
   array<MATRIX<complex<double>,NF,NF>,NE> VfSIE; // contribution to self-interaction potential from each energy
   array<array<array<MATRIX<complex<double>,NF,NF>,NS>,NE>,NM> Sa;
@@ -641,6 +640,9 @@ void K(double dr,
 
       JI[m] = JInverse(Y[m][i][msw]);
       
+      for(int j=0;j<=2;j++){
+	K[m][i][msw][j]=0.;
+      }
       K[m][i][msw][3] = 0.;
       dkkdr[m] = dkdr(UU[m],s.dVfMSWdr[m]);
     }
@@ -649,7 +651,6 @@ void K(double dr,
     // Matter section *
     // ****************
     for(int j=0;j<=2;j++){
-      K[matter][i][msw][j]=0.;
       for(int k=j;k<=3;k++) K[matter][i][msw][j] += JI[matter][j][k]*dvdr[matter][k];
       K[matter][i][msw][j]*=dr;
     }
@@ -666,7 +667,6 @@ void K(double dr,
     
 
     for(int j=0;j<=2;j++){
-      K[antimatter][i][msw][j] = 0.; 
       for(int k=j;k<=3;k++) K[antimatter][i][msw][j] += JI[antimatter][j][k]*dvdr[antimatter][k];
       K[antimatter][i][msw][j] *= dr;
     }
@@ -765,6 +765,7 @@ void K(double dr,
     K[antimatter][i][si][3]=0.;
   }
 
+  return K;
 }// end of K function
 
 
