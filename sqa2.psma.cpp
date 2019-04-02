@@ -605,6 +605,7 @@ void K(double dr,
     array<MATRIX<complex<double>,NF,NF>,NM> UU;
     array<MATRIX<complex<double>,NF,NF>,NM> BB;
     array<MATRIX<complex<double>,NF,NF>,NM> Ha,HB;
+    array<array<double,NF-1>,NM> phase;
       
     for(int m=matter; m<=antimatter; m++){
       Hf[m]  = s.HfV[m][i]+s.VfMSW[m];
@@ -621,15 +622,14 @@ void K(double dr,
     // ****************
     // Matter section *
     // ****************
-    array<double,NF-1> phase;
-    phase[0] = M_2PI*(Y[matter][i][msw][4]-Y[matter][i][msw][5]);
+    phase[matter][0] = M_2PI*(Y[matter][i][msw][4]-Y[matter][i][msw][5]);
     Ha[matter][0][1]=0.;
     for(int j=0;j<=NF-2;j++)
       for(int k=j+1;k<=NF-1;k++)
 	for(flavour f=e;f<=mu;f++)
 	  Ha[matter][j][k]+= conj(UU[matter][f][j])*s.dVfMSWdr[matter][f][f]*UU[matter][f][k];
     
-    Ha[matter][0][1] *= I*cgs::constants::hbarc/dkk[matter][0]*exp(I*phase[0]);
+    Ha[matter][0][1] *= I*cgs::constants::hbarc/dkk[matter][0]*exp(I*phase[matter][0]);
     Ha[matter][1][0] = conj(Ha[matter][0][1]);
     
     // HB = -I/cgs::constants::hbarc*Ha*BB;
@@ -661,14 +661,14 @@ void K(double dr,
     // ********************
     // Antimatter section *
     // ********************
-    phase[0] = M_2PI*(Y[antimatter][i][msw][4]-Y[antimatter][i][msw][5]);
+    phase[antimatter][0] = M_2PI*(Y[antimatter][i][msw][4]-Y[antimatter][i][msw][5]);
     Ha[antimatter][0][1] = 0.;
     for(int j=0;j<=NF-2;j++)
       for(int k=j+1;k<=NF-1;k++)
 	for(flavour f=e;f<=mu;f++)
 	  Ha[antimatter][j][k]+=conj(UU[antimatter][f][j])*s.dVfMSWdr[antimatter][f][f]*UU[antimatter][f][k];
     
-    Ha[antimatter][0][1] *= I*cgs::constants::hbarc/dkk[antimatter][0]*exp(I*phase[0]);
+    Ha[antimatter][0][1] *= I*cgs::constants::hbarc/dkk[antimatter][0]*exp(I*phase[antimatter][0]);
     Ha[antimatter][1][0] = conj(Ha[antimatter][0][1]);
     
     //HB=-I/cgs::constants::hbarc*Ha*BBbar;
