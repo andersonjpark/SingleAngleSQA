@@ -24,6 +24,8 @@ class State{
   array<array< array<double,NF>,NE>,NM> k0;
   array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> UWBW;
   array<array<array<MATRIX<complex<double>,NF,NF>,NS>,NE>,NM> Sa;
+  array<array<double,NM>,NE> dphi_dr_interact, dtheta_dr_interact;
+  array<array<double,NM>,NE> dphi_dr_osc,      dtheta_dr_osc;
 
   
   State(/*string nulibfilename, string eosfilename, double rho_in, double Ye_in, double T_in, double dr0, double mixing, bool do_interact*/const vector<double>& E){

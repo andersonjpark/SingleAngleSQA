@@ -65,8 +65,6 @@ DISCONTINUOUS rho, lnrho, Ye, temperature; // rho is the mass density
 
 vector<DISCONTINUOUS> eP,eBarP,xP;
 vector<DISCONTINUOUS> eD,eBarD,xD;
-array<array<double,NM>,NE> dphi_dr_interact, dtheta_dr_interact;
-array<array<double,NM>,NE> dphi_dr_osc,      dtheta_dr_osc;
 
 MATRIX<complex<double>,NF,NF> B(vector<double> y);
 void K(double r,
@@ -142,8 +140,8 @@ void interact(vector<vector<MATRIX<complex<double>,NF,NF> > >& Scumulative,
       if(oldmag2==0 or newmag2==0){
 	continue;
       }
-      dtheta_dr_interact[i][m] = (acos(hnew[2]/sqrt(newmag2)) - acos(hold[2]/sqrt(oldmag2))) / dr;
-      dphi_dr_interact[i][m] = (atan2(hnew[1],hnew[0]) - atan2(hold[1],hold[0])) / dr;
+      s.dtheta_dr_interact[i][m] = (acos(hnew[2]/sqrt(newmag2)) - acos(hold[2]/sqrt(oldmag2))) / dr;
+      s.dphi_dr_interact[i][m] = (atan2(hnew[1],hnew[0]) - atan2(hold[1],hold[0])) / dr;
 
       // get the axis of rotation
       double lrot[3];
@@ -599,8 +597,8 @@ int main(int argc, char *argv[]){
 	    double costheta = (hold[0]*hnew[0] + hold[1]*hnew[1] + hold[2]*hnew[2]) / (newmag*oldmag);
 	    assert(costheta-1. < 1e-10);
 	    costheta = min(1.,costheta);
-	    dtheta_dr_osc[i][m] = (acos(hnew[2]/newmag) - acos(hold[2]/oldmag)) / dr;
-	    dphi_dr_osc[i][m] = (atan2(hnew[1],hnew[0]) - atan2(hold[1],hold[0])) / dr;
+	    s.dtheta_dr_osc[i][m] = (acos(hnew[2]/newmag) - acos(hold[2]/oldmag)) / dr;
+	    s.dphi_dr_osc[i][m] = (atan2(hnew[1],hnew[0]) - atan2(hold[1],hold[0])) / dr;
 	  }
 	}
 
@@ -1064,16 +1062,16 @@ void Outputvsr(ofstream &fout,
   foutdangledr << r << "\t";
   for(state m=matter; m<=antimatter; m++)
     for(int i=0; i<NE; i++)
-      foutdangledr << dtheta_dr_osc[i][m] << "\t";
+      foutdangledr << s.dtheta_dr_osc[i][m] << "\t";
   for(state m=matter; m<=antimatter; m++)
     for(int i=0; i<NE; i++)
-      foutdangledr << dphi_dr_osc[i][m] << "\t";
+      foutdangledr << s.dphi_dr_osc[i][m] << "\t";
   for(state m=matter; m<=antimatter; m++)
     for(int i=0; i<NE; i++)
-      foutdangledr << dtheta_dr_interact[i][m] << "\t";
+      foutdangledr << s.dtheta_dr_interact[i][m] << "\t";
   for(state m=matter; m<=antimatter; m++)
     for(int i=0; i<NE; i++)
-      foutdangledr << dphi_dr_interact[i][m] << "\t";
+      foutdangledr << s.dphi_dr_interact[i][m] << "\t";
   foutdangledr << endl;
   foutdangledr.flush();
 }
