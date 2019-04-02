@@ -617,24 +617,26 @@ void K(double dr,
       BB[m]  = B(Y[m][i][msw]);
       Sa[m][i][si] = B(Y[m][i][si]);
       UWBW[m][i] = UU[m] * W(Y[m][i][msw]) * BB[m] * W(Y[m][i][si]);
+
+      phase[m][0] = M_2PI*(Y[m][i][msw][4]-Y[m][i][msw][5]);
+      Ha[m][0][1]=0.;
+      for(int j=0;j<=NF-2;j++)
+	for(int k=j+1;k<=NF-1;k++)
+	  for(flavour f=e;f<=mu;f++)
+	    Ha[m][j][k]+= conj(UU[m][f][j])*s.dVfMSWdr[m][f][f]*UU[m][f][k];
+    
+      Ha[m][0][1] *= I*cgs::constants::hbarc/dkk[m][0]*exp(I*phase[m][0]);
+      Ha[m][1][0] = conj(Ha[m][0][1]);
+    
+      // HB = -I/cgs::constants::hbarc*Ha*BB;
+      HB[m][0][0]=-I/cgs::constants::hbarc*( Ha[m][0][1]*BB[m][1][0] );
+      HB[m][0][1]=-I/cgs::constants::hbarc*( Ha[m][0][1]*BB[m][1][1] );
+
     }
     
     // ****************
     // Matter section *
     // ****************
-    phase[matter][0] = M_2PI*(Y[matter][i][msw][4]-Y[matter][i][msw][5]);
-    Ha[matter][0][1]=0.;
-    for(int j=0;j<=NF-2;j++)
-      for(int k=j+1;k<=NF-1;k++)
-	for(flavour f=e;f<=mu;f++)
-	  Ha[matter][j][k]+= conj(UU[matter][f][j])*s.dVfMSWdr[matter][f][f]*UU[matter][f][k];
-    
-    Ha[matter][0][1] *= I*cgs::constants::hbarc/dkk[matter][0]*exp(I*phase[matter][0]);
-    Ha[matter][1][0] = conj(Ha[matter][0][1]);
-    
-    // HB = -I/cgs::constants::hbarc*Ha*BB;
-    HB[matter][0][0]=-I/cgs::constants::hbarc*( Ha[matter][0][1]*BB[matter][1][0] );
-    HB[matter][0][1]=-I/cgs::constants::hbarc*( Ha[matter][0][1]*BB[matter][1][1] );
     
     array<double,4> dvdr;
     dvdr[0]=real(HB[matter][0][1]);
@@ -661,19 +663,6 @@ void K(double dr,
     // ********************
     // Antimatter section *
     // ********************
-    phase[antimatter][0] = M_2PI*(Y[antimatter][i][msw][4]-Y[antimatter][i][msw][5]);
-    Ha[antimatter][0][1] = 0.;
-    for(int j=0;j<=NF-2;j++)
-      for(int k=j+1;k<=NF-1;k++)
-	for(flavour f=e;f<=mu;f++)
-	  Ha[antimatter][j][k]+=conj(UU[antimatter][f][j])*s.dVfMSWdr[antimatter][f][f]*UU[antimatter][f][k];
-    
-    Ha[antimatter][0][1] *= I*cgs::constants::hbarc/dkk[antimatter][0]*exp(I*phase[antimatter][0]);
-    Ha[antimatter][1][0] = conj(Ha[antimatter][0][1]);
-    
-    //HB=-I/cgs::constants::hbarc*Ha*BBbar;
-    HB[antimatter][0][0]=-I/cgs::constants::hbarc*( Ha[antimatter][0][1]*BB[antimatter][1][0] );
-    HB[antimatter][0][1]=-I/cgs::constants::hbarc*( Ha[antimatter][0][1]*BB[antimatter][1][1] );
     
     dvdr[0]=real(HB[antimatter][0][1]);
     dvdr[1]=imag(HB[antimatter][0][1]);
