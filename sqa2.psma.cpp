@@ -615,16 +615,9 @@ void K(double dr,
   array<array<double,NF>,NF> AA;
   MATRIX<complex<double>,NF,NF> BB,BBbar;
   MATRIX<complex<double>,NF,NF> Sfm,Sfmbar;
-  vector<vector<MATRIX<complex<double>,NF,NF> > > 
-    Sa(NE,vector<MATRIX<complex<double>,NF,NF> >(NS)), 
-    Sabar(NE,vector<MATRIX<complex<double>,NF,NF> >(NS));
+  array<array<MATRIX<complex<double>,NF,NF>,NS>,NE> Sa, Sabar;
   array<MATRIX<complex<double>,NF,NF>,NE> UWBW, UWBWbar;
-  MATRIX<double,3,4> JI;
-  int i;
-  MATRIX<complex<double>,NF,NF> Ha;
-  MATRIX<complex<double>,NF,NF> HB;
-  array<double,NF-1> phase;
-  array<double,4> dvdr;
+  
   // *************
   VfMSW[e][e]=Ve(s.rho,s.Ye);
   VfMSW[mu][mu]=Vmu(s.rho,s.Ye);
@@ -633,8 +626,8 @@ void K(double dr,
   dVfMSWdr[mu][mu]=dVmudr(s.rho,s.drhodr,s.Ye,s.dYedr);
   dVfMSWbardr=-Conjugate(dVfMSWdr);
 
-#pragma omp parallel for schedule(auto) private(Hf,Hfbar,UU,UUbar,kk,kkbar,dkk,dkkbar,dkkdr,dkkbardr,QQ,QQbar,AA,CC,dCCdr,BB,BBbar,Sfm,Sfmbar,JI) firstprivate(Ha,HB,dvdr,phase)
-  for(i=0;i<=NE-1;i++){
+#pragma omp parallel for schedule(auto) private(Hf,Hfbar,UU,UUbar,kk,kkbar,dkk,dkkbar,dkkdr,dkkbardr,QQ,QQbar,AA,CC,dCCdr,BB,BBbar,Sfm,Sfmbar)
+  for(int i=0;i<=NE-1;i++){
     Hf  = s.HfV[matter][i]+VfMSW;
     kk  = k(Hf);
     dkk = deltak(Hf);
@@ -658,6 +651,8 @@ void K(double dr,
     // ****************
     // Matter section *
     // ****************
+    MATRIX<complex<double>,NF,NF> Ha,HB;
+    array<double,NF-1> phase;
     phase[0] = M_2PI*(Y[matter][i][msw][4]-Y[matter][i][msw][5]);
     Ha[0][1]=0.;
     for(int j=0;j<=NF-2;j++)
@@ -672,12 +667,13 @@ void K(double dr,
     HB[0][0]=-I/cgs::constants::hbarc*( Ha[0][1]*BB[1][0] );
     HB[0][1]=-I/cgs::constants::hbarc*( Ha[0][1]*BB[1][1] );
     
+    array<double,4> dvdr;
     dvdr[0]=real(HB[0][1]);
     dvdr[1]=imag(HB[0][1]);
     dvdr[2]=real(HB[0][0]);
     dvdr[3]=imag(HB[0][0]);
     
-    JI = JInverse(Y[matter][i][msw]);
+    MATRIX<double,3,4> JI = JInverse(Y[matter][i][msw]);
     
     for(int j=0;j<=2;j++){
       K[matter][i][msw][j]=0.;
@@ -744,7 +740,7 @@ void K(double dr,
   // ************************************
   // compute self-interaction potential *
   // ************************************
-  for(i=0;i<=NE-1;i++){
+  for(int i=0;i<=NE-1;i++){
     VfSI[e ][e ]+=VfSIE[i][e ][e ];
     VfSI[e ][mu]+=VfSIE[i][e ][mu];
     VfSI[mu][e ]+=VfSIE[i][mu][e ];
@@ -762,11 +758,12 @@ void K(double dr,
   // SI part of solution *
   // *********************
 
-#pragma omp parallel for schedule(auto) private(JI) firstprivate(Ha,HB,dvdr)
-  for(i=0;i<=NE-1;i++){
+#pragma omp parallel for schedule(auto)
+  for(int i=0;i<=NE-1;i++){
     //*********
     // Matter *
     //*********
+    MATRIX<complex<double>,NF,NF> Ha,HB;
     Ha = Adjoint(UWBW[i])*VfSI*UWBW[i];
 
     K[matter][i][si][4]=dr*real(Ha[0][0])/(M_2PI*cgs::constants::hbarc);
@@ -775,12 +772,13 @@ void K(double dr,
     HB[0][0]=-I/cgs::constants::hbarc*( Ha[0][1]*Sa[i][si][1][0] );
     HB[0][1]=-I/cgs::constants::hbarc*( Ha[0][1]*Sa[i][si][1][1] );
     
+    array<double,4> dvdr;
     dvdr[0]=real(HB[0][1]);
     dvdr[1]=imag(HB[0][1]);
     dvdr[2]=real(HB[0][0]);
     dvdr[3]=imag(HB[0][0]);
     
-    JI=JInverse(Y[matter][i][si]);
+    MATRIX<double,3,4> JI = JInverse(Y[matter][i][si]);
     
     for(int j=0;j<=2;j++){
       K[matter][i][si][j]=0.;
