@@ -6,7 +6,7 @@
 //===//
 // W //
 //===//
-MATRIX<complex<double>,NF,NF> W(vector<double> Y){
+MATRIX<complex<double>,NF,NF> W(array<double,NY> Y){
   MATRIX<complex<double>,NF,NF> w; 
   w[0][0]=exp(-I*M_2PI*Y[4]); w[1][1]=exp(-I*M_2PI*Y[5]);
   return w;
@@ -15,14 +15,14 @@ MATRIX<complex<double>,NF,NF> W(vector<double> Y){
 //===//
 // Q //
 //===//
-vector<double> Q(MATRIX<complex<double>,NF,NF> Hf,
-		 MATRIX<complex<double>,NF,NF> dHfdr,
-		 MATRIX<complex<double>,NF,NF> U,
-		 vector<double> k,
-		 vector<double> deltak,
-		 vector<double> dkdr){
-
-  vector<double> Q(NF);
+array<double,NF> Q(MATRIX<complex<double>,NF,NF> Hf,
+		   MATRIX<complex<double>,NF,NF> dHfdr,
+		   MATRIX<complex<double>,NF,NF> U,
+		   array<double,NF> k,
+		   array<double,NF-1> deltak,
+		   array<double,NF> dkdr){
+  
+  array<double,NF> Q;
 
   flavour beta;
   double Xi;
@@ -43,12 +43,12 @@ vector<double> Q(MATRIX<complex<double>,NF,NF> Hf,
 //===//
 // Q //
 //===//
-vector<double> Q(MATRIX<complex<double>,NF,NF> U,
-		 vector<double> deltak,
-		 vector<MATRIX<complex<double>,NF,NF> > C,
-		 vector<MATRIX<complex<double>,NF,NF> > dCdr){
-
-  vector<double> Q(NF);
+array<double,NF> Q(MATRIX<complex<double>,NF,NF> U,
+		   array<double,NF-1> deltak,
+		   array<MATRIX<complex<double>,NF,NF>,NF> C,
+		   array<MATRIX<complex<double>,NF,NF>,NF> dCdr){
+  
+  array<double,NF> Q;
 
   flavour beta;
   double Xi;
@@ -71,8 +71,8 @@ vector<double> Q(MATRIX<complex<double>,NF,NF> U,
 //=======//
 MATRIX<complex<double>,NF,NF> Gamma(MATRIX<complex<double>,NF,NF> dHfdr,
 				    MATRIX<complex<double>,NF,NF> U,
-				    vector<double> k,
-				    vector<double> Q){
+				    array<double,NF> k,
+				    array<double,NF> Q){
 
   MATRIX<complex<double>,NF,NF> Gamma;
   MATRIX<complex<double>,NF,NF> UdagdHdxU = Adjoint(U)*dHfdr*U;

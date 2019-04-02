@@ -99,7 +99,7 @@ class State{
     drhodr=rho*lnrho.Derivative(r);
     dYedr=electronfraction.Derivative(r);
 
-    // potential
+    // SI potential
     for(state m=matter; m<=antimatter; m++){
       for(int i=0;i<=NE-1;i++){
 	// decompose unoscillated potential

@@ -20,12 +20,12 @@
   %3 citations counted in INSPIRE as of 29 Jul 2016
 **************************************************************************/
 //prediction without considering the hierarchy
-vector<double> 
+array<double,(NE+2)*(2)>
 predictProbability(double totalNu,
 		   double totalANu,
 		   double Ve){
 
-  vector<double> predP(2);
+  array<double,(NE+2)*(2)> predP;
   double alpha(totalANu/totalNu);
   double mu(totalNu);
   predP[0]=(1+(alpha*alpha-(Ve/mu)*(Ve/mu)-1)/(2*(Ve/mu)))/2;
@@ -35,21 +35,20 @@ predictProbability(double totalNu,
 }
 
 //prediction considering the hierarchy
-vector<double>
+array<double,(NE+2)*(2)>
 predictProbability(double totalNu,
 		   double totalANu,
 		   double Ve,
 		   vector<double> E,
-		   vector<double> ebarPotentialSum,
-		   vector<double> ePotentialSum,
-		   vector<double> heavyPotentialSum){
+		   array<double,NE> ebarPotentialSum,
+		   array<double,NE> ePotentialSum,
+		   array<double,NE> heavyPotentialSum){
   
-  int NE = E.size();
-  vector<double> predP((NE+2)*(2));
+  array<double,(NE+2)*(2)> predP;
   double alpha(totalANu/totalNu);
   double mu(totalNu);
-  vector<double> Delta(NE);
-  vector<double> epsilon(NE);
+  array<double,NE> Delta;
+  array<double,NE> epsilon;
   double sume(0.0);
 
   for (int i=0;i<=NE-1;i++){

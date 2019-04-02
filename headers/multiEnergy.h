@@ -21,15 +21,15 @@ Ebins(int NE){
 //====================//
 // averageProbability //
 //====================//
-vector<double>
-averageProbability(vector<double> Pe,
-		   vector<double> Pebar,
-		   vector<double> Pheavy,
-		   vector<double> ebarPotentialSum,
-		   vector<double> ePotentialSum,
-		   vector<double> heavyPotentialSum){
+array<double,6>
+averageProbability(array<double,NE> Pe,
+		   array<double,NE> Pebar,
+		   array<double,NE> Pheavy,
+		   array<double,NE> ebarPotentialSum,
+		   array<double,NE> ePotentialSum,
+		   array<double,NE> heavyPotentialSum){
 
-  vector<double> Pvalues(6);
+  array<double,6> Pvalues;
   double totalANu(0.);
   double totalNu(0.);
   double totalHeavy(0.);

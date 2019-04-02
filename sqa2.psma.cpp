@@ -62,21 +62,21 @@ using std::array;
 #include "headers/State.h"
 
 
-MATRIX<complex<double>,NF,NF> B(vector<double> y);
+MATRIX<complex<double>,NF,NF> B(array<double,NY> y);
 void K(double dr,
-       vector<vector<vector<vector<double> > > > &Y,
-       vector<vector<vector<MATRIX<complex<double>,NF,NF> > > > &C0,
-       vector<vector<vector<vector<double> > > > &A0,
-       vector<vector<vector<vector<double> > > > &K,
+       array<array<array<array<double,NY>,NS>,NE>,NM>& Y,
+       array<array<array<MATRIX<complex<double>,NF,NF>,NF>,NE>,NM>& C0,
+       array<array<array<array<double,NF>,NF>,NE>,NM> &A0,
+       array<array<array<array<double,NY>,NS>,NE>,NM> &K,
        State& s);
 void Outputvsr(ofstream &fout,
 	       ofstream &foutP,
 	       ofstream &foutf,
 	       ofstream &foutdangledr,
-	       vector<vector<vector<vector<double> > > > Y,
-	       vector<vector<vector<MATRIX<complex<double>,NF,NF> > > > C0,
-	       vector<vector<vector<vector<double> > > > A0,
-	       State& s,
+	       const array<array<array<array<double,NY>,NS>,NE>,NM>& Y,
+	       const array<array<array<MATRIX<complex<double>,NF,NF>,NF>,NE>,NM>& C0,
+	       const array<array<array<array<double,NF>,NF>,NE>,NM>& A0,
+	       const State& s,
 	       const array<DISCONTINUOUS,NE>& eP,
 	       const array<DISCONTINUOUS,NE>& eBarP,
 	       const array<DISCONTINUOUS,NE>& xP);
@@ -281,16 +281,15 @@ int main(int argc, char *argv[]){
     
     
     // cofactor matrices at initial point - will be recycled as cofactor matrices at beginning of every step
-    vector<vector<vector<MATRIX<complex<double>,NF,NF> > > > 
-      C0(NM,vector<vector<MATRIX<complex<double>,NF,NF> > >(NE,vector<MATRIX<complex<double>,NF,NF> >(NF)));
+    array<array<array<MATRIX<complex<double>,NF,NF>,NF>,NE>,NM> C0, C;
 
     // mixing matrix element prefactors at initial point - will be recycled like C0
-    vector<vector<vector<vector<double> > > > 
-      A0(NM,vector<vector<vector<double> > >(NE,vector<vector<double> >(NF,vector<double>(NF))));
+    array<array<array<array<double,NF>,NF>,NE>,NM> A0, A;
     
     // mixing angles to MSW basis at initial point
     MATRIX<complex<double>,NF,NF> VfMSW0, Hf0;
-    vector<double> k0, deltak0;    
+    array<double,NF> k0;
+    array<double,NF-1> deltak0;    
     VfMSW0[e][e]=Ve(s.rho,s.Ye);
     VfMSW0[mu][mu]=Vmu(s.rho,s.Ye);
     for(int i=0;i<=NE-1;i++){
@@ -320,8 +319,6 @@ int main(int argc, char *argv[]){
       s.U0[antimatter][i]=Conjugate(U(deltak0,C0[antimatter][i],A0[antimatter][i]));
     }
 
-    vector<vector<vector<double> > > P0 (NM,vector<vector<double> >(NF,vector <double>(NE)));
-
     // yzhu14 density/potential matrices art rmin
     initialize(s,rmin,eD,eBarD,xD);
 
@@ -340,27 +337,18 @@ int main(int argc, char *argv[]){
     // variables followed as a function of r *
     // ***************************************
     
-    vector<vector<vector<vector<double> > > > 
-      Y(NM,vector<vector<vector<double> > >(NE,vector<vector<double> >(NS,vector<double>(NY))));
-    vector<vector<vector<vector<double> > > > 
-      dY(NM,vector<vector<vector<double> > >(NE,vector<vector<double> >(NS,vector<double>(NY))));
-    vector<vector<vector<vector<double> > > > 
-      Y0(NM,vector<vector<vector<double> > >(NE,vector<vector<double> >(NS,vector<double>(NY))));
-    vector<vector<vector<vector<double> > > > 
-      Yerror(NM,vector<vector<vector<double> > >(NE,vector<vector<double> >(NS,vector<double>(NY))));
+    array<array<array<array<double,NY>,NS>,NE>,NM> Y, dY, Y0, Yerror;
     
     // cofactor matrices
-    vector<vector<vector<MATRIX<complex<double>,NF,NF> > > > C=C0;;
+    C=C0;
     // mixing matrix prefactors
-    vector<vector<vector<vector<double> > > > A=A0;
+    A=A0;
         
     // ************************
     // Runge-Kutta quantities *
     // ************************
     
-    vector<vector<vector<vector<vector<double> > > > > 
-      Ks(NRK,vector<vector<vector<vector<double> > > >
-	 (NM,vector<vector<vector<double> > >(NE,vector<vector<double> >(NS,vector<double>(NY)))));
+    array<array<array<array<array<double,NY>,NS>,NE>,NM>,NRK> Ks;
     
     // temporaries
     MATRIX<complex<double>,NF,NF> SSMSW,SSSI,SThisStep;
@@ -592,7 +580,7 @@ int main(int argc, char *argv[]){
 //===//
 // B //
 //===//
-MATRIX<complex<double>,NF,NF> B(vector<double> y){
+MATRIX<complex<double>,NF,NF> B(array<double,NY> y){
   MATRIX<complex<double>,NF,NF> s;
   double cPsi1=cos(y[0]),sPsi1=sin(y[0]), cPsi2=cos(y[1]),sPsi2=sin(y[1]), cPsi3=cos(y[2]),sPsi3=sin(y[2]);
   
@@ -610,33 +598,33 @@ MATRIX<complex<double>,NF,NF> B(vector<double> y){
 // K //
 //===//
 void K(double dr,
-       vector<vector<vector<vector<double> > > > &Y,
-       vector<vector<vector<MATRIX<complex<double>,NF,NF> > > > &C0,
-       vector<vector<vector<vector<double> > > > &A0,
-       vector<vector<vector<vector<double> > > > &K,
+       array<array<array<array<double,NY>,NS>,NE>,NM>& Y,
+       array<array<array<MATRIX<complex<double>,NF,NF>,NF>,NE>,NM>& C0,
+       array<array<array<array<double,NF>,NF>,NE>,NM> &A0,
+       array<array<array<array<double,NY>,NS>,NE>,NM> &K,
        State& s){
 
   MATRIX<complex<double>,NF,NF> VfSI,VfSIbar;  // self-interaction potential
-  vector<MATRIX<complex<double>,NF,NF> > VfSIE(NE); // contribution to self-interaction potential from each energy
+  array<MATRIX<complex<double>,NF,NF>,NE> VfSIE; // contribution to self-interaction potential from each energy
   MATRIX<complex<double>,NF,NF> VfMSW,VfMSWbar;
   MATRIX<complex<double>,NF,NF> dVfMSWdr,dVfMSWbardr;
   MATRIX<complex<double>,NF,NF> Hf,Hfbar, UU,UUbar;
-  vector<double> kk,kkbar, dkk,dkkbar, dkkdr,dkkbardr, QQ,QQbar;
-  vector<MATRIX<complex<double>,NF,NF> > CC,dCCdr;
-  vector<vector<double> > AA;
+  array<double,NF> kk,kkbar, dkkdr,dkkbardr, QQ,QQbar;
+  array<double,NF-1> dkk,dkkbar;
+  array<MATRIX<complex<double>,NF,NF>,NF> CC,dCCdr;
+  array<array<double,NF>,NF> AA;
   MATRIX<complex<double>,NF,NF> BB,BBbar;
   MATRIX<complex<double>,NF,NF> Sfm,Sfmbar;
   vector<vector<MATRIX<complex<double>,NF,NF> > > 
     Sa(NE,vector<MATRIX<complex<double>,NF,NF> >(NS)), 
     Sabar(NE,vector<MATRIX<complex<double>,NF,NF> >(NS));
-  vector<MATRIX<complex<double>,NF,NF> > UWBW(NE);
-  vector<MATRIX<complex<double>,NF,NF> > UWBWbar(NE);
+  array<MATRIX<complex<double>,NF,NF>,NE> UWBW, UWBWbar;
   MATRIX<double,3,4> JI;
   int i;
   MATRIX<complex<double>,NF,NF> Ha;
   MATRIX<complex<double>,NF,NF> HB;
-  vector<double> phase(1);
-  vector<double> dvdr(4);
+  array<double,NF-1> phase;
+  array<double,4> dvdr;
   // *************
   VfMSW[e][e]=Ve(s.rho,s.Ye);
   VfMSW[mu][mu]=Vmu(s.rho,s.Ye);
@@ -699,8 +687,8 @@ void K(double dr,
     
     K[matter][i][msw][3] = 0.;
     dkkdr = dkdr(UU,dVfMSWdr);
-    dCCdr = CofactorMatricesDerivatives(Hf,dVfMSWdr,dkk,dkkdr);
-    QQ = Q(UU,dkk,CC,dCCdr);
+    dCCdr = CofactorMatricesDerivatives(Hf,dVfMSWdr,dkkdr);
+    QQ =  Q(UU,dkk,CC,dCCdr);
     
     K[matter][i][msw][4] = (kk[0]+QQ[0])*dr/M_2PI/cgs::constants::hbarc;
     K[matter][i][msw][5] = (kk[1]+QQ[1])*dr/M_2PI/cgs::constants::hbarc;
@@ -737,7 +725,7 @@ void K(double dr,
 
     K[antimatter][i][msw][3] = 0.;
     dkkbardr = dkdr(UUbar,dVfMSWbardr);
-    dCCdr = CofactorMatricesDerivatives(Hfbar,dVfMSWbardr,dkkbar,dkkbardr);
+    dCCdr = CofactorMatricesDerivatives(Hfbar,dVfMSWbardr,dkkbardr);
     QQbar = Q(UUbar,dkkbar,CC,dCCdr);
 
     K[antimatter][i][msw][4] = (kkbar[0]+QQbar[0])*dr/M_2PI/cgs::constants::hbarc;
@@ -839,18 +827,15 @@ void Outputvsr(ofstream &fout,
 	       ofstream &foutP,
 	       ofstream &foutf,
 	       ofstream &foutdangledr,
-       vector<vector<vector<vector<double> > > > Y,
-	       vector<vector<vector<MATRIX<complex<double>,NF,NF> > > > C0,
-	       vector<vector<vector<vector<double> > > > A0,
-	       State& s,
+	       const array<array<array<array<double,NY>,NS>,NE>,NM>& Y,
+	       const array<array<array<MATRIX<complex<double>,NF,NF>,NF>,NE>,NM>& C0,
+	       const array<array<array<array<double,NF>,NF>,NE>,NM>& A0,
+	       const State& s,
 	       const array<DISCONTINUOUS,NE>& eP,
 	       const array<DISCONTINUOUS,NE>& eBarP,
 	       const array<DISCONTINUOUS,NE>& xP){
 
-  vector<MATRIX<complex<double>,NF,NF> > VfMSW(NM), dVfMSWdr(NM);
-  vector<MATRIX<complex<double>,NF,NF> > VfSI(NM);
-
-  vector<MATRIX<complex<double>,NF,NF> > rhomatrix(NM);
+  array<MATRIX<complex<double>,NF,NF>,NM> VfMSW, dVfMSWdr, VfSI;
 
   VfMSW[matter][e][e]=Ve(s.rho,s.Ye);
   VfMSW[matter][mu][mu]=Vmu(s.rho,s.Ye);
@@ -860,28 +845,19 @@ void Outputvsr(ofstream &fout,
   dVfMSWdr[matter][mu][mu]=dVmudr(s.rho,s.drhodr,s.Ye,s.dYedr);
   dVfMSWdr[antimatter]=-dVfMSWdr[matter];
 
-  vector<vector<MATRIX<complex<double>,NF,NF> > >
-    Hf(NM,vector<MATRIX<complex<double>,NF,NF> >(NE));
-  vector<vector<MATRIX<complex<double>,NF,NF> > >
-    UU(NM,vector<MATRIX<complex<double>,NF,NF> >(NE));
-  vector<vector<vector<MATRIX<complex<double>,NF,NF> > > > 
-    WW(NM,vector<vector<MATRIX<complex<double>,NF,NF> > >(NE,vector<MATRIX<complex<double>,NF,NF> >(NS)));
-  vector<vector<vector<MATRIX<complex<double>,NF,NF> > > > 
-    BB(NM,vector<vector<MATRIX<complex<double>,NF,NF> > >(NE,vector<MATRIX<complex<double>,NF,NF> >(NS)));
-  vector<vector<MATRIX<complex<double>,NF,NF> > > 
-    Sm(NM,vector<MATRIX<complex<double>,NF,NF> >(NE)), 
-    Smf(NM,vector<MATRIX<complex<double>,NF,NF> >(NE)),
-    Sf(NM,vector<MATRIX<complex<double>,NF,NF> >(NE));
+  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> Hf, UU;
+  array<array<array<MATRIX<complex<double>,NF,NF>,NM>,NE>,NS> WW,BB;
+  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> Sm, Smf, Sf;
 
-  vector<vector<vector<double> > > kk(NM,vector<vector<double> >(NE));
-  vector<vector<vector<double> > > dkk(NM,vector<vector<double> >(NE));
-  vector<double> ePotentialSum(NE),ebarPotentialSum(NE),heavyPotentialSum(NE);
+  array<array<array<double,NF>,NE>,NM> kk;
+  array<array<array<double,NF-1>,NE>,NM> dkk;
+  array<double,NE> ePotentialSum,ebarPotentialSum,heavyPotentialSum;
   double totalANuFlux(0.);
   double totalNuFlux(0.);
   double totalHeavyFlux(0.);
-  vector<double> Pe(NE),Pebar(NE),Pheavy(NE);
-  vector<double> Pvalues(6);
-  vector<double> predP((NE+2)*(2));
+  array<double,NE> Pe,Pebar,Pheavy;
+  array<double,6> Pvalues;
+  array<double,(NE+2)*2> predP;
 
   MATRIX<complex<double>,NF,NF> p_unosc;
   for(int i=0;i<=NE-1;i++){
@@ -945,7 +921,6 @@ void Outputvsr(ofstream &fout,
   VfSI[matter][e][e]+=Tr;
   VfSI[matter][mu][mu]+=Tr;
 
-  //VfSI[matter]*=NSI*CSI(r);
   VfSI[antimatter] = -Conjugate(VfSI[matter]);
 
 
