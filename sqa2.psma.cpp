@@ -607,7 +607,8 @@ void K(double dr,
     array<MATRIX<complex<double>,NF,NF>,NM> Ha,HB;
     array<array<double,NF-1>,NM> phase;
     array<array<double,4>,NM> dvdr;
-      
+    array<MATRIX<double,3,4>,NM> JI;
+    
     for(int m=matter; m<=antimatter; m++){
       Hf[m]  = s.HfV[m][i]+s.VfMSW[m];
       kk[m] = k(Hf[m]);
@@ -633,10 +634,13 @@ void K(double dr,
       HB[m][0][0]=-I/cgs::constants::hbarc*( Ha[m][0][1]*BB[m][1][0] );
       HB[m][0][1]=-I/cgs::constants::hbarc*( Ha[m][0][1]*BB[m][1][1] );
 
-    dvdr[m][0]=real(HB[matter][0][1]);
-    dvdr[m][1]=imag(HB[matter][0][1]);
-    dvdr[m][2]=real(HB[matter][0][0]);
-    dvdr[m][3]=imag(HB[matter][0][0]);
+      dvdr[m][0]=real(HB[m][0][1]);
+      dvdr[m][1]=imag(HB[m][0][1]);
+      dvdr[m][2]=real(HB[m][0][0]);
+      dvdr[m][3]=imag(HB[m][0][0]);
+
+      JI[m] = JInverse(Y[m][i][msw]);
+      
     }
     
     // ****************
@@ -644,11 +648,10 @@ void K(double dr,
     // ****************
     
     
-    MATRIX<double,3,4> JI = JInverse(Y[matter][i][msw]);
     
     for(int j=0;j<=2;j++){
       K[matter][i][msw][j]=0.;
-      for(int k=j;k<=3;k++) K[matter][i][msw][j] += JI[j][k]*dvdr[matter][k];
+      for(int k=j;k<=3;k++) K[matter][i][msw][j] += JI[matter][j][k]*dvdr[matter][k];
       K[matter][i][msw][j]*=dr;
     }
     
@@ -664,11 +667,10 @@ void K(double dr,
     // Antimatter section *
     // ********************
     
-    JI = JInverse(Y[antimatter][i][msw]);
 
     for(int j=0;j<=2;j++){
       K[antimatter][i][msw][j] = 0.; 
-      for(int k=j;k<=3;k++) K[antimatter][i][msw][j] += JI[j][k]*dvdr[antimatter][k];
+      for(int k=j;k<=3;k++) K[antimatter][i][msw][j] += JI[antimatter][j][k]*dvdr[antimatter][k];
       K[antimatter][i][msw][j] *= dr;
     }
 
