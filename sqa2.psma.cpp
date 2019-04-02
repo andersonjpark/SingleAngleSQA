@@ -113,7 +113,7 @@ void getP(const double r,
   }
 }
 
-void interact(double T, double Ye, double r, double dr, State& s,
+void interact(double r, double dr, State& s,
 	      const vector<DISCONTINUOUS>& eD,
 	      const vector<DISCONTINUOUS>& eBarD,
 	      const vector<DISCONTINUOUS>& xD){
@@ -122,7 +122,7 @@ void interact(double T, double Ye, double r, double dr, State& s,
   array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> old_fmatrixf = s.fmatrixf;
 
   // let neutrinos interact
-  my_interact(s.fmatrixf, T, Ye, r, dr, s, eD,eBarD,xD);
+  my_interact(s.fmatrixf, r, dr, s, eD,eBarD,xD);
   for(int i=0; i<NE; i++){
     for(state m=matter; m<=antimatter; m++){
       s.fmatrixm[m][i] = Adjoint(s.U0[m][i]) * s.fmatrixf[m][i] * s.U0[m][i];
@@ -313,7 +313,7 @@ int main(int argc, char *argv[]){
     
     // MSW potential matrix
     s.rho = exp(lnrho(rmin));
-    double YYe  = Ye(rmin);
+    s.Ye  = Ye(rmin);
     
     
     // cofactor matrices at initial point - will be recycled as cofactor matrices at beginning of every step
@@ -327,8 +327,8 @@ int main(int argc, char *argv[]){
     // mixing angles to MSW basis at initial point
     MATRIX<complex<double>,NF,NF> VfMSW0, Hf0;
     vector<double> k0, deltak0;    
-    VfMSW0[e][e]=Ve(s.rho,YYe);
-    VfMSW0[mu][mu]=Vmu(s.rho,YYe);
+    VfMSW0[e][e]=Ve(s.rho,s.Ye);
+    VfMSW0[mu][mu]=Vmu(s.rho,s.Ye);
     for(int i=0;i<=NE-1;i++){
       Hf0=s.HfV[matter][i]+VfMSW0;
       k0=k(Hf0);
@@ -533,7 +533,7 @@ int main(int argc, char *argv[]){
 
 	// interact with the matter
 	if(do_interact)
-	  interact(temperature(r), Ye(r), r, dr_this_step, s,eD,eBarD,xD);
+	  interact(r, dr_this_step, s,eD,eBarD,xD);
 	for(state m=matter; m<=antimatter; m++)
 	  for(int i=0; i<NE; i++)
 	    for(flavour f1=e; f1<=mu; f1++)
@@ -673,7 +673,7 @@ void K(double r,
     Sabar(NE,vector<MATRIX<complex<double>,NF,NF> >(NS));
   vector<MATRIX<complex<double>,NF,NF> > UWBW(NE);
   vector<MATRIX<complex<double>,NF,NF> > UWBWbar(NE);
-  double drrhodr, YYe,dYYedr;
+  double drrhodr, dYYedr;
   MATRIX<double,3,4> JI;
   int i;
   MATRIX<complex<double>,NF,NF> Ha;
@@ -683,13 +683,13 @@ void K(double r,
   // *************
   s.rho=exp(lnrho(r));
   drrhodr=s.rho*lnrho.Derivative(r);
-  YYe=Ye(r);
+  s.Ye=Ye(r);
   dYYedr=Ye.Derivative(r);
-  VfMSW[e][e]=Ve(s.rho,YYe);
-  VfMSW[mu][mu]=Vmu(s.rho,YYe);
+  VfMSW[e][e]=Ve(s.rho,s.Ye);
+  VfMSW[mu][mu]=Vmu(s.rho,s.Ye);
   VfMSWbar=-Conjugate(VfMSW);
-  dVfMSWdr[e][e]=dVedr(s.rho,drrhodr,YYe,dYYedr);
-  dVfMSWdr[mu][mu]=dVmudr(s.rho,drrhodr,YYe,dYYedr);
+  dVfMSWdr[e][e]=dVedr(s.rho,drrhodr,s.Ye,dYYedr);
+  dVfMSWdr[mu][mu]=dVmudr(s.rho,drrhodr,s.Ye,dYYedr);
   dVfMSWbardr=-Conjugate(dVfMSWdr);
 
 #pragma omp parallel for schedule(auto) private(Hf,Hfbar,UU,UUbar,kk,kkbar,dkk,dkkbar,dkkdr,dkkbardr,QQ,QQbar,AA,CC,dCCdr,BB,BBbar,Sfm,Sfmbar,JI) firstprivate(Ha,HB,dvdr,phase)
@@ -905,15 +905,15 @@ void Outputvsr(ofstream &fout,
   s.rho=exp(lnrho(r));
   double drrhodr=s.rho*lnrho.Derivative(r);
 
-  double YYe=Ye(r);
+  s.Ye=Ye(r);
   double dYYedr=Ye.Derivative(r);
 
-  VfMSW[matter][e][e]=Ve(s.rho,YYe);
-  VfMSW[matter][mu][mu]=Vmu(s.rho,YYe);
+  VfMSW[matter][e][e]=Ve(s.rho,s.Ye);
+  VfMSW[matter][mu][mu]=Vmu(s.rho,s.Ye);
   VfMSW[antimatter]=-VfMSW[matter];
 
-  dVfMSWdr[matter][e][e]=dVedr(s.rho,drrhodr,YYe,dYYedr);
-  dVfMSWdr[matter][mu][mu]=dVmudr(s.rho,drrhodr,YYe,dYYedr);
+  dVfMSWdr[matter][e][e]=dVedr(s.rho,drrhodr,s.Ye,dYYedr);
+  dVfMSWdr[matter][mu][mu]=dVmudr(s.rho,drrhodr,s.Ye,dYYedr);
   dVfMSWdr[antimatter]=-dVfMSWdr[matter];
 
   vector<vector<MATRIX<complex<double>,NF,NF> > >
@@ -1026,7 +1026,7 @@ void Outputvsr(ofstream &fout,
     Pheavy[i] = norm(Sf[    matter][i][mu][mu]);
   }
 
-  foutP<<r<<"\t"<<Ve(s.rho,YYe)<<"\t";//1,2
+  foutP<<r<<"\t"<<Ve(s.rho,s.Ye)<<"\t";//1,2
   foutP<<real(VfSI[    matter][e ][e ])<<"\t"<<real(VfSI[    matter][mu][mu])<<"\t";
   foutP<<real(VfSI[antimatter][e ][e ])<<"\t"<<real(VfSI[antimatter][mu][mu])<<"\t";//3,4,5,6
   Pvalues = averageProbability(Pe,Pebar,Pheavy,ebarPotentialSum,ePotentialSum,heavyPotentialSum);
@@ -1038,7 +1038,7 @@ void Outputvsr(ofstream &fout,
   foutP<<Pvalues[5]<<"\t";//Heavy,9
   foutP<<Pvalues[0]<<"\t"<<Pvalues[1]<<"\t"<<Pvalues[2]<<"\t";//Pe,Pebar,Pheavy;10,11,12
 
-  predP=predictProbability(Pvalues[3],Pvalues[4],Ve(s.rho,YYe),E,ebarPotentialSum,ePotentialSum,heavyPotentialSum);
+  predP=predictProbability(Pvalues[3],Pvalues[4],Ve(s.rho,s.Ye),E,ebarPotentialSum,ePotentialSum,heavyPotentialSum);
   foutP<<predP[0]<<"\t"<<predP[1+NE]<<"\t";//13,14
   for(int i=0;i<NE;i++) foutP<<predP[1+i]<<"\t"<<predP[(NE+1)+i+1]<<"\t";//15,16,...2*(NE-1)+15,
   foutP<<predP[(NE+1)*2]<<"\t"<<predP[(NE+1)*2+1]<<"\t";//2*(NE-1)+17,2*(NE-1)+18
