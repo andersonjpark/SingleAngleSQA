@@ -608,13 +608,6 @@ void K(double dr,
   array<MATRIX<complex<double>,NF,NF>,NE> VfSIE; // contribution to self-interaction potential from each energy
   MATRIX<complex<double>,NF,NF> VfMSW,VfMSWbar;
   MATRIX<complex<double>,NF,NF> dVfMSWdr,dVfMSWbardr;
-  MATRIX<complex<double>,NF,NF> Hf,Hfbar, UU,UUbar;
-  array<double,NF> kk,kkbar, dkkdr,dkkbardr, QQ,QQbar;
-  array<double,NF-1> dkk,dkkbar;
-  array<MATRIX<complex<double>,NF,NF>,NF> CC,dCCdr;
-  array<array<double,NF>,NF> AA;
-  MATRIX<complex<double>,NF,NF> BB,BBbar;
-  MATRIX<complex<double>,NF,NF> Sfm,Sfmbar;
   array<array<MATRIX<complex<double>,NF,NF>,NS>,NE> Sa, Sabar;
   array<MATRIX<complex<double>,NF,NF>,NE> UWBW, UWBWbar;
   
@@ -626,25 +619,25 @@ void K(double dr,
   dVfMSWdr[mu][mu]=dVmudr(s.rho,s.drhodr,s.Ye,s.dYedr);
   dVfMSWbardr=-Conjugate(dVfMSWdr);
 
-#pragma omp parallel for schedule(auto) private(Hf,Hfbar,UU,UUbar,kk,kkbar,dkk,dkkbar,dkkdr,dkkbardr,QQ,QQbar,AA,CC,dCCdr,BB,BBbar,Sfm,Sfmbar)
+#pragma omp parallel for
   for(int i=0;i<=NE-1;i++){
-    Hf  = s.HfV[matter][i]+VfMSW;
-    kk  = k(Hf);
-    dkk = deltak(Hf);
-    CC  = CofactorMatrices(Hf,kk);
-    AA  = MixingMatrixFactors(CC,C0[matter][i],A0[matter][i]);
-    UU  = U(dkk,CC,AA);
-    BB  = B(Y[matter][i][msw]);
+    MATRIX<complex<double>,NF,NF> Hf  = s.HfV[matter][i]+VfMSW;
+    array<double,NF> kk  = k(Hf);
+    array<double,NF-1> dkk = deltak(Hf);
+    array<MATRIX<complex<double>,NF,NF>,NF> CC  = CofactorMatrices(Hf,kk);
+    array<array<double,NF>,NF> AA = MixingMatrixFactors(CC,C0[matter][i],A0[matter][i]);
+    MATRIX<complex<double>,NF,NF> UU  = U(dkk,CC,AA);
+    MATRIX<complex<double>,NF,NF> BB  = B(Y[matter][i][msw]);
     Sa[i][si] = B(Y[matter][i][si]);
     UWBW[i] = UU * W(Y[matter][i][msw]) * BB * W(Y[matter][i][si]);
     
-    Hfbar = s.HfV[antimatter][i] + VfMSWbar;
-    kkbar = kbar(Hfbar);
-    dkkbar = deltakbar(Hfbar);
+    MATRIX<complex<double>,NF,NF> Hfbar = s.HfV[antimatter][i] + VfMSWbar;
+    array<double,NF> kkbar = kbar(Hfbar);
+    array<double,NF-1> dkkbar = deltakbar(Hfbar);
     CC = CofactorMatrices(Hfbar,kkbar);
     AA = MixingMatrixFactors(CC,C0[antimatter][i],A0[antimatter][i]);
-    UUbar = Conjugate(U(dkkbar,CC,AA));
-    BBbar = B(Y[antimatter][i][msw]);
+    MATRIX<complex<double>,NF,NF> UUbar = Conjugate(U(dkkbar,CC,AA));
+    MATRIX<complex<double>,NF,NF> BBbar = B(Y[antimatter][i][msw]);
     Sabar[i][si] = B(Y[antimatter][i][si]);
     UWBWbar[i] = UUbar * W(Y[antimatter][i][msw]) *BBbar * W(Y[antimatter][i][si]);
     
@@ -682,9 +675,9 @@ void K(double dr,
     }
     
     K[matter][i][msw][3] = 0.;
-    dkkdr = dkdr(UU,dVfMSWdr);
-    dCCdr = CofactorMatricesDerivatives(Hf,dVfMSWdr,dkkdr);
-    QQ =  Q(UU,dkk,CC,dCCdr);
+    array<double,NF> dkkdr = dkdr(UU,dVfMSWdr);
+    array<MATRIX<complex<double>,NF,NF>,NF> dCCdr = CofactorMatricesDerivatives(Hf,dVfMSWdr,dkkdr);
+    array<double,NF> QQ =  Q(UU,dkk,CC,dCCdr);
     
     K[matter][i][msw][4] = (kk[0]+QQ[0])*dr/M_2PI/cgs::constants::hbarc;
     K[matter][i][msw][5] = (kk[1]+QQ[1])*dr/M_2PI/cgs::constants::hbarc;
@@ -720,9 +713,9 @@ void K(double dr,
     }
 
     K[antimatter][i][msw][3] = 0.;
-    dkkbardr = dkdr(UUbar,dVfMSWbardr);
+    array<double,NF> dkkbardr = dkdr(UUbar,dVfMSWbardr);
     dCCdr = CofactorMatricesDerivatives(Hfbar,dVfMSWbardr,dkkbardr);
-    QQbar = Q(UUbar,dkkbar,CC,dCCdr);
+    array<double,NF> QQbar = Q(UUbar,dkkbar,CC,dCCdr);
 
     K[antimatter][i][msw][4] = (kkbar[0]+QQbar[0])*dr/M_2PI/cgs::constants::hbarc;
     K[antimatter][i][msw][5] = (kkbar[1]+QQbar[1])*dr/M_2PI/cgs::constants::hbarc;
@@ -730,8 +723,8 @@ void K(double dr,
     // *****************************************************************
     // contribution to the self-interaction potential from this energy *
     // *****************************************************************
-    Sfm    = UWBW   [i]*Sa   [i][si];
-    Sfmbar = UWBWbar[i]*Sabar[i][si];
+    MATRIX<complex<double>,NF,NF> Sfm    = UWBW   [i]*Sa   [i][si];
+    MATRIX<complex<double>,NF,NF> Sfmbar = UWBWbar[i]*Sabar[i][si];
     VfSIE[i] =     Sfm   *s.pmatrixm0[    matter][i]*Adjoint(Sfm   )
       - Conjugate( Sfmbar*s.pmatrixm0[antimatter][i]*Adjoint(Sfmbar) );
 
