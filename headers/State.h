@@ -87,12 +87,12 @@ class State{
 			 const DISCONTINUOUS& lnrho,
 			 const DISCONTINUOUS& temperature,
 			 const DISCONTINUOUS& electronfraction,
-			 const vector<DISCONTINUOUS>& eD,
-			 const vector<DISCONTINUOUS>& eBarD,
-			 const vector<DISCONTINUOUS>& xD,
-			 const vector<DISCONTINUOUS>& eP,
-			 const vector<DISCONTINUOUS>& eBarP,
-			 const vector<DISCONTINUOUS>& xP){
+			 const array<DISCONTINUOUS,NE>& eD,
+			 const array<DISCONTINUOUS,NE>& eBarD,
+			 const array<DISCONTINUOUS,NE>& xD,
+			 const array<DISCONTINUOUS,NE>& eP,
+			 const array<DISCONTINUOUS,NE>& eBarP,
+			 const array<DISCONTINUOUS,NE>& xP){
     // fluid background
     rho = exp(lnrho(r));
     T = temperature(r);

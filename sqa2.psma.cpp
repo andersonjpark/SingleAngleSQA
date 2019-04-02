@@ -79,18 +79,18 @@ void Outputvsr(ofstream &fout,
 	       vector<vector<vector<MATRIX<complex<double>,NF,NF> > > > C0,
 	       vector<vector<vector<vector<double> > > > A0,
 	       State& s,
-	       const vector<DISCONTINUOUS>& eP,
-	       const vector<DISCONTINUOUS>& eBarP,
-	       const vector<DISCONTINUOUS>& xP);
+	       const array<DISCONTINUOUS,NE>& eP,
+	       const array<DISCONTINUOUS,NE>& eBarP,
+	       const array<DISCONTINUOUS,NE>& xP);
 
 #include "headers/update.h"
 #include "headers/project/albino.h"
 //#include "headers/project/test_case_B.h"
 
 void interact(double r, double dr, State& s,
-	      const vector<DISCONTINUOUS>& eD,
-	      const vector<DISCONTINUOUS>& eBarD,
-	      const vector<DISCONTINUOUS>& xD){
+	      const array<DISCONTINUOUS,NE>& eD,
+	      const array<DISCONTINUOUS,NE>& eBarD,
+	      const array<DISCONTINUOUS,NE>& xD){
   
   // save old fmatrix
   array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> old_fmatrixf = s.fmatrixf;
@@ -179,8 +179,8 @@ int main(int argc, char *argv[]){
 
     // interpolation variables
     DISCONTINUOUS rho, lnrho, Ye, temperature; // rho is the mass density
-    vector<DISCONTINUOUS> eP,eBarP,xP;
-    vector<DISCONTINUOUS> eD,eBarD,xD;
+    array<DISCONTINUOUS,NE> eP,eBarP,xP;
+    array<DISCONTINUOUS,NE> eD,eBarD,xD;
 
     
     // load rho and Ye data
@@ -191,14 +191,6 @@ int main(int argc, char *argv[]){
     assert(rmin <= rho.XMax());
 
     lnrho = rho.copy_logy();
-    
-    // load and compute spectral data    
-    eP.resize(NE);
-    eBarP.resize(NE);
-    xP.resize(NE);
-    eD.resize(NE);
-    eBarD.resize(NE);
-    xD.resize(NE);
     
     // load and compute spectral data
     for(int i=0;i<=NE-1;i++){
@@ -856,9 +848,9 @@ void Outputvsr(ofstream &fout,
 	       vector<vector<vector<MATRIX<complex<double>,NF,NF> > > > C0,
 	       vector<vector<vector<vector<double> > > > A0,
 	       State& s,
-	       const vector<DISCONTINUOUS>& eP,
-	       const vector<DISCONTINUOUS>& eBarP,
-	       const vector<DISCONTINUOUS>& xP){
+	       const array<DISCONTINUOUS,NE>& eP,
+	       const array<DISCONTINUOUS,NE>& eBarP,
+	       const array<DISCONTINUOUS,NE>& xP){
 
   vector<MATRIX<complex<double>,NF,NF> > VfMSW(NM), dVfMSWdr(NM);
   vector<MATRIX<complex<double>,NF,NF> > VfSI(NM);

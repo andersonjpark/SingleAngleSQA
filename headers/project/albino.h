@@ -42,9 +42,9 @@ T phaseVolDensity(const T density, const unsigned i){
 //============//
 void initialize(State& s,
 		double r,
-		const vector<DISCONTINUOUS>& eD,
-		const vector<DISCONTINUOUS>& eBarD,
-		const vector<DISCONTINUOUS>& xD){
+		const array<DISCONTINUOUS,NE>& eD,
+		const array<DISCONTINUOUS,NE>& eBarD,
+		const array<DISCONTINUOUS,NE>& xD){
   // T should be MeV
   cout << "Setting initial data." << endl;
   cout << "rho = " << s.rho << " g/ccm" << endl;
@@ -112,9 +112,9 @@ double dVmudr(double rho, double drhodr, double Ye, double dYedr){ return 0.;}
 
 void my_interact(array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& fmatrixf,
 		 double r, double dr, const State& s,
-		 const vector<DISCONTINUOUS>& eD,
-		 const vector<DISCONTINUOUS>& eBarD,
-		 const vector<DISCONTINUOUS>& xD){
+		 const array<DISCONTINUOUS,NE>& eD,
+		 const array<DISCONTINUOUS,NE>& eBarD,
+		 const array<DISCONTINUOUS,NE>& xD){
   
   // don't do anything if too sparse
   if(log10(s.rho) <= __nulibtable_MOD_nulibtable_logrho_min)
