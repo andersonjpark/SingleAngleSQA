@@ -641,22 +641,19 @@ void K(double dr,
 
       JI[m] = JInverse(Y[m][i][msw]);
       
+      K[m][i][msw][3] = 0.;
+      dkkdr[m] = dkdr(UU[m],s.dVfMSWdr[m]);
     }
     
     // ****************
     // Matter section *
     // ****************
-    
-    
-    
     for(int j=0;j<=2;j++){
       K[matter][i][msw][j]=0.;
       for(int k=j;k<=3;k++) K[matter][i][msw][j] += JI[matter][j][k]*dvdr[matter][k];
       K[matter][i][msw][j]*=dr;
     }
     
-    K[matter][i][msw][3] = 0.;
-    dkkdr[matter] = dkdr(UU[matter],s.dVfMSWdr[matter]);
     array<MATRIX<complex<double>,NF,NF>,NF> dCCdr = CofactorMatricesDerivatives(Hf[matter],s.dVfMSWdr[matter],dkkdr[matter]);
     array<double,NF> QQ =  Q(UU[matter],dkk[matter],CC[matter],dCCdr);
     
@@ -674,8 +671,6 @@ void K(double dr,
       K[antimatter][i][msw][j] *= dr;
     }
 
-    K[antimatter][i][msw][3] = 0.;
-    dkkdr[antimatter] = dkdr(UU[antimatter],s.dVfMSWdr[antimatter]);
     dCCdr = CofactorMatricesDerivatives(Hf[antimatter],s.dVfMSWdr[antimatter],dkkdr[antimatter]);
     QQ = Q(UU[antimatter],dkk[antimatter],CC[antimatter],dCCdr);
 
