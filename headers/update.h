@@ -92,19 +92,15 @@ UpdateSm(double rminus,
 //=========//
 // UpdateC //
 //=========//
-vector<vector<vector<MATRIX<complex<double>,NF,NF> > > > UpdateC(double r,const State& s, const DISCONTINUOUS& lnrho, const DISCONTINUOUS& Ye){
+vector<vector<vector<MATRIX<complex<double>,NF,NF> > > > UpdateC(const State& s, const DISCONTINUOUS& lnrho, const DISCONTINUOUS& Ye){
   vector<MATRIX<complex<double>,NF,NF> > VfMSW(NM);
   MATRIX<complex<double>,NF,NF> Hf,Hfbar;
   vector<double> kk,kkbar;
 
   vector<vector<vector<MATRIX<complex<double>,NF,NF> > > > 
     CC(NM,vector<vector<MATRIX<complex<double>,NF,NF> > >(NE,vector<MATRIX<complex<double>,NF,NF> >(NF)));
-
-  double YYe = Ye(r);
-  double rrho = exp(lnrho(r));
-    
-  VfMSW[matter][e][e] = Ve(rrho,YYe); 
-  VfMSW[matter][mu][mu] = Vmu(rrho,YYe); 
+  VfMSW[matter][e][e] = Ve(s.rho,s.Ye); 
+  VfMSW[matter][mu][mu] = Vmu(s.rho,s.Ye); 
 
   VfMSW[antimatter] = -VfMSW[matter];
 

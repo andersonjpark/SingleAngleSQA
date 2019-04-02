@@ -63,8 +63,7 @@ using std::array;
 
 
 MATRIX<complex<double>,NF,NF> B(vector<double> y);
-void K(double r,
-       double dr,
+void K(double dr,
        vector<vector<vector<vector<double> > > > &Y,
        vector<vector<vector<MATRIX<complex<double>,NF,NF> > > > &C0,
        vector<vector<vector<vector<double> > > > &A0,
@@ -74,7 +73,6 @@ void Outputvsr(ofstream &fout,
 	       ofstream &foutP,
 	       ofstream &foutf,
 	       ofstream &foutdangledr,
-	       double r,
 	       vector<vector<vector<vector<double> > > > Y,
 	       vector<vector<vector<MATRIX<complex<double>,NF,NF> > > > C0,
 	       vector<vector<vector<vector<double> > > > A0,
@@ -87,7 +85,7 @@ void Outputvsr(ofstream &fout,
 #include "headers/project/albino.h"
 //#include "headers/project/test_case_B.h"
 
-void interact(double r, double dr, State& s,
+void interact(double dr, State& s,
 	      const array<DISCONTINUOUS,NE>& eD,
 	      const array<DISCONTINUOUS,NE>& eBarD,
 	      const array<DISCONTINUOUS,NE>& xD){
@@ -96,7 +94,7 @@ void interact(double r, double dr, State& s,
   array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> old_fmatrixf = s.fmatrixf;
 
   // let neutrinos interact
-  my_interact(s.fmatrixf, r, dr, s, eD,eBarD,xD);
+  my_interact(s.fmatrixf, dr, s, eD,eBarD,xD);
   for(int i=0; i<NE; i++){
     for(state m=matter; m<=antimatter; m++){
       s.fmatrixm[m][i] = Adjoint(s.U0[m][i]) * s.fmatrixf[m][i] * s.U0[m][i];
@@ -278,7 +276,8 @@ int main(int argc, char *argv[]){
     // **************************************
     
     // MSW potential matrix
-    s.update_background(rmin, lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP);
+    s.r=rmin;
+    s.update_background(lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP);
     
     
     // cofactor matrices at initial point - will be recycled as cofactor matrices at beginning of every step
@@ -324,13 +323,12 @@ int main(int argc, char *argv[]){
     vector<vector<vector<double> > > P0 (NM,vector<vector<double> >(NF,vector <double>(NE)));
 
     // yzhu14 density/potential matrices art rmin
-    s.update_background(rmin,lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP);
     initialize(s,rmin,eD,eBarD,xD);
 
     // ***************************************
     // quantities needed for the calculation *
     // ***************************************
-    double r,r0,dr,drmin,dr_this_step;
+    double r0,dr,drmin,dr_this_step;
     
     double maxerror,increase=3.;
     bool repeat, finish, resetflag, output;
@@ -371,9 +369,8 @@ int main(int argc, char *argv[]){
       // *****************************************
       // initialize at beginning of every domain *
       // *****************************************
-      r=rmin;
       dr=1e-3*cgs::units::cm;
-      drmin=4.*r*numeric_limits<double>::epsilon();
+      drmin=4.*s.r*numeric_limits<double>::epsilon();
       
       for(state m=matter;m<=antimatter;m++)
 	for(int i=0;i<=NE-1;i++){
@@ -391,8 +388,8 @@ int main(int argc, char *argv[]){
 	
       finish=output=false;
       counterout=1;
-      s.update_background(r, lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP);
-      Outputvsr(fout,foutP,foutf,foutdangledr,r,Y,C,A,s,eP,eBarP,xP);
+      s.update_background(lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP);
+      Outputvsr(fout,foutP,foutf,foutdangledr,Y,C,A,s,eP,eBarP,xP);
 	
       for(state m=matter; m<=antimatter; m++)
 	for(int i=0; i<NE; i++)
@@ -404,19 +401,19 @@ int main(int argc, char *argv[]){
       // start the loop over r *
       // ***********************
       do{ 
-	double intkm = int(r/1e5)*1e5;
-	if(r - intkm <= dr){
-	  cout << r/1e5 << " " << dr << " " << rho(r) << " " << temperature(r) << " " << Ye(r) << endl;
+	double intkm = int(s.r/1e5)*1e5;
+	if(s.r - intkm <= dr){
+	  cout << s.r/1e5 << " " << dr << " " << s.rho << " " << s.T << " " << s.Ye << endl;
 	  cout.flush();
 	}
 
-	if(r+dr>rmax){
-	  dr=rmax-r;
+	if(s.r+dr>rmax){
+	  dr=rmax-s.r;
 	  finish=true;
 	  output=true;
 	}
 	  
-	r0=r;
+	r0=s.r;
 	Y0=Y;
 	C0=C;
 	A0=A;
@@ -431,7 +428,7 @@ int main(int argc, char *argv[]){
 	do{ 
 	  repeat=false;
 	  for(int k=0;k<=NRK-1;k++){
-	    r=r0+AA[k]*dr;
+	    s.r=r0+AA[k]*dr;
 	    Y=Y0;
 
 	    for(state m = matter; m <= antimatter; m++)
@@ -441,12 +438,12 @@ int main(int argc, char *argv[]){
 		    for(int l=0;l<=k-1;l++)
 		      Y[m][i][x][j] += BB[k][l] * Ks[l][m][i][x][j];
 
-	    s.update_background(r, lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP);
-	    K(r,dr,Y,C,A,Ks[k],s);
+	    s.update_background(lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP);
+	    K(dr,Y,C,A,Ks[k],s);
 	  }
 	  
 	  // increment all quantities and update C and A arrays
-	  r=r0+dr;
+	  s.r=r0+dr;
 	  for(state m=matter;m<=antimatter;m++){
 	    for(int i=0;i<=NE-1;i++){
 	      for(solution x=msw;x<=si;x++){
@@ -465,7 +462,7 @@ int main(int argc, char *argv[]){
 	    }
 	  }
 	  
-	  C=UpdateC(r,s,lnrho,Ye);
+	  C=UpdateC(s,lnrho,Ye);
 	  A=UpdateA(C,C0,A0);
 	    
 	  // find largest error
@@ -485,7 +482,7 @@ int main(int argc, char *argv[]){
 
 	  // reset integration variables to those at beginning of step
 	  if(repeat==true){
-	    r=r0;
+	    s.r=r0;
 	    Y=Y0;
 	    C=C0;
 	    A=A0;
@@ -495,7 +492,7 @@ int main(int argc, char *argv[]){
 
 	// interact with the matter
 	if(do_interact)
-	  interact(r, dr_this_step, s,eD,eBarD,xD);
+	  interact(dr_this_step, s,eD,eBarD,xD);
 	for(state m=matter; m<=antimatter; m++)
 	  for(int i=0; i<NE; i++)
 	    for(flavour f1=e; f1<=mu; f1++)
@@ -567,8 +564,8 @@ int main(int argc, char *argv[]){
 	else counterout++;
 	
 	if(output==true || finish==true){
-	  s.update_background(r, lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP);
-	  Outputvsr(fout,foutP,foutf,foutdangledr,r,Y,C,A,s,eP,eBarP,xP);
+	  s.update_background(lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP);
+	  Outputvsr(fout,foutP,foutf,foutdangledr,Y,C,A,s,eP,eBarP,xP);
 	  output=false;
 	}
 
@@ -576,13 +573,13 @@ int main(int argc, char *argv[]){
 	// could be moved up to RK section but better left here 
 	// in case adjustments are necessary based on new S matrices
 	dr = min(dr*pow(accuracy/maxerror,1./max(1,NRKOrder)),increase*dr);
-	drmin = 4.*r*numeric_limits<double>::epsilon();
+	drmin = 4.*s.r*numeric_limits<double>::epsilon();
 	dr = max(dr,drmin);
 
       } while(finish==false);
 
-      s.update_background(r, lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP);
-      Outputvsr(fout,foutP,foutf,foutdangledr,r,Y,C,A,s,eP,eBarP,xP);
+      s.update_background(lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP);
+      Outputvsr(fout,foutP,foutf,foutdangledr,Y,C,A,s,eP,eBarP,xP);
     fPvsE.close();
     fFvsE.close();
 
@@ -612,8 +609,7 @@ MATRIX<complex<double>,NF,NF> B(vector<double> y){
 //===//
 // K //
 //===//
-void K(double r,
-       double dr,
+void K(double dr,
        vector<vector<vector<vector<double> > > > &Y,
        vector<vector<vector<MATRIX<complex<double>,NF,NF> > > > &C0,
        vector<vector<vector<vector<double> > > > &A0,
@@ -843,8 +839,7 @@ void Outputvsr(ofstream &fout,
 	       ofstream &foutP,
 	       ofstream &foutf,
 	       ofstream &foutdangledr,
-	       double r,
-	       vector<vector<vector<vector<double> > > > Y,
+       vector<vector<vector<vector<double> > > > Y,
 	       vector<vector<vector<MATRIX<complex<double>,NF,NF> > > > C0,
 	       vector<vector<vector<vector<double> > > > A0,
 	       State& s,
@@ -890,9 +885,9 @@ void Outputvsr(ofstream &fout,
 
   MATRIX<complex<double>,NF,NF> p_unosc;
   for(int i=0;i<=NE-1;i++){
-    ePotentialSum[i]=eP[i](r);
-    ebarPotentialSum[i]=eBarP[i](r);
-    heavyPotentialSum[i]=xP[i](r);
+    ePotentialSum[i]=eP[i](s.r);
+    ebarPotentialSum[i]=eBarP[i](s.r);
+    heavyPotentialSum[i]=xP[i](s.r);
   }
 
 
@@ -954,7 +949,7 @@ void Outputvsr(ofstream &fout,
   VfSI[antimatter] = -Conjugate(VfSI[matter]);
 
 
-  fout << r << "\t";
+  fout << s.r << "\t";
   for(int i=0; i<NE; i++)
     for(state m=matter; m<=antimatter; m++){
       for(flavour f1=e; f1<=mu; f1++)
@@ -972,7 +967,7 @@ void Outputvsr(ofstream &fout,
     Pheavy[i] = norm(Sf[    matter][i][mu][mu]);
   }
 
-  foutP<<r<<"\t"<<Ve(s.rho,s.Ye)<<"\t";//1,2
+  foutP<<s.r<<"\t"<<Ve(s.rho,s.Ye)<<"\t";//1,2
   foutP<<real(VfSI[    matter][e ][e ])<<"\t"<<real(VfSI[    matter][mu][mu])<<"\t";
   foutP<<real(VfSI[antimatter][e ][e ])<<"\t"<<real(VfSI[antimatter][mu][mu])<<"\t";//3,4,5,6
   Pvalues = averageProbability(Pe,Pebar,Pheavy,ebarPotentialSum,ePotentialSum,heavyPotentialSum);
@@ -991,7 +986,7 @@ void Outputvsr(ofstream &fout,
   foutP<<endl;
   foutP.flush();
 
-  foutf << r << "\t";
+  foutf << s.r << "\t";
   for(int i=0; i<NE; i++)
     for(state m=matter; m<=antimatter; m++)
       for(flavour f1=e; f1<=mu; f1++)
@@ -1004,7 +999,7 @@ void Outputvsr(ofstream &fout,
   foutf << endl;
   foutf.flush();
 
-  foutdangledr << r << "\t";
+  foutdangledr << s.r << "\t";
   for(state m=matter; m<=antimatter; m++)
     for(int i=0; i<NE; i++)
       foutdangledr << s.dtheta_dr_osc[i][m] << "\t";

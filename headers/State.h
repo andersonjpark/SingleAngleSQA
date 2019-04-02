@@ -83,8 +83,7 @@ class State{
   }
 
 
-  void update_background(double r,
-			 const DISCONTINUOUS& lnrho,
+  void update_background(const DISCONTINUOUS& lnrho,
 			 const DISCONTINUOUS& temperature,
 			 const DISCONTINUOUS& electronfraction,
 			 const array<DISCONTINUOUS,NE>& eD,

@@ -111,7 +111,7 @@ double dVmudr(double rho, double drhodr, double Ye, double dYedr){ return 0.;}
 
 
 void my_interact(array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& fmatrixf,
-		 double r, double dr, const State& s,
+		 double dr, const State& s,
 		 const array<DISCONTINUOUS,NE>& eD,
 		 const array<DISCONTINUOUS,NE>& eBarD,
 		 const array<DISCONTINUOUS,NE>& xD){
@@ -135,10 +135,10 @@ void my_interact(array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& fmatrixf,
 
   // get background density
   for(int ig=0; ig<NE; ig++){
-    DBackground[ig][e ][e ]    =    eD[ig](r);
-    DBackground[ig][mu][mu]    =    xD[ig](r);
-    DbarBackground[ig][e ][e ] = eBarD[ig](r);
-    DbarBackground[ig][mu][mu] =    xD[ig](r);
+    DBackground[ig][e ][e ]    =    eD[ig](s.r);
+    DBackground[ig][mu][mu]    =    xD[ig](s.r);
+    DbarBackground[ig][e ][e ] = eBarD[ig](s.r);
+    DbarBackground[ig][mu][mu] =    xD[ig](s.r);
     DBackground[ig][e][mu]     = 0;
     DBackground[ig][mu][e]     = 0;
     DbarBackground[ig][e][mu]  = 0;
