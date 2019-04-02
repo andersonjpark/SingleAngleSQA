@@ -596,25 +596,34 @@ void K(double dr,
   
 #pragma omp parallel for
   for(int i=0;i<=NE-1;i++){
-    MATRIX<complex<double>,NF,NF> Hf  = s.HfV[matter][i]+s.VfMSW[matter];
-    array<double,NF> kk  = k(Hf);
-    array<double,NF-1> dkk = deltak(Hf);
-    array<MATRIX<complex<double>,NF,NF>,NF> CC  = CofactorMatrices(Hf,kk);
-    array<array<double,NF>,NF> AA = MixingMatrixFactors(CC,C0[matter][i],A0[matter][i]);
-    MATRIX<complex<double>,NF,NF> UU  = U(dkk,CC,AA);
-    MATRIX<complex<double>,NF,NF> BB  = B(Y[matter][i][msw]);
+    array<MATRIX<complex<double>,NF,NF>,NE> Hf;
+    array<array<double,NF>,NM> kk;
+    array<array<double,NF>,NM> dkkdr;
+    array<array<double,NF-1>,NM> dkk;
+    array<array<MATRIX<complex<double>,NF,NF>,NF>,NM> CC;
+    array<array<array<double,NF>,NF>,NM> AA;
+    array<MATRIX<complex<double>,NF,NF>,NM> UU;
+    array<MATRIX<complex<double>,NF,NF>,NM> BB;
+      
+    Hf[matter]  = s.HfV[matter][i]+s.VfMSW[matter];
+    kk[matter] = k(Hf[matter]);
+    dkk[matter] = deltak(Hf[matter]);
+    CC[matter]  = CofactorMatrices(Hf[matter],kk[matter]);
+    AA[matter] = MixingMatrixFactors(CC[matter],C0[matter][i],A0[matter][i]);
+    UU[matter] = U(dkk[matter],CC[matter],AA[matter]);
+    BB[matter]  = B(Y[matter][i][msw]);
     Sa[matter][i][si] = B(Y[matter][i][si]);
-    UWBW[matter][i] = UU * W(Y[matter][i][msw]) * BB * W(Y[matter][i][si]);
+    UWBW[matter][i] = UU[matter] * W(Y[matter][i][msw]) * BB[matter] * W(Y[matter][i][si]);
     
-    MATRIX<complex<double>,NF,NF> Hfbar = s.HfV[antimatter][i] + s.VfMSW[antimatter];
-    array<double,NF> kkbar = kbar(Hfbar);
-    array<double,NF-1> dkkbar = deltakbar(Hfbar);
-    CC = CofactorMatrices(Hfbar,kkbar);
-    AA = MixingMatrixFactors(CC,C0[antimatter][i],A0[antimatter][i]);
-    MATRIX<complex<double>,NF,NF> UUbar = Conjugate(U(dkkbar,CC,AA));
-    MATRIX<complex<double>,NF,NF> BBbar = B(Y[antimatter][i][msw]);
+    Hf[antimatter] = s.HfV[antimatter][i] + s.VfMSW[antimatter];
+    kk[antimatter] = kbar(Hf[antimatter]);
+    dkk[antimatter] = deltakbar(Hf[antimatter]);
+    CC[antimatter] = CofactorMatrices(Hf[antimatter],kk[antimatter]);
+    AA[antimatter] = MixingMatrixFactors(CC[antimatter],C0[antimatter][i],A0[antimatter][i]);
+    UU[antimatter] = Conjugate(U(dkk[antimatter],CC[antimatter],AA[antimatter]));
+    BB[antimatter] = B(Y[antimatter][i][msw]);
     Sa[antimatter][i][si] = B(Y[antimatter][i][si]);
-    UWBW[antimatter][i] = UUbar * W(Y[antimatter][i][msw]) *BBbar * W(Y[antimatter][i][si]);
+    UWBW[antimatter][i] = UU[antimatter] * W(Y[antimatter][i][msw]) *BB[antimatter] * W(Y[antimatter][i][si]);
     
     // ****************
     // Matter section *
@@ -626,14 +635,14 @@ void K(double dr,
     for(int j=0;j<=NF-2;j++)
       for(int k=j+1;k<=NF-1;k++)
 	for(flavour f=e;f<=mu;f++)
-	  Ha[j][k]+= conj(UU[f][j])*s.dVfMSWdr[matter][f][f]*UU[f][k];
+	  Ha[j][k]+= conj(UU[matter][f][j])*s.dVfMSWdr[matter][f][f]*UU[matter][f][k];
     
-    Ha[0][1] *= I*cgs::constants::hbarc/dkk[0]*exp(I*phase[0]);
+    Ha[0][1] *= I*cgs::constants::hbarc/dkk[matter][0]*exp(I*phase[0]);
     Ha[1][0] = conj(Ha[0][1]);
     
     // HB = -I/cgs::constants::hbarc*Ha*BB;
-    HB[0][0]=-I/cgs::constants::hbarc*( Ha[0][1]*BB[1][0] );
-    HB[0][1]=-I/cgs::constants::hbarc*( Ha[0][1]*BB[1][1] );
+    HB[0][0]=-I/cgs::constants::hbarc*( Ha[0][1]*BB[matter][1][0] );
+    HB[0][1]=-I/cgs::constants::hbarc*( Ha[0][1]*BB[matter][1][1] );
     
     array<double,4> dvdr;
     dvdr[0]=real(HB[0][1]);
@@ -650,12 +659,12 @@ void K(double dr,
     }
     
     K[matter][i][msw][3] = 0.;
-    array<double,NF> dkkdr = dkdr(UU,s.dVfMSWdr[matter]);
-    array<MATRIX<complex<double>,NF,NF>,NF> dCCdr = CofactorMatricesDerivatives(Hf,s.dVfMSWdr[matter],dkkdr);
-    array<double,NF> QQ =  Q(UU,dkk,CC,dCCdr);
+    dkkdr[matter] = dkdr(UU[matter],s.dVfMSWdr[matter]);
+    array<MATRIX<complex<double>,NF,NF>,NF> dCCdr = CofactorMatricesDerivatives(Hf[matter],s.dVfMSWdr[matter],dkkdr[matter]);
+    array<double,NF> QQ =  Q(UU[matter],dkk[matter],CC[matter],dCCdr);
     
-    K[matter][i][msw][4] = (kk[0]+QQ[0])*dr/M_2PI/cgs::constants::hbarc;
-    K[matter][i][msw][5] = (kk[1]+QQ[1])*dr/M_2PI/cgs::constants::hbarc;
+    K[matter][i][msw][4] = (kk[matter][0]+QQ[0])*dr/M_2PI/cgs::constants::hbarc;
+    K[matter][i][msw][5] = (kk[matter][1]+QQ[1])*dr/M_2PI/cgs::constants::hbarc;
 
     // ********************
     // Antimatter section *
@@ -665,14 +674,14 @@ void K(double dr,
     for(int j=0;j<=NF-2;j++)
       for(int k=j+1;k<=NF-1;k++)
 	for(flavour f=e;f<=mu;f++)
-	  Ha[j][k]+=conj(UUbar[f][j])*s.dVfMSWdr[antimatter][f][f]*UUbar[f][k];
+	  Ha[j][k]+=conj(UU[antimatter][f][j])*s.dVfMSWdr[antimatter][f][f]*UU[antimatter][f][k];
     
-    Ha[0][1] *= I*cgs::constants::hbarc/dkkbar[0]*exp(I*phase[0]);
+    Ha[0][1] *= I*cgs::constants::hbarc/dkk[antimatter][0]*exp(I*phase[0]);
     Ha[1][0] = conj(Ha[0][1]);
     
     //HB=-I/cgs::constants::hbarc*Ha*BBbar;
-    HB[0][0]=-I/cgs::constants::hbarc*( Ha[0][1]*BBbar[1][0] );
-    HB[0][1]=-I/cgs::constants::hbarc*( Ha[0][1]*BBbar[1][1] );
+    HB[0][0]=-I/cgs::constants::hbarc*( Ha[0][1]*BB[antimatter][1][0] );
+    HB[0][1]=-I/cgs::constants::hbarc*( Ha[0][1]*BB[antimatter][1][1] );
     
     dvdr[0]=real(HB[0][1]);
     dvdr[1]=imag(HB[0][1]);
@@ -688,12 +697,12 @@ void K(double dr,
     }
 
     K[antimatter][i][msw][3] = 0.;
-    array<double,NF> dkkbardr = dkdr(UUbar,s.dVfMSWdr[antimatter]);
-    dCCdr = CofactorMatricesDerivatives(Hfbar,s.dVfMSWdr[antimatter],dkkbardr);
-    array<double,NF> QQbar = Q(UUbar,dkkbar,CC,dCCdr);
+    dkkdr[antimatter] = dkdr(UU[antimatter],s.dVfMSWdr[antimatter]);
+    dCCdr = CofactorMatricesDerivatives(Hf[antimatter],s.dVfMSWdr[antimatter],dkkdr[antimatter]);
+    array<double,NF> QQbar = Q(UU[antimatter],dkk[antimatter],CC[antimatter],dCCdr);
 
-    K[antimatter][i][msw][4] = (kkbar[0]+QQbar[0])*dr/M_2PI/cgs::constants::hbarc;
-    K[antimatter][i][msw][5] = (kkbar[1]+QQbar[1])*dr/M_2PI/cgs::constants::hbarc;
+    K[antimatter][i][msw][4] = (kk[antimatter][0]+QQbar[0])*dr/M_2PI/cgs::constants::hbarc;
+    K[antimatter][i][msw][5] = (kk[antimatter][1]+QQbar[1])*dr/M_2PI/cgs::constants::hbarc;
 
     // *****************************************************************
     // contribution to the self-interaction potential from this energy *
