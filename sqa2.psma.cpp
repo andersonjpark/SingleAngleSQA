@@ -315,11 +315,6 @@ int main(int argc, char *argv[]){
     double rrho = exp(lnrho(rmin));
     double YYe  = Ye(rmin);
     
-    MATRIX<complex<double>,NF,NF> VfMSW0, Hf0;
-    vector<double> k0, deltak0;
-    
-    VfMSW0[e][e]=Ve(rrho,YYe);
-    VfMSW0[mu][mu]=Vmu(rrho,YYe);
     
     // cofactor matrices at initial point - will be recycled as cofactor matrices at beginning of every step
     vector<vector<vector<MATRIX<complex<double>,NF,NF> > > > 
@@ -329,16 +324,11 @@ int main(int argc, char *argv[]){
     vector<vector<vector<vector<double> > > > 
       A0(NM,vector<vector<vector<double> > >(NE,vector<vector<double> >(NF,vector<double>(NF))));
     
-    // accumulated S matrices from prior integration domains
-    for(int m=0; m<NM; m++)
-      for(int ig=0; ig<NE; ig++)
-	for(int f1=0; f1<NF; f1++){
-	  for(int f2=0; f2<NF; f2++)
-	    s.Scumulative[m][ig][f1][f2] = 0.;
-	  s.Scumulative[m][ig][f1][f1] = 1.;
-	}
-
     // mixing angles to MSW basis at initial point
+    MATRIX<complex<double>,NF,NF> VfMSW0, Hf0;
+    vector<double> k0, deltak0;    
+    VfMSW0[e][e]=Ve(rrho,YYe);
+    VfMSW0[mu][mu]=Vmu(rrho,YYe);
     for(int i=0;i<=NE-1;i++){
       Hf0=s.HfV[matter][i]+VfMSW0;
       k0=k(Hf0);
@@ -346,10 +336,10 @@ int main(int argc, char *argv[]){
       C0[matter][i]=CofactorMatrices(Hf0,k0);
       
       for(int j=0;j<=NF-1;j++){
-	if(real(C0[matter][i][j][mu][e]*s.CV[i][j][mu][e]) < 0.)
-	  A0[matter][i][j][e]=-s.AV[i][j][e];
-	else A0[matter][i][j][e]=s.AV[i][j][e];
-	A0[matter][i][j][mu]=s.AV[i][j][mu];
+    	if(real(C0[matter][i][j][mu][e]*s.CV[i][j][mu][e]) < 0.)
+    	  A0[matter][i][j][e]=-s.AV[i][j][e];
+    	else A0[matter][i][j][e]=s.AV[i][j][e];
+    	A0[matter][i][j][mu]=s.AV[i][j][mu];
       }
       s.U0[matter][i]=U(deltak0,C0[matter][i],A0[matter][i]);
       
@@ -358,10 +348,10 @@ int main(int argc, char *argv[]){
       deltak0=deltakbar(Hf0);
       C0[antimatter][i]=CofactorMatrices(Hf0,k0);
       for(int j=0;j<=NF-1;j++){
-	if(real(C0[antimatter][i][j][mu][e]*s.CV[i][j][mu][e]) < 0.)
-	  A0[antimatter][i][j][e]=-s.AV[i][j][e];
-	else A0[antimatter][i][j][e]=s.AV[i][j][e];
-	A0[antimatter][i][j][mu]=s.AV[i][j][mu];
+    	if(real(C0[antimatter][i][j][mu][e]*s.CV[i][j][mu][e]) < 0.)
+    	  A0[antimatter][i][j][e]=-s.AV[i][j][e];
+    	else A0[antimatter][i][j][e]=s.AV[i][j][e];
+    	A0[antimatter][i][j][mu]=s.AV[i][j][mu];
       }
       s.U0[antimatter][i]=Conjugate(U(deltak0,C0[antimatter][i],A0[antimatter][i]));
     }

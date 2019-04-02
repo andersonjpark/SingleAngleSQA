@@ -27,7 +27,7 @@ class State{
   array<array<double,NM>,NE> dphi_dr_interact, dtheta_dr_interact;
   array<array<double,NM>,NE> dphi_dr_osc,      dtheta_dr_osc;
   array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> pmatrixf0, pmatrixm0, Scumulative;
-  
+
   State(/*string nulibfilename, string eosfilename, double rho_in, double Ye_in, double T_in, double dr0, double mixing, bool do_interact*/const vector<double>& E){
   /*   r=0; */
   /*   rho = rho_in; */
@@ -70,8 +70,17 @@ class State{
   /* 	if(m==antimatter) U0[m][i] = Conjugate(U0[m][i]); */
   /*     } */
   /*   } */
+    
+    // set Scumulative to identity
+    for(int m=0; m<NM; m++)
+      for(int ig=0; ig<NE; ig++)
+	for(int f1=0; f1<NF; f1++){
+	  for(int f2=0; f2<NF; f2++)
+	    Scumulative[m][ig][f1][f2] = 0.;
+	  Scumulative[m][ig][f1][f1] = 1.;
+	}
   }
-
+  
 };
 
 
