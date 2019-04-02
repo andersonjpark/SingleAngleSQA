@@ -69,26 +69,26 @@ extern int     __nulib_MOD_total_eos_variables;
 // These are fortran functions and module variables in nulib.a                                                                  
 extern "C"{
   void nulibtable_range_species_range_energy_(
-		  double*, //rho
-		  double*, //temp
-		  double*, //ye
+		  const double*, //rho
+		  const double*, //temp
+		  const double*, //ye
 		  double*, //eas_species_energy (3D array)
 		  int*,    //number of species (3,5,6)
 		  int*,    //number of groups
 		  int*);   //number of easvariables (3)
 
   void nulibtable_single_species_range_energy_(
-		  double*, //rho
-		  double*, //temp
-		  double*, //Ye
+		  const double*, //rho
+		  const double*, //temp
+		  const double*, //Ye
 		  int*,    //species number
 		  double*, //eas_energy (2D array)
 		  int*,    //number of groups
 		  int*);   //number of easvariables(3)
 
   void nulibtable_epannihil_single_species_range_energy_(
-		  double* temp,  // MeV
-		  double* eta,   // mu/kT
+		  const double* temp,  // MeV
+		  const double* eta,   // mu/kT
 		  int* lns,      // species number
 		  double* phi,   // phi[legendre-p/a index][this_group][anti-group]
 		  int* ngroups1,

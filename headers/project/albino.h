@@ -129,13 +129,13 @@ void getPunosc(const double r, const state m, const unsigned ig,
 
 
 void my_interact(array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& fmatrixf,
-		 double rho, double T, double Ye, double r, double dr, const State& s,
+		 double T, double Ye, double r, double dr, const State& s,
 		 const vector<DISCONTINUOUS>& eD,
 		 const vector<DISCONTINUOUS>& eBarD,
 		 const vector<DISCONTINUOUS>& xD){
   
   // don't do anything if too sparse
-  if(log10(rho) <= __nulibtable_MOD_nulibtable_logrho_min)
+  if(log10(s.rho) <= __nulibtable_MOD_nulibtable_logrho_min)
     return;
   
   // set up rate matrix
@@ -146,7 +146,7 @@ void my_interact(array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& fmatrixf,
   DbarBackground.resize(eas.ng);
 
   // T should be MeV
-  nulibtable_range_species_range_energy_(&rho, &T, &Ye, &eas.eas.front(),
+  nulibtable_range_species_range_energy_(&s.rho, &T, &Ye, &eas.eas.front(),
   					 &__nulibtable_MOD_nulibtable_number_species,
   					 &__nulibtable_MOD_nulibtable_number_groups,
   					 &__nulibtable_MOD_nulibtable_number_easvariables);
