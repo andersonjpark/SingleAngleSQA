@@ -176,19 +176,19 @@ int main(int argc, char *argv[]){
     nulib_init(nulibfilename, 0);
 
     // interpolation variables
-    DISCONTINUOUS rho, lnrho, Ye, temperature; // rho is the mass density
+    DISCONTINUOUS lnrho, Ye, temperature; // rho is the mass density
     array<DISCONTINUOUS,NE> eP,eBarP,xP;
     array<DISCONTINUOUS,NE> eD,eBarD,xD;
 
     
     // load rho and Ye data
-    rho.Open(rhofilename,'#');
+    lnrho.Open(rhofilename,'#');
     Ye.Open(Yefilename,'#');
     temperature.Open(temperaturefilename,'#');
-    assert(rmin >= rho.XMin());
-    assert(rmin <= rho.XMax());
+    assert(rmin >= lnrho.XMin());
+    assert(rmin <= lnrho.XMax());
 
-    lnrho = rho.copy_logy();
+    lnrho = lnrho.copy_logy();
     
     // load and compute spectral data
     for(int i=0;i<=NE-1;i++){
