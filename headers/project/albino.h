@@ -129,7 +129,6 @@ void getPunosc(const double r, const state m, const unsigned ig,
 
 
 void my_interact(array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& fmatrixf,
-		 array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& Scumulative,
 		 double rho, double T, double Ye, double r, double dr, const State& s,
 		 const vector<DISCONTINUOUS>& eD,
 		 const vector<DISCONTINUOUS>& eBarD,
@@ -163,18 +162,18 @@ void my_interact(array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& fmatrixf,
     DbarBackground[ig][e][mu]  = 0;
     DbarBackground[ig][mu][e]  = 0;
     DBackground[ig] = s.U0[matter][ig]
-      * Scumulative[matter][ig]
+      * s.Scumulative[matter][ig]
       * Adjoint(s.U0[matter][ig])
       * DBackground[ig]
       * s.U0[matter][ig]
-      * Adjoint(Scumulative[matter][ig])
+      * Adjoint(s.Scumulative[matter][ig])
       * Adjoint(s.U0[matter][ig]);
     DbarBackground[ig] = s.U0[antimatter][ig]
-      * Scumulative[antimatter][ig]
+      * s.Scumulative[antimatter][ig]
       * Adjoint(s.U0[antimatter][ig])
       * DbarBackground[ig]
       * s.U0[antimatter][ig]
-      * Adjoint(Scumulative[antimatter][ig])
+      * Adjoint(s.Scumulative[antimatter][ig])
       * Adjoint(s.U0[antimatter][ig]);
   }
 

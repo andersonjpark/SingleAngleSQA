@@ -80,7 +80,6 @@ void Outputvsr(ofstream &fout,
 	       vector<vector<vector<vector<double> > > > Y,
 	       vector<vector<vector<MATRIX<complex<double>,NF,NF> > > > C0,
 	       vector<vector<vector<vector<double> > > > A0,
-	       array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> Scumulative,
 	       const State& s,
 	       const vector<DISCONTINUOUS>& eP,
 	       const vector<DISCONTINUOUS>& eBarP,
@@ -93,7 +92,6 @@ void Outputvsr(ofstream &fout,
 //#include "headers/project/test_case_B.h"
 
 void getP(const double r,
-	  const array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> Scumulative, 
 	  State& s,
 	  const vector<DISCONTINUOUS>& eP,
 	  const vector<DISCONTINUOUS>& eBarP,
@@ -105,18 +103,17 @@ void getP(const double r,
       getPunosc(r, m, i, s.pmatrixf0[m][i], eP,eBarP,xP);
 
       // oscillate the potential and put into the mass basis
-      s.pmatrixm0[m][i] = Scumulative[m][i]
+      s.pmatrixm0[m][i] = s.Scumulative[m][i]
 	* Adjoint(s.U0[m][i])
 	* s.pmatrixf0[m][i]
 	* s.U0[m][i]
-	* Adjoint(Scumulative[m][i]);
+	* Adjoint(s.Scumulative[m][i]);
       s.pmatrixf0[m][i] =  s.U0[m][i] * s.pmatrixm0[m][i] * Adjoint(s.U0[m][i]);
     }
   }
 }
 
-void interact(array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& Scumulative,
-	      double rho, double T, double Ye, double r, double dr, State& s,
+void interact(double rho, double T, double Ye, double r, double dr, State& s,
 	      const vector<DISCONTINUOUS>& eD,
 	      const vector<DISCONTINUOUS>& eBarD,
 	      const vector<DISCONTINUOUS>& xD){
@@ -125,7 +122,7 @@ void interact(array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& Scumulative,
   array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> old_fmatrixf = s.fmatrixf;
 
   // let neutrinos interact
-  my_interact(s.fmatrixf, Scumulative, rho, T, Ye, r, dr, s, eD,eBarD,xD);
+  my_interact(s.fmatrixf, rho, T, Ye, r, dr, s, eD,eBarD,xD);
   for(int i=0; i<NE; i++){
     for(state m=matter; m<=antimatter; m++){
       s.fmatrixm[m][i] = Adjoint(s.U0[m][i]) * s.fmatrixf[m][i] * s.U0[m][i];
@@ -171,7 +168,7 @@ void interact(array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& Scumulative,
       pauli_reconstruct(Rcoeff, R);
 
       // apply to Scumulative
-      Scumulative[m][i] = MATRIX<complex<double>,NF,NF>(Adjoint(s.U0[m][i]) * R * s.U0[m][i] * Scumulative[m][i]);
+      s.Scumulative[m][i] = MATRIX<complex<double>,NF,NF>(Adjoint(s.U0[m][i]) * R * s.U0[m][i] * s.Scumulative[m][i]);
     }
   }
 }
@@ -333,13 +330,12 @@ int main(int argc, char *argv[]){
       A0(NM,vector<vector<vector<double> > >(NE,vector<vector<double> >(NF,vector<double>(NF))));
     
     // accumulated S matrices from prior integration domains
-    array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> Scumulative;
     for(int m=0; m<NM; m++)
       for(int ig=0; ig<NE; ig++)
 	for(int f1=0; f1<NF; f1++){
 	  for(int f2=0; f2<NF; f2++)
-	    Scumulative[m][ig][f1][f2] = 0.;
-	  Scumulative[m][ig][f1][f1] = 1.;
+	    s.Scumulative[m][ig][f1][f2] = 0.;
+	  s.Scumulative[m][ig][f1][f1] = 1.;
 	}
 
     // mixing angles to MSW basis at initial point
@@ -378,7 +374,7 @@ int main(int argc, char *argv[]){
     double ye0 = Ye(rmin);
     initialize(s.fmatrixf,rmin,rho0,T0,ye0,eD,eBarD,xD);
 
-    getP(rmin,Scumulative,s, eP,eBarP,xP);
+    getP(rmin,s, eP,eBarP,xP);
 
     // ***************************************
     // quantities needed for the calculation *
@@ -444,7 +440,7 @@ int main(int argc, char *argv[]){
 	
       finish=output=false;
       counterout=1;
-      Outputvsr(fout,foutP,foutf,foutdangledr,r,Y,C,A,Scumulative,s,eP,eBarP,xP,lnrho,Ye);
+      Outputvsr(fout,foutP,foutf,foutdangledr,r,Y,C,A,s,eP,eBarP,xP,lnrho,Ye);
 	
       for(state m=matter; m<=antimatter; m++)
 	for(int i=0; i<NE; i++)
@@ -493,7 +489,7 @@ int main(int argc, char *argv[]){
 		    for(int l=0;l<=k-1;l++)
 		      Y[m][i][x][j] += BB[k][l] * Ks[l][m][i][x][j];
 
-	    getP(r,Scumulative,s,eP,eBarP,xP);
+	    getP(r,s,eP,eBarP,xP);
 	    K(r,dr,Y,C,A,Ks[k],s,lnrho,Ye);
 	  }
 	  
@@ -547,7 +543,7 @@ int main(int argc, char *argv[]){
 
 	// interact with the matter
 	if(do_interact)
-	  interact(Scumulative, rho(r), temperature(r), Ye(r), r, dr_this_step, s,eD,eBarD,xD);
+	  interact(rho(r), temperature(r), Ye(r), r, dr_this_step, s,eD,eBarD,xD);
 	for(state m=matter; m<=antimatter; m++)
 	  for(int i=0; i<NE; i++)
 	    for(flavour f1=e; f1<=mu; f1++)
@@ -561,7 +557,7 @@ int main(int argc, char *argv[]){
 	    SSMSW = W(Y[m][i][msw])*B(Y[m][i][msw]);
 	    SSSI  = W(Y[m][i][si ])*B(Y[m][i][si ]);
 	    SThisStep = SSMSW*SSSI;
-	    Scumulative[m][i]=MATRIX<complex<double>,NF,NF>(SThisStep*Scumulative[m][i] );
+	    s.Scumulative[m][i]=MATRIX<complex<double>,NF,NF>(SThisStep*s.Scumulative[m][i] );
 
 	    // convert fmatrix from flavor basis to mass basis
 	    // oscillate fmatrix in mass basis
@@ -619,7 +615,7 @@ int main(int argc, char *argv[]){
 	else counterout++;
 	
 	if(output==true || finish==true){
-	  Outputvsr(fout,foutP,foutf,foutdangledr,r,Y,C,A,Scumulative,s,eP,eBarP,xP,lnrho,Ye);
+	  Outputvsr(fout,foutP,foutf,foutdangledr,r,Y,C,A,s,eP,eBarP,xP,lnrho,Ye);
 	  output=false;
 	}
 
@@ -632,7 +628,7 @@ int main(int argc, char *argv[]){
 
       } while(finish==false);
 
-      Outputvsr(fout,foutP,foutf,foutdangledr,r,Y,C,A,Scumulative,s,eP,eBarP,xP,lnrho,Ye);
+      Outputvsr(fout,foutP,foutf,foutdangledr,r,Y,C,A,s,eP,eBarP,xP,lnrho,Ye);
     fPvsE.close();
     fFvsE.close();
 
@@ -904,7 +900,6 @@ void Outputvsr(ofstream &fout,
 	       vector<vector<vector<vector<double> > > > Y,
 	       vector<vector<vector<MATRIX<complex<double>,NF,NF> > > > C0,
 	       vector<vector<vector<vector<double> > > > A0,
-	       array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> Scumulative,
 	       const State& s,
 	       const vector<DISCONTINUOUS>& eP,
 	       const vector<DISCONTINUOUS>& eBarP,
@@ -981,7 +976,7 @@ void Outputvsr(ofstream &fout,
       * BB[matter][i][msw]
       * WW[matter][i][si]
       * BB[matter][i][si]
-      * Scumulative[matter][i];
+      * s.Scumulative[matter][i];
     Smf[matter][i]= Sm[matter][i] * Adjoint(s.U0[matter][i]);
     Sf[matter][i] = UU[matter][i] * Smf[matter][i];
     
@@ -1000,7 +995,7 @@ void Outputvsr(ofstream &fout,
       * BB[antimatter][i][msw]
       * WW[antimatter][i][si]
       * BB[antimatter][i][si]
-      * Scumulative[antimatter][i];
+      * s.Scumulative[antimatter][i];
     Smf[antimatter][i]= Sm[antimatter][i] * Adjoint(s.U0[antimatter][i]);
     Sf[antimatter][i] = UU[antimatter][i] * Smf[antimatter][i];
     
@@ -1028,8 +1023,8 @@ void Outputvsr(ofstream &fout,
     for(state m=matter; m<=antimatter; m++){
       for(flavour f1=e; f1<=mu; f1++)
 	for(flavour f2=e; f2<=mu; f2++) {
-	  fout << real(Scumulative[m][i][f1][f2] ) << "\t";
-	  fout << imag(Scumulative[m][i][f1][f2] ) << "\t";
+	  fout << real(s.Scumulative[m][i][f1][f2] ) << "\t";
+	  fout << imag(s.Scumulative[m][i][f1][f2] ) << "\t";
 	}
     }
   fout << endl;
