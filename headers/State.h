@@ -21,7 +21,7 @@ class State{
   array<array<MATRIX<complex<double>,NF,NF>,NF>,NE> CV;
   array<array<array<double,NF>,NF>,NE> AV;
   array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> U0; // mixing angles to MSW basis at initial point
-  array<MATRIX<complex<double>,NF,NF>,NM> VfMSW;
+  array<MATRIX<complex<double>,NF,NF>,NM> VfMSW, dVfMSWdr;
   array<array< array<double,NF>,NE>,NM> k0;
   array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> UWBW;
   array<array<array<MATRIX<complex<double>,NF,NF>,NS>,NE>,NM> Sa;
@@ -99,6 +99,20 @@ class State{
     drhodr=rho*lnrho.Derivative(r);
     dYedr=electronfraction.Derivative(r);
 
+    // Matter Potential
+    VfMSW[matter][e][e]=Ve(rho,Ye);
+    VfMSW[matter][mu][mu]=Vmu(rho,Ye);
+    VfMSW[matter][e][mu] = 0;
+    VfMSW[matter][mu][e] = 0;
+    VfMSW[antimatter]=-Conjugate(VfMSW[matter]);
+    
+    dVfMSWdr[matter][e][e]=dVedr(rho,drhodr,Ye,dYedr);
+    dVfMSWdr[matter][mu][mu]=dVmudr(rho,drhodr,Ye,dYedr);
+    dVfMSWdr[matter][e][mu]=0;
+    dVfMSWdr[matter][mu][e]=0;
+    dVfMSWdr[antimatter]=-Conjugate(dVfMSWdr[matter]);
+
+    
     // SI potential
     for(state m=matter; m<=antimatter; m++){
       for(int i=0;i<=NE-1;i++){

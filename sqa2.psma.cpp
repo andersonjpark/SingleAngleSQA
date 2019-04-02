@@ -287,13 +287,11 @@ int main(int argc, char *argv[]){
     array<array<array<array<double,NF>,NF>,NE>,NM> A0, A;
     
     // mixing angles to MSW basis at initial point
-    MATRIX<complex<double>,NF,NF> VfMSW0, Hf0;
+    MATRIX<complex<double>,NF,NF> Hf0;
     array<double,NF> k0;
-    array<double,NF-1> deltak0;    
-    VfMSW0[e][e]=Ve(s.rho,s.Ye);
-    VfMSW0[mu][mu]=Vmu(s.rho,s.Ye);
+    array<double,NF-1> deltak0;
     for(int i=0;i<=NE-1;i++){
-      Hf0=s.HfV[matter][i]+VfMSW0;
+      Hf0=s.HfV[matter][i]+s.VfMSW[matter];
       k0=k(Hf0);
       deltak0=deltak(Hf0);
       C0[matter][i]=CofactorMatrices(Hf0,k0);
@@ -306,7 +304,7 @@ int main(int argc, char *argv[]){
       }
       s.U0[matter][i]=U(deltak0,C0[matter][i],A0[matter][i]);
       
-      Hf0=s.HfV[antimatter][i]-VfMSW0;
+      Hf0=s.HfV[antimatter][i]+s.VfMSW[antimatter];
       k0=kbar(Hf0);
       deltak0=deltakbar(Hf0);
       C0[antimatter][i]=CofactorMatrices(Hf0,k0);
@@ -606,22 +604,12 @@ void K(double dr,
 
   MATRIX<complex<double>,NF,NF> VfSI,VfSIbar;  // self-interaction potential
   array<MATRIX<complex<double>,NF,NF>,NE> VfSIE; // contribution to self-interaction potential from each energy
-  MATRIX<complex<double>,NF,NF> VfMSW,VfMSWbar;
-  MATRIX<complex<double>,NF,NF> dVfMSWdr,dVfMSWbardr;
   array<array<MATRIX<complex<double>,NF,NF>,NS>,NE> Sa, Sabar;
   array<MATRIX<complex<double>,NF,NF>,NE> UWBW, UWBWbar;
   
-  // *************
-  VfMSW[e][e]=Ve(s.rho,s.Ye);
-  VfMSW[mu][mu]=Vmu(s.rho,s.Ye);
-  VfMSWbar=-Conjugate(VfMSW);
-  dVfMSWdr[e][e]=dVedr(s.rho,s.drhodr,s.Ye,s.dYedr);
-  dVfMSWdr[mu][mu]=dVmudr(s.rho,s.drhodr,s.Ye,s.dYedr);
-  dVfMSWbardr=-Conjugate(dVfMSWdr);
-
 #pragma omp parallel for
   for(int i=0;i<=NE-1;i++){
-    MATRIX<complex<double>,NF,NF> Hf  = s.HfV[matter][i]+VfMSW;
+    MATRIX<complex<double>,NF,NF> Hf  = s.HfV[matter][i]+s.VfMSW[matter];
     array<double,NF> kk  = k(Hf);
     array<double,NF-1> dkk = deltak(Hf);
     array<MATRIX<complex<double>,NF,NF>,NF> CC  = CofactorMatrices(Hf,kk);
@@ -631,7 +619,7 @@ void K(double dr,
     Sa[i][si] = B(Y[matter][i][si]);
     UWBW[i] = UU * W(Y[matter][i][msw]) * BB * W(Y[matter][i][si]);
     
-    MATRIX<complex<double>,NF,NF> Hfbar = s.HfV[antimatter][i] + VfMSWbar;
+    MATRIX<complex<double>,NF,NF> Hfbar = s.HfV[antimatter][i] + s.VfMSW[antimatter];
     array<double,NF> kkbar = kbar(Hfbar);
     array<double,NF-1> dkkbar = deltakbar(Hfbar);
     CC = CofactorMatrices(Hfbar,kkbar);
@@ -651,7 +639,7 @@ void K(double dr,
     for(int j=0;j<=NF-2;j++)
       for(int k=j+1;k<=NF-1;k++)
 	for(flavour f=e;f<=mu;f++)
-	  Ha[j][k]+= conj(UU[f][j])*dVfMSWdr[f][f]*UU[f][k];
+	  Ha[j][k]+= conj(UU[f][j])*s.dVfMSWdr[matter][f][f]*UU[f][k];
     
     Ha[0][1] *= I*cgs::constants::hbarc/dkk[0]*exp(I*phase[0]);
     Ha[1][0] = conj(Ha[0][1]);
@@ -675,8 +663,8 @@ void K(double dr,
     }
     
     K[matter][i][msw][3] = 0.;
-    array<double,NF> dkkdr = dkdr(UU,dVfMSWdr);
-    array<MATRIX<complex<double>,NF,NF>,NF> dCCdr = CofactorMatricesDerivatives(Hf,dVfMSWdr,dkkdr);
+    array<double,NF> dkkdr = dkdr(UU,s.dVfMSWdr[matter]);
+    array<MATRIX<complex<double>,NF,NF>,NF> dCCdr = CofactorMatricesDerivatives(Hf,s.dVfMSWdr[matter],dkkdr);
     array<double,NF> QQ =  Q(UU,dkk,CC,dCCdr);
     
     K[matter][i][msw][4] = (kk[0]+QQ[0])*dr/M_2PI/cgs::constants::hbarc;
@@ -690,7 +678,7 @@ void K(double dr,
     for(int j=0;j<=NF-2;j++)
       for(int k=j+1;k<=NF-1;k++)
 	for(flavour f=e;f<=mu;f++)
-	  Ha[j][k]+=conj(UUbar[f][j])*dVfMSWbardr[f][f]*UUbar[f][k];
+	  Ha[j][k]+=conj(UUbar[f][j])*s.dVfMSWdr[antimatter][f][f]*UUbar[f][k];
     
     Ha[0][1] *= I*cgs::constants::hbarc/dkkbar[0]*exp(I*phase[0]);
     Ha[1][0] = conj(Ha[0][1]);
@@ -713,8 +701,8 @@ void K(double dr,
     }
 
     K[antimatter][i][msw][3] = 0.;
-    array<double,NF> dkkbardr = dkdr(UUbar,dVfMSWbardr);
-    dCCdr = CofactorMatricesDerivatives(Hfbar,dVfMSWbardr,dkkbardr);
+    array<double,NF> dkkbardr = dkdr(UUbar,s.dVfMSWdr[antimatter]);
+    dCCdr = CofactorMatricesDerivatives(Hfbar,s.dVfMSWdr[antimatter],dkkbardr);
     array<double,NF> QQbar = Q(UUbar,dkkbar,CC,dCCdr);
 
     K[antimatter][i][msw][4] = (kkbar[0]+QQbar[0])*dr/M_2PI/cgs::constants::hbarc;
@@ -826,15 +814,7 @@ void Outputvsr(ofstream &fout,
 	       const array<DISCONTINUOUS,NE>& eBarP,
 	       const array<DISCONTINUOUS,NE>& xP){
 
-  array<MATRIX<complex<double>,NF,NF>,NM> VfMSW, dVfMSWdr, VfSI;
-
-  VfMSW[matter][e][e]=Ve(s.rho,s.Ye);
-  VfMSW[matter][mu][mu]=Vmu(s.rho,s.Ye);
-  VfMSW[antimatter]=-VfMSW[matter];
-
-  dVfMSWdr[matter][e][e]=dVedr(s.rho,s.drhodr,s.Ye,s.dYedr);
-  dVfMSWdr[matter][mu][mu]=dVmudr(s.rho,s.drhodr,s.Ye,s.dYedr);
-  dVfMSWdr[antimatter]=-dVfMSWdr[matter];
+  array<MATRIX<complex<double>,NF,NF>,NM> VfSI;
 
   array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> Hf, UU;
   array<array<array<MATRIX<complex<double>,NF,NF>,NM>,NE>,NS> WW,BB;
@@ -860,7 +840,7 @@ void Outputvsr(ofstream &fout,
 
   for(int i=0;i<=NE-1;i++){
     //---- matter
-    Hf[matter][i]  = s.HfV[matter][i] + VfMSW[matter];
+    Hf[matter][i]  = s.HfV[matter][i] + s.VfMSW[matter];
     kk[matter][i]  = k(Hf[matter][i]);
     dkk[matter][i] = deltak(Hf[matter][i]);
     UU[matter][i]  = U(dkk[matter][i],C0[matter][i],A0[matter][i]);
@@ -879,7 +859,7 @@ void Outputvsr(ofstream &fout,
     Sf[matter][i] = UU[matter][i] * Smf[matter][i];
     
     //---- antimatter
-    Hf[antimatter][i]  = s.HfV[antimatter][i] + VfMSW[antimatter];
+    Hf[antimatter][i]  = s.HfV[antimatter][i] + s.VfMSW[antimatter];
     kk[antimatter][i]  = kbar(Hf[antimatter][i]);
     dkk[antimatter][i] = deltakbar(Hf[antimatter][i]);
     UU[antimatter][i]  = Conjugate(U(dkk[antimatter][i],C0[antimatter][i],A0[antimatter][i]));
