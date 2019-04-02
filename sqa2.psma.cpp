@@ -605,25 +605,17 @@ void K(double dr,
     array<MATRIX<complex<double>,NF,NF>,NM> UU;
     array<MATRIX<complex<double>,NF,NF>,NM> BB;
       
-    Hf[matter]  = s.HfV[matter][i]+s.VfMSW[matter];
-    kk[matter] = k(Hf[matter]);
-    dkk[matter] = deltak(Hf[matter]);
-    CC[matter]  = CofactorMatrices(Hf[matter],kk[matter]);
-    AA[matter] = MixingMatrixFactors(CC[matter],C0[matter][i],A0[matter][i]);
-    UU[matter] = U(dkk[matter],CC[matter],AA[matter]);
-    BB[matter]  = B(Y[matter][i][msw]);
-    Sa[matter][i][si] = B(Y[matter][i][si]);
-    UWBW[matter][i] = UU[matter] * W(Y[matter][i][msw]) * BB[matter] * W(Y[matter][i][si]);
-    
-    Hf[antimatter] = s.HfV[antimatter][i] + s.VfMSW[antimatter];
-    kk[antimatter] = kbar(Hf[antimatter]);
-    dkk[antimatter] = deltakbar(Hf[antimatter]);
-    CC[antimatter] = CofactorMatrices(Hf[antimatter],kk[antimatter]);
-    AA[antimatter] = MixingMatrixFactors(CC[antimatter],C0[antimatter][i],A0[antimatter][i]);
-    UU[antimatter] = Conjugate(U(dkk[antimatter],CC[antimatter],AA[antimatter]));
-    BB[antimatter] = B(Y[antimatter][i][msw]);
-    Sa[antimatter][i][si] = B(Y[antimatter][i][si]);
-    UWBW[antimatter][i] = UU[antimatter] * W(Y[antimatter][i][msw]) *BB[antimatter] * W(Y[antimatter][i][si]);
+    for(int m=matter; m<=antimatter; m++){
+      Hf[m]  = s.HfV[m][i]+s.VfMSW[m];
+      kk[m] = k(Hf[m]);
+      dkk[m] = deltak(Hf[m]);
+      CC[m]  = CofactorMatrices(Hf[m],kk[m]);
+      AA[m] = MixingMatrixFactors(CC[m],C0[m][i],A0[m][i]);
+      UU[m] = U(dkk[m],CC[m],AA[m]);
+      BB[m]  = B(Y[m][i][msw]);
+      Sa[m][i][si] = B(Y[m][i][si]);
+      UWBW[m][i] = UU[m] * W(Y[m][i][msw]) * BB[m] * W(Y[m][i][si]);
+    }
     
     // ****************
     // Matter section *
