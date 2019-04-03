@@ -170,7 +170,7 @@ int main(int argc, char *argv[]){
     
     const string outputfilenamestem = outputfilename+"/";
 
-    nulib_init(nulibfilename, 0);
+    //nulib_init(nulibfilename, 0);
 
     // interpolation variables
     DISCONTINUOUS lnrho, Ye, temperature; // rho is the mass density

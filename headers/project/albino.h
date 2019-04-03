@@ -51,10 +51,10 @@ void initialize(State& s,
   cout << "T = " << s.T << " MeV" << endl;
   cout << "Ye = " << s.Ye << endl;
   s.Ye = max(s.Ye,__nulibtable_MOD_nulibtable_ye_min);
-  nulibtable_range_species_range_energy_(&s.rho, &s.T, &s.Ye, &eas.eas.front(),
-  					 &__nulibtable_MOD_nulibtable_number_species,
-  					 &__nulibtable_MOD_nulibtable_number_groups,
-  					 &__nulibtable_MOD_nulibtable_number_easvariables);
+  /* nulibtable_range_species_range_energy_(&s.rho, &s.T, &s.Ye, &eas.eas.front(), */
+  /* 					 &__nulibtable_MOD_nulibtable_number_species, */
+  /* 					 &__nulibtable_MOD_nulibtable_number_groups, */
+  /* 					 &__nulibtable_MOD_nulibtable_number_easvariables); */
   
   for(int i=0; i<NE; i++){
     for(state m=matter; m<=antimatter; m++)
@@ -71,10 +71,10 @@ void initialize(State& s,
     s.fmatrixf[antimatter][i][mu][mu] = Dx;
       
     cout << "GROUP " << i << endl;
-    cout << "\teas.emis = {" << eas.emis(0,i) << ", " << eas.emis(1,i) << ", " << eas.emis(2,i) << "}" << endl;
-    cout << "\teas.abs = {" << eas.abs(0,i) << ", " << eas.abs(1,i) << ", " << eas.abs(2,i) << "}" << endl;
-    cout << "\tBB = {" << eas.emis(0,i)/eas.abs(0,i) << ", " << eas.emis(1,i)/eas.abs(1,i) << ", " << eas.emis(2,i)/eas.abs(2,i) << "}" << endl;
-    cout << "\teas.scat = {" << eas.scat(0,i) << ", " << eas.scat(1,i) << ", " << eas.scat(2,i) << "}" << endl;
+    /* cout << "\teas.emis = {" << eas.emis(0,i) << ", " << eas.emis(1,i) << ", " << eas.emis(2,i) << "}" << endl; */
+    /* cout << "\teas.abs = {" << eas.abs(0,i) << ", " << eas.abs(1,i) << ", " << eas.abs(2,i) << "}" << endl; */
+    /* cout << "\tBB = {" << eas.emis(0,i)/eas.abs(0,i) << ", " << eas.emis(1,i)/eas.abs(1,i) << ", " << eas.emis(2,i)/eas.abs(2,i) << "}" << endl; */
+    /* cout << "\teas.scat = {" << eas.scat(0,i) << ", " << eas.scat(1,i) << ", " << eas.scat(2,i) << "}" << endl; */
 
     cout << "\tf = {" << real(s.fmatrixf[matter][i][e][e]) << ", " << real(s.fmatrixf[antimatter][i][e][e]) << ", " << real(s.fmatrixf[matter][i][mu][mu]) << ", " << real(s.fmatrixf[antimatter][i][mu][mu]) << "}" << endl;
   }
