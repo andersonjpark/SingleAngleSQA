@@ -54,7 +54,6 @@ using std::array;
 #include "headers/eigenvalues.h"
 #include "headers/mixing_angles.h"
 #include "headers/adiabatic_basis.h"
-//#include "headers/flux.h"
 #include "headers/jacobians.h"
 #include "headers/multiEnergy.h"
 #include "headers/MNR.h"
