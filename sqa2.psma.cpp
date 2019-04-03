@@ -596,7 +596,6 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr,
 #pragma omp parallel for
   for(int i=0;i<=NE-1;i++){
     array<array<double,NF>,NM> kk;
-    array<MATRIX<double,3,4>,NM> JI;
     array<array<double,4>,NM> dvdr;
 
     array<array<MATRIX<complex<double>,NF,NF>,NF>,NM> CC;
@@ -634,7 +633,7 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr,
       dvdr[m][2]=real(HB[m][0][0]);
       dvdr[m][3]=imag(HB[m][0][0]);
 
-      JI[m] = JInverse(Y[m][i][msw]);
+      MATRIX<double,3,4> JI = JInverse(Y[m][i][msw]);
       
       array<double,NF> dkkdr = dkdr(UU,s.dVfMSWdr[m]);
       dCCdr[m] = CofactorMatricesDerivatives(Hf,s.dVfMSWdr[m],dkkdr);
@@ -643,7 +642,7 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr,
       for(int j=0;j<=2;j++){
 	K[m][i][msw][j]=0.;
 	for(int k=j;k<=3;k++)
-	  K[m][i][msw][j] += JI[m][j][k]*dvdr[m][k];
+	  K[m][i][msw][j] += JI[j][k]*dvdr[m][k];
       }
       K[m][i][msw][3] = 0.;
       K[m][i][msw][4] = (kk[m][0]+QQ[0])/M_2PI/cgs::constants::hbarc;
