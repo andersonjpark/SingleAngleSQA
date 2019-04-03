@@ -648,6 +648,7 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr,
       
       // contribution to the self-interaction potential from this energy
       MATRIX<complex<double>,NF,NF> Sfm    = s.UWBW[m][i]*Sa[m][i][si];
+      s.Sf[m][i] = UU * Sfm;
       MATRIX<complex<double>,NF,NF> VfSIE = Sfm * s.pmatrixm0[m][i] * Adjoint(Sfm);
       if(m==antimatter) VfSIE = -Conjugate(VfSIE);
       #pragma omp critical
