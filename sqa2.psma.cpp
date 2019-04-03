@@ -600,7 +600,6 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr,
     array<MATRIX<double,3,4>,NM> JI;
     array<array<double,4>,NM> dvdr;
 
-    array<array<double,NF>,NM> dkkdr;
     array<array<MATRIX<complex<double>,NF,NF>,NF>,NM> CC;
     array<array<array<double,NF>,NF>,NM> AA;
     array<MATRIX<complex<double>,NF,NF>,NM> UU;
@@ -645,8 +644,8 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr,
 	K[m][i][msw][j]=0.;
       }
       K[m][i][msw][3] = 0.;
-      dkkdr[m] = dkdr(UU[m],s.dVfMSWdr[m]);
-      dCCdr[m] = CofactorMatricesDerivatives(Hf,s.dVfMSWdr[m],dkkdr[m]);
+      array<double,NF> dkkdr = dkdr(UU[m],s.dVfMSWdr[m]);
+      dCCdr[m] = CofactorMatricesDerivatives(Hf,s.dVfMSWdr[m],dkkdr);
       QQ[m] =  Q(UU[m],dkk,CC[m],dCCdr[m]);
     }
     
