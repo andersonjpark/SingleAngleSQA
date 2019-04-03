@@ -17,7 +17,8 @@ class State{
   // vacuum matrices set at initial conditions
   array<array<double,NF>,NE> kV;
   array<MATRIX<complex<double>,NF,NF>,NM> UV;
-  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> HfV;
+  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> HfV, UWBW;
+  array<array<array<MATRIX<complex<double>,NF,NF>,NS>,NE>,NM> Sa;
   array<array<MATRIX<complex<double>,NF,NF>,NF>,NE> CV;
   array<array<array<double,NF>,NF>,NE> AV;
 
@@ -25,7 +26,7 @@ class State{
   array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> U0;
 
   // potentials and potential derivatives
-  array<MATRIX<complex<double>,NF,NF>,NM> VfMSW, dVfMSWdr;
+  array<MATRIX<complex<double>,NF,NF>,NM> VfMSW, dVfMSWdr, VfSI;
   array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> pmatrixf0, pmatrixm0, Scumulative;
 
   // other matrices

@@ -589,7 +589,6 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr,
   array<MATRIX<complex<double>,NF,NF>,NM> VfSI;  // self-interaction potential
   array<MATRIX<complex<double>,NF,NF>,NE> VfSIE; // contribution to self-interaction potential from each energy
   array<array<array<MATRIX<complex<double>,NF,NF>,NS>,NE>,NM> Sa;
-  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> UWBW;
   
 #pragma omp parallel for
   for(int i=0;i<=NE-1;i++){
@@ -608,7 +607,7 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr,
       MATRIX<complex<double>,NF,NF> UU = U(dkk,CC,AA);
       MATRIX<complex<double>,NF,NF> BB = B(Y[m][i][msw]);
       Sa[m][i][si] = B(Y[m][i][si]);
-      UWBW[m][i] = UU * W(Y[m][i][msw]) * BB * W(Y[m][i][si]);
+      s.UWBW[m][i] = UU * W(Y[m][i][msw]) * BB * W(Y[m][i][si]);
 
       array<double,NF-1> phase;
       phase[0] = M_2PI*(Y[m][i][msw][4]-Y[m][i][msw][5]);
@@ -648,7 +647,7 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr,
 	K[m][i][msw][j]*=dr;
       
       // contribution to the self-interaction potential from this energy
-      MATRIX<complex<double>,NF,NF> Sfm    = UWBW[m][i]*Sa[m][i][si];
+      MATRIX<complex<double>,NF,NF> Sfm    = s.UWBW[m][i]*Sa[m][i][si];
       MATRIX<complex<double>,NF,NF> VfSIE = Sfm * s.pmatrixm0[m][i] * Adjoint(Sfm);
       if(m==antimatter) VfSIE = -Conjugate(VfSIE);
       #pragma omp critical
@@ -669,7 +668,7 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr,
     // Matter *
     //*********
     MATRIX<complex<double>,NF,NF> Ha,HB;
-    Ha = Adjoint(UWBW[matter][i])*VfSI[matter]*UWBW[matter][i];
+    Ha = Adjoint(s.UWBW[matter][i])*VfSI[matter]*s.UWBW[matter][i];
 
     K[matter][i][si][4]=dr*real(Ha[0][0])/(M_2PI*cgs::constants::hbarc);
     K[matter][i][si][5]=dr*real(Ha[1][1])/(M_2PI*cgs::constants::hbarc);
@@ -696,7 +695,7 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr,
     //*************
     // Antimatter *
     //*************
-    Ha=Adjoint(UWBW[antimatter][i])*VfSI[antimatter]*UWBW[antimatter][i];
+    Ha=Adjoint(s.UWBW[antimatter][i])*VfSI[antimatter]*s.UWBW[antimatter][i];
 
     K[antimatter][i][si][4]=dr*real(Ha[0][0])/(M_2PI*cgs::constants::hbarc);
     K[antimatter][i][si][5]=dr*real(Ha[1][1])/(M_2PI*cgs::constants::hbarc);
