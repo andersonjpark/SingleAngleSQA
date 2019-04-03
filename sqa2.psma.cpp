@@ -601,7 +601,6 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr,
     array<array<double,4>,NM> dvdr;
 
     array<array<MATRIX<complex<double>,NF,NF>,NF>,NM> CC;
-    array<array<array<double,NF>,NF>,NM> AA;
     array<MATRIX<complex<double>,NF,NF>,NM> UU;
     array<MATRIX<complex<double>,NF,NF>,NM> BB;
     array<MATRIX<complex<double>,NF,NF>,NM> Ha,HB;
@@ -613,8 +612,8 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr,
       kk[m] = k(Hf);
       array<double,NF-1> dkk = deltak(Hf);
       CC[m]  = CofactorMatrices(Hf,kk[m]);
-      AA[m] = MixingMatrixFactors(CC[m],C0[m][i],A0[m][i]);
-      UU[m] = U(dkk,CC[m],AA[m]);
+      array<array<double,NF>,NF> AA = MixingMatrixFactors(CC[m],C0[m][i],A0[m][i]);
+      UU[m] = U(dkk,CC[m],AA);
       BB[m]  = B(Y[m][i][msw]);
       Sa[m][i][si] = B(Y[m][i][si]);
       UWBW[m][i] = UU[m] * W(Y[m][i][msw]) * BB[m] * W(Y[m][i][si]);
