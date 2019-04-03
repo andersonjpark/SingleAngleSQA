@@ -595,28 +595,27 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr,
   
 #pragma omp parallel for
   for(int i=0;i<=NE-1;i++){
-    array<MATRIX<complex<double>,NF,NF>,NE> Hf;
     array<array<double,NF>,NM> kk;
+    array<array<double,NF>,NM> QQ;
+    array<MATRIX<double,3,4>,NM> JI;
+    array<array<double,4>,NM> dvdr;
+
     array<array<double,NF>,NM> dkkdr;
-    array<array<double,NF-1>,NM> dkk;
     array<array<MATRIX<complex<double>,NF,NF>,NF>,NM> CC;
     array<array<array<double,NF>,NF>,NM> AA;
     array<MATRIX<complex<double>,NF,NF>,NM> UU;
     array<MATRIX<complex<double>,NF,NF>,NM> BB;
     array<MATRIX<complex<double>,NF,NF>,NM> Ha,HB;
     array<array<double,NF-1>,NM> phase;
-    array<array<double,4>,NM> dvdr;
-    array<MATRIX<double,3,4>,NM> JI;
     array<array<MATRIX<complex<double>,NF,NF>,NF>,NM> dCCdr;
-    array<array<double,NF>,NM> QQ;
     
     for(int m=matter; m<=antimatter; m++){
-      Hf[m]  = s.HfV[m][i]+s.VfMSW[m];
-      kk[m] = k(Hf[m]);
-      dkk[m] = deltak(Hf[m]);
-      CC[m]  = CofactorMatrices(Hf[m],kk[m]);
+      MATRIX<complex<double>,NF,NF> Hf = s.HfV[m][i]+s.VfMSW[m];
+      kk[m] = k(Hf);
+      array<double,NF-1> dkk = deltak(Hf);
+      CC[m]  = CofactorMatrices(Hf,kk[m]);
       AA[m] = MixingMatrixFactors(CC[m],C0[m][i],A0[m][i]);
-      UU[m] = U(dkk[m],CC[m],AA[m]);
+      UU[m] = U(dkk,CC[m],AA[m]);
       BB[m]  = B(Y[m][i][msw]);
       Sa[m][i][si] = B(Y[m][i][si]);
       UWBW[m][i] = UU[m] * W(Y[m][i][msw]) * BB[m] * W(Y[m][i][si]);
@@ -628,7 +627,7 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr,
 	  for(flavour f=e;f<=mu;f++)
 	    Ha[m][j][k]+= conj(UU[m][f][j])*s.dVfMSWdr[m][f][f]*UU[m][f][k];
     
-      Ha[m][0][1] *= I*cgs::constants::hbarc/dkk[m][0]*exp(I*phase[m][0]);
+      Ha[m][0][1] *= I*cgs::constants::hbarc/dkk[0]*exp(I*phase[m][0]);
       Ha[m][1][0] = conj(Ha[m][0][1]);
     
       // HB = -I/cgs::constants::hbarc*Ha*BB;
@@ -647,8 +646,8 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr,
       }
       K[m][i][msw][3] = 0.;
       dkkdr[m] = dkdr(UU[m],s.dVfMSWdr[m]);
-      dCCdr[m] = CofactorMatricesDerivatives(Hf[m],s.dVfMSWdr[m],dkkdr[m]);
-      QQ[m] =  Q(UU[m],dkk[m],CC[m],dCCdr[m]);
+      dCCdr[m] = CofactorMatricesDerivatives(Hf,s.dVfMSWdr[m],dkkdr[m]);
+      QQ[m] =  Q(UU[m],dkk,CC[m],dCCdr[m]);
     }
     
     // ****************
