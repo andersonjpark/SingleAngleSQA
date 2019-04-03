@@ -607,6 +607,8 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr,
     array<array<double,NF-1>,NM> phase;
     array<array<double,4>,NM> dvdr;
     array<MATRIX<double,3,4>,NM> JI;
+    array<array<MATRIX<complex<double>,NF,NF>,NF>,NM> dCCdr;
+    array<array<double,NF>,NM> QQ;
     
     for(int m=matter; m<=antimatter; m++){
       Hf[m]  = s.HfV[m][i]+s.VfMSW[m];
@@ -655,11 +657,11 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr,
       K[matter][i][msw][j]*=dr;
     }
     
-    array<MATRIX<complex<double>,NF,NF>,NF> dCCdr = CofactorMatricesDerivatives(Hf[matter],s.dVfMSWdr[matter],dkkdr[matter]);
-    array<double,NF> QQ =  Q(UU[matter],dkk[matter],CC[matter],dCCdr);
+    dCCdr[matter] = CofactorMatricesDerivatives(Hf[matter],s.dVfMSWdr[matter],dkkdr[matter]);
+    QQ[matter] =  Q(UU[matter],dkk[matter],CC[matter],dCCdr[matter]);
     
-    K[matter][i][msw][4] = (kk[matter][0]+QQ[0])*dr/M_2PI/cgs::constants::hbarc;
-    K[matter][i][msw][5] = (kk[matter][1]+QQ[1])*dr/M_2PI/cgs::constants::hbarc;
+    K[matter][i][msw][4] = (kk[matter][0]+QQ[matter][0])*dr/M_2PI/cgs::constants::hbarc;
+    K[matter][i][msw][5] = (kk[matter][1]+QQ[matter][1])*dr/M_2PI/cgs::constants::hbarc;
 
     // ********************
     // Antimatter section *
@@ -671,11 +673,11 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr,
       K[antimatter][i][msw][j] *= dr;
     }
 
-    dCCdr = CofactorMatricesDerivatives(Hf[antimatter],s.dVfMSWdr[antimatter],dkkdr[antimatter]);
-    QQ = Q(UU[antimatter],dkk[antimatter],CC[antimatter],dCCdr);
+    dCCdr[antimatter] = CofactorMatricesDerivatives(Hf[antimatter],s.dVfMSWdr[antimatter],dkkdr[antimatter]);
+    QQ[antimatter] = Q(UU[antimatter],dkk[antimatter],CC[antimatter],dCCdr[antimatter]);
 
-    K[antimatter][i][msw][4] = (kk[antimatter][0]+QQ[0])*dr/M_2PI/cgs::constants::hbarc;
-    K[antimatter][i][msw][5] = (kk[antimatter][1]+QQ[1])*dr/M_2PI/cgs::constants::hbarc;
+    K[antimatter][i][msw][4] = (kk[antimatter][0]+QQ[antimatter][0])*dr/M_2PI/cgs::constants::hbarc;
+    K[antimatter][i][msw][5] = (kk[antimatter][1]+QQ[antimatter][1])*dr/M_2PI/cgs::constants::hbarc;
 
     // *****************************************************************
     // contribution to the self-interaction potential from this energy *
