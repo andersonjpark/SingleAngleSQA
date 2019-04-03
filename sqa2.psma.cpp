@@ -644,6 +644,13 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr,
       array<double,NF> dkkdr = dkdr(UU,s.dVfMSWdr[m]);
       dCCdr[m] = CofactorMatricesDerivatives(Hf,s.dVfMSWdr[m],dkkdr);
       QQ[m] =  Q(UU,dkk,CC[m],dCCdr[m]);
+
+      // contribution to the self-interaction potential from this energy
+      MATRIX<complex<double>,NF,NF> Sfm    = UWBW[m][i]*Sa[m][i][si];
+      MATRIX<complex<double>,NF,NF> VfSIE = Sfm * s.pmatrixm0[m][i] * Adjoint(Sfm);
+      if(m==antimatter) VfSIE = -Conjugate(VfSIE);
+      #pragma omp critical
+      VfSI[matter] += VfSIE;
     }
     
     // ****************
@@ -671,38 +678,16 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr,
     K[antimatter][i][msw][4] = (kk[antimatter][0]+QQ[antimatter][0])*dr/M_2PI/cgs::constants::hbarc;
     K[antimatter][i][msw][5] = (kk[antimatter][1]+QQ[antimatter][1])*dr/M_2PI/cgs::constants::hbarc;
 
-    // *****************************************************************
-    // contribution to the self-interaction potential from this energy *
-    // *****************************************************************
-    MATRIX<complex<double>,NF,NF> Sfm    = UWBW[matter][i]*Sa[matter][i][si];
-    MATRIX<complex<double>,NF,NF> Sfmbar = UWBW[antimatter][i]*Sa[antimatter][i][si];
-    VfSIE[i] =     Sfm   *s.pmatrixm0[    matter][i]*Adjoint(Sfm   )
-      - Conjugate( Sfmbar*s.pmatrixm0[antimatter][i]*Adjoint(Sfmbar) );
-
   }//end for loop over i
 
-  // ************************************
-  // compute self-interaction potential *
-  // ************************************
-  for(int i=0;i<=NE-1;i++){
-    VfSI[matter][e ][e ]+=VfSIE[i][e ][e ];
-    VfSI[matter][e ][mu]+=VfSIE[i][e ][mu];
-    VfSI[matter][mu][e ]+=VfSIE[i][mu][e ];
-    VfSI[matter][mu][mu]+=VfSIE[i][mu][mu];
-  }
-
-  complex<double> Tr=VfSI[matter][e][e]+VfSI[matter][mu][mu];
-  VfSI[matter][e][e]+=Tr;
-  VfSI[matter][mu][mu]+=Tr;
-
-  //  VfSI*=NSI*CSI(r);
+  #pragma omp single
   VfSI[antimatter]=-Conjugate(VfSI[matter]);
 
   // *********************
   // SI part of solution *
   // *********************
 
-#pragma omp parallel for schedule(auto)
+#pragma omp parallel for
   for(int i=0;i<=NE-1;i++){
     //*********
     // Matter *
