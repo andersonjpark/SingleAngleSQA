@@ -29,7 +29,7 @@ averageProbability(array<double,NE> Pe,
 		   array<double,NE> ePotentialSum,
 		   array<double,NE> heavyPotentialSum){
 
-  array<double,6> Pvalues;
+  array<double,6> Pvalues{0,0,0,0,0,0};
   double totalANu(0.);
   double totalNu(0.);
   double totalHeavy(0.);
