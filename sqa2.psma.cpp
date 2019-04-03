@@ -596,7 +596,6 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr,
 #pragma omp parallel for
   for(int i=0;i<=NE-1;i++){
     array<array<double,NF>,NM> kk;
-    array<array<double,NF>,NM> QQ;
     array<MATRIX<double,3,4>,NM> JI;
     array<array<double,4>,NM> dvdr;
 
@@ -639,7 +638,7 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr,
       
       array<double,NF> dkkdr = dkdr(UU,s.dVfMSWdr[m]);
       dCCdr[m] = CofactorMatricesDerivatives(Hf,s.dVfMSWdr[m],dkkdr);
-      QQ[m] =  Q(UU,dkk,CC[m],dCCdr[m]);
+      array<double,NF> QQ =  Q(UU,dkk,CC[m],dCCdr[m]);
 
       for(int j=0;j<=2;j++){
 	K[m][i][msw][j]=0.;
@@ -647,8 +646,8 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr,
 	  K[m][i][msw][j] += JI[m][j][k]*dvdr[m][k];
       }
       K[m][i][msw][3] = 0.;
-      K[m][i][msw][4] = (kk[m][0]+QQ[m][0])/M_2PI/cgs::constants::hbarc;
-      K[m][i][msw][5] = (kk[m][1]+QQ[m][1])/M_2PI/cgs::constants::hbarc;
+      K[m][i][msw][4] = (kk[m][0]+QQ[0])/M_2PI/cgs::constants::hbarc;
+      K[m][i][msw][5] = (kk[m][1]+QQ[1])/M_2PI/cgs::constants::hbarc;
       for(int j=0;j<NY;j++)
 	K[m][i][msw][j]*=dr;
       
