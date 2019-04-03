@@ -17,8 +17,7 @@ class State{
   // vacuum matrices set at initial conditions
   array<array<double,NF>,NE> kV;
   array<MATRIX<complex<double>,NF,NF>,NM> UV;
-  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> HfV, UWBW;
-  array<array<array<MATRIX<complex<double>,NF,NF>,NS>,NE>,NM> Sa;
+  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> HfV, UWBW, Sf;
   array<array<MATRIX<complex<double>,NF,NF>,NF>,NE> CV;
   array<array<array<double,NF>,NF>,NE> AV;
 
