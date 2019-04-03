@@ -6,26 +6,36 @@
 // theta //
 //=======//
 
-double theta(MATRIX<complex<double>,NF,NF> Hf,array<double,NF> k){
+double theta(const MATRIX<complex<double>,NF,NF>& Hf,
+	     const array<double,NF> k){
   return atan2( sqrt(-(real(Hf[mu][mu])-k[1])),sqrt(real(Hf[e][e])-k[0]) );}
 
-double thetabar(MATRIX<complex<double>,NF,NF> Hf,array<double,NF> k){
+double thetabar(const MATRIX<complex<double>,NF,NF>& Hf,
+		const array<double,NF> k){
   return atan2( sqrt(-(real(Hf[mu][mu])-k[1])),sqrt(real(Hf[e][e])-k[0]) );}
 
 //==========//
 // costheta //
 //==========//
 
-double cos2theta(MATRIX<complex<double>,NF,NF> Hf,array<double,NF> k,array<double,NF-1> dk){
+double cos2theta(const MATRIX<complex<double>,NF,NF>& Hf,
+		 const array<double,NF> k,
+		 const array<double,NF-1> dk){
   return (k[0]-real(Hf[mu][mu]))/dk[0];}
 
-double cos2thetabar(MATRIX<complex<double>,NF,NF> Hf,array<double,NF> k,array<double,NF-1> dk){
+double cos2thetabar(const MATRIX<complex<double>,NF,NF>& Hf,
+		    const array<double,NF> k,
+		    const array<double,NF-1> dk){
   return (k[0]-real(Hf[mu][mu]))/dk[0];}
 
-double costheta(MATRIX<complex<double>,NF,NF> Hf,array<double,NF> k,array<double,NF-1> dk){
+double costheta(const MATRIX<complex<double>,NF,NF>& Hf,
+		const array<double,NF> k,
+		const array<double,NF-1> dk){
   return sqrt(cos2theta(Hf,k,dk));}
 
-double costhetabar(MATRIX<complex<double>,NF,NF> Hf,array<double,NF> k,array<double,NF-1> dk){
+double costhetabar(const MATRIX<complex<double>,NF,NF>& Hf,
+		   const array<double,NF> k,
+		   const array<double,NF-1> dk){
   return sqrt(cos2thetabar(Hf,k,dk));}
 
 //====================//
@@ -48,16 +58,24 @@ double asymptoticcosthetabar(double x,int s){
 // sintheta //
 //==========//
 
-double sin2theta(MATRIX<complex<double>,NF,NF> Hf,array<double,NF> k,array<double,NF-1> dk){
+double sin2theta(const MATRIX<complex<double>,NF,NF>& Hf,
+		 const array<double,NF> k,
+		 const array<double,NF-1> dk){
   return (k[0]-real(Hf[e][e]))/dk[0];}
 
-double sin2thetabar(MATRIX<complex<double>,NF,NF> Hf,array<double,NF> k,array<double,NF-1> dk){
+double sin2thetabar(const MATRIX<complex<double>,NF,NF>& Hf,
+		    const array<double,NF> k,
+		    const array<double,NF-1> dk){
   return (k[0]-real(Hf[e][e]))/dk[0];}
 
-double sintheta(MATRIX<complex<double>,NF,NF> Hf,array<double,NF> k,array<double,NF-1> dk){
+double sintheta(const MATRIX<complex<double>,NF,NF>& Hf,
+		const array<double,NF> k,
+		const array<double,NF-1> dk){
   return sqrt(sin2theta(Hf,k,dk));}
 
-double sinthetabar(MATRIX<complex<double>,NF,NF> Hf,array<double,NF> k,array<double,NF-1> dk){
+double sinthetabar(const MATRIX<complex<double>,NF,NF>& Hf,
+		   const array<double,NF> k,
+		   const array<double,NF-1> dk){
   return sqrt(sin2thetabar(Hf,k,dk));}
 
 //====================//
@@ -80,10 +98,12 @@ double asymptoticsinthetabar(double x,int s){
 // beta //
 //======//
 
-double beta(MATRIX<complex<double>,NF,NF> Hf,array<double,NF-1> dk){
+double beta(const MATRIX<complex<double>,NF,NF>& Hf,
+	    const array<double,NF-1> dk){
   return atan2(-imag(Hf[mu][e])/dk[0],-real(Hf[mu][e])/dk[0]);}
 
-double betabar(MATRIX<complex<double>,NF,NF> Hf,array<double,NF-1> dk){
+double betabar(const MATRIX<complex<double>,NF,NF>& Hf,
+	       const array<double,NF-1> dk){
   return atan2(-imag(Hf[mu][e])/dk[0],-real(Hf[mu][e])/dk[0]);}
 
 //=======//
@@ -127,9 +147,9 @@ MATRIX<complex<double>,NF,NF>
 }
 
 MATRIX<complex<double>,NF,NF>
-  U(MATRIX<complex<double>,NF,NF> Hf,
-    array<double,NF> k,
-    array<double,NF-1> dk){
+  U(const MATRIX<complex<double>,NF,NF>& Hf,
+    const array<double,NF> k,
+    const array<double,NF-1> dk){
   
   //if(4.*norm(Hf[e][mu])/norm(Hf[e][e]-Hf[mu][mu])<0.0745){ return asymptoticU(Hf,dkk);}
   MATRIX<complex<double>,NF,NF> u;           
@@ -146,8 +166,8 @@ MATRIX<complex<double>,NF,NF>
 }
 
 MATRIX<complex<double>,NF,NF>
-  asymptoticU(MATRIX<complex<double>,NF,NF> Hf, 
-	      array<double,NF-1> dk){
+  asymptoticU(const MATRIX<complex<double>,NF,NF>& Hf, 
+	      const array<double,NF-1> dk){
 
   MATRIX<complex<double>,NF,NF> u;
   double x = 4. * norm(Hf[e][mu]) / norm(Hf[e][e] - Hf[mu][mu]);
@@ -170,11 +190,10 @@ MATRIX<complex<double>,NF,NF>
 //=======//
 
 MATRIX<complex<double>,NF,NF> 
-  Ustar(MATRIX<complex<double>,NF,NF> Hf,
-	array<double,NF> k,
-	array<double,NF-1> dk){
+  Ustar(const MATRIX<complex<double>,NF,NF>& Hf,
+	const array<double,NF> k,
+	const array<double,NF-1> dk){
   
-  //if(4.*norm(Hf[e][mu])/norm(Hf[e][e]-Hf[mu][mu])<0.0745){ return asymptoticUstar(Hf,dkk);}
   MATRIX<complex<double>,NF,NF> ustar;         
   double ctheta = costhetabar(Hf,k,dk);
   double stheta = sinthetabar(Hf,k,dk);
@@ -189,8 +208,8 @@ MATRIX<complex<double>,NF,NF>
 }
 
 MATRIX<complex<double>,NF,NF>
-  asymptoticUstar(MATRIX<complex<double>,NF,NF> Hf,
-		  array<double,NF-1> dk){
+  asymptoticUstar(const MATRIX<complex<double>,NF,NF>& Hf,
+		  const array<double,NF-1> dk){
 
   MATRIX<complex<double>,NF,NF> ustar;
   double x = 4.*norm(Hf[e][mu]) / norm(Hf[e][e] - Hf[mu][mu]);
@@ -210,36 +229,36 @@ MATRIX<complex<double>,NF,NF>
 //===//
 // C //
 //===//
-template<flavour a,flavour b> complex<double> C(MATRIX<complex<double>,NF,NF> H,double k);
-template<> complex<double> C<e,e>(MATRIX<complex<double>,NF,NF> H,double k){
+template<flavour a,flavour b> complex<double> C(const MATRIX<complex<double>,NF,NF>& H,double k);
+template<> complex<double> C<e,e>(const MATRIX<complex<double>,NF,NF>& H,double k){
   return H[mu][mu]-k;}
-template<> complex<double> C<e,mu>(MATRIX<complex<double>,NF,NF> H,double k){
+template<> complex<double> C<e,mu>(const MATRIX<complex<double>,NF,NF>& H,double k){
   return -H[mu][e];}
-template<> complex<double> C<mu,e>(MATRIX<complex<double>,NF,NF> H,double k){
+template<> complex<double> C<mu,e>(const MATRIX<complex<double>,NF,NF>& H,double k){
   return -H[e][mu];}
-template<> complex<double> C<mu,mu>(MATRIX<complex<double>,NF,NF> H,double k){
+template<> complex<double> C<mu,mu>(const MATRIX<complex<double>,NF,NF>& H,double k){
   return H[e][e]-k;}
   
 //======//
 // dCdr //
 //======//
-template<flavour a,flavour b> complex<double> dCdr(MATRIX<complex<double>,NF,NF> dHdr,double dkdr);
-template<> complex<double> dCdr<e,e>(MATRIX<complex<double>,NF,NF> dHdr,double dkdr){
+template<flavour a,flavour b> complex<double> dCdr(const MATRIX<complex<double>,NF,NF>& dHdr,double dkdr);
+template<> complex<double> dCdr<e,e>(const MATRIX<complex<double>,NF,NF>& dHdr,double dkdr){
   return dHdr[mu][mu]-dkdr;}
-template<> complex<double> dCdr<e,mu>(MATRIX<complex<double>,NF,NF> dHdr,double dkdr){
+template<> complex<double> dCdr<e,mu>(const MATRIX<complex<double>,NF,NF>& dHdr,double dkdr){
   return -dHdr[mu][e];}
-template<> complex<double> dCdr<mu,e>(MATRIX<complex<double>,NF,NF> dHdr,double dkdr){
+template<> complex<double> dCdr<mu,e>(const MATRIX<complex<double>,NF,NF>& dHdr,double dkdr){
   return -dHdr[e][mu];}
-template<> complex<double> dCdr<mu,mu>(MATRIX<complex<double>,NF,NF> dHdr,double dkdr){
+template<> complex<double> dCdr<mu,mu>(const MATRIX<complex<double>,NF,NF>& dHdr,double dkdr){
   return dHdr[e][e]-dkdr;}
 
 //=====================//
 // MixingMatrixFactors //
 //=====================//
 array<array<double,NF>,NF>
-MixingMatrixFactors(array<MATRIX<complex<double>,NF,NF>,NF>& C,
-		    array<MATRIX<complex<double>,NF,NF>,NF>& C0,
-		    array<array<double,NF>,NF> A0){
+MixingMatrixFactors(const array<MATRIX<complex<double>,NF,NF>,NF>& C,
+		    const array<MATRIX<complex<double>,NF,NF>,NF>& C0,
+		    const array<array<double,NF>,NF> A0){
 
   array<array<double,NF>,NF> A = A0;  
   for(int j=0;j<=NF-1;j++){
@@ -254,8 +273,8 @@ MixingMatrixFactors(array<MATRIX<complex<double>,NF,NF>,NF>& C,
 // CofactorMatrices //
 //==================//
 array<MATRIX<complex<double>,NF,NF>,NF>
-  CofactorMatrices(MATRIX<complex<double>,NF,NF> H,
-		   array<double,NF> k){
+  CofactorMatrices(const MATRIX<complex<double>,NF,NF>& H,
+		   const array<double,NF> k){
   
   array<MATRIX<complex<double>,NF,NF>,NF> CC;
   for(int j=0;j<=NF-1;j++){
@@ -272,9 +291,9 @@ array<MATRIX<complex<double>,NF,NF>,NF>
 // CofactorMatricesDerivatives //
 //=============================//
 array<MATRIX<complex<double>,NF,NF>,NF>
-  CofactorMatricesDerivatives(MATRIX<complex<double>,NF,NF> H,
-			      MATRIX<complex<double>,NF,NF> dHdr,
-			      array<double,NF> dkdr){
+  CofactorMatricesDerivatives(const MATRIX<complex<double>,NF,NF>& H,
+			      const MATRIX<complex<double>,NF,NF>& dHdr,
+			      const array<double,NF> dkdr){
   
   array<MATRIX<complex<double>,NF,NF>,NF> dCCdr;
   for(int j=0;j<=NF-1;j++){

@@ -32,9 +32,9 @@ array<array<array<MATRIX<complex<double>,NF,NF>,NF>,NE>,NM> UpdateC(const State&
 // UpdateA //
 //=========//
 array<array<array<array<double,NF>,NF>,NE>,NM>
-UpdateA(array<array<array<MATRIX<complex<double>,NF,NF>,NF>,NE>,NM>& C,
-	array<array<array<MATRIX<complex<double>,NF,NF>,NF>,NE>,NM>& C0,
-	array<array<array<array<double,NF>,NF>,NE>,NM>& A0){
+UpdateA(const array<array<array<MATRIX<complex<double>,NF,NF>,NF>,NE>,NM>& C,
+	const array<array<array<MATRIX<complex<double>,NF,NF>,NF>,NE>,NM>& C0,
+	const array<array<array<array<double,NF>,NF>,NE>,NM>& A0){
 
   array<array<array<array<double,NF>,NF>,NE>,NM> A;
   
