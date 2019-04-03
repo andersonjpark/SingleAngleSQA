@@ -601,7 +601,6 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr,
     array<array<double,4>,NM> dvdr;
 
     array<array<MATRIX<complex<double>,NF,NF>,NF>,NM> CC;
-    array<MATRIX<complex<double>,NF,NF>,NM> BB;
     array<MATRIX<complex<double>,NF,NF>,NM> Ha,HB;
     array<array<double,NF-1>,NM> phase;
     array<array<MATRIX<complex<double>,NF,NF>,NF>,NM> dCCdr;
@@ -613,9 +612,9 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr,
       CC[m]  = CofactorMatrices(Hf,kk[m]);
       array<array<double,NF>,NF> AA = MixingMatrixFactors(CC[m],C0[m][i],A0[m][i]);
       MATRIX<complex<double>,NF,NF> UU = U(dkk,CC[m],AA);
-      BB[m]  = B(Y[m][i][msw]);
+      MATRIX<complex<double>,NF,NF> BB = B(Y[m][i][msw]);
       Sa[m][i][si] = B(Y[m][i][si]);
-      UWBW[m][i] = UU * W(Y[m][i][msw]) * BB[m] * W(Y[m][i][si]);
+      UWBW[m][i] = UU * W(Y[m][i][msw]) * BB * W(Y[m][i][si]);
 
       phase[m][0] = M_2PI*(Y[m][i][msw][4]-Y[m][i][msw][5]);
       Ha[m][0][1]=0.;
@@ -628,8 +627,8 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr,
       Ha[m][1][0] = conj(Ha[m][0][1]);
     
       // HB = -I/cgs::constants::hbarc*Ha*BB;
-      HB[m][0][0]=-I/cgs::constants::hbarc*( Ha[m][0][1]*BB[m][1][0] );
-      HB[m][0][1]=-I/cgs::constants::hbarc*( Ha[m][0][1]*BB[m][1][1] );
+      HB[m][0][0]=-I/cgs::constants::hbarc*( Ha[m][0][1]*BB[1][0] );
+      HB[m][0][1]=-I/cgs::constants::hbarc*( Ha[m][0][1]*BB[1][1] );
 
       dvdr[m][0]=real(HB[m][0][1]);
       dvdr[m][1]=imag(HB[m][0][1]);
