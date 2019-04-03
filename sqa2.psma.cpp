@@ -49,7 +49,6 @@ using std::array;
 #include "headers/MATRIX.h"
 #include "headers/parameters.h"
 #include "headers/potentials.h"
-#include "headers/single_angle.h"
 #include "headers/flavour_basis.h"
 #include "headers/eigenvalues.h"
 #include "headers/mixing_angles.h"
