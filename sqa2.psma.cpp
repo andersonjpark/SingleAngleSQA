@@ -586,8 +586,10 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr,
        State& s){
 
   array<array<array<array<double,NY>,NS>,NE>,NM> K;
-  array<MATRIX<complex<double>,NF,NF>,NM> VfSI;  // self-interaction potential
   array<array<array<MATRIX<complex<double>,NF,NF>,NS>,NE>,NM> Sa;
+
+  s.VfSI[matter] = MATRIX<complex<double>,NF,NF>();
+  s.VfSI[antimatter] = MATRIX<complex<double>,NF,NF>();
   
 #pragma omp parallel for collapse(2)
   for(int m=matter; m<=antimatter; m++){
@@ -647,12 +649,12 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr,
       MATRIX<complex<double>,NF,NF> VfSIE = Sfm * s.pmatrixm0[m][i] * Adjoint(Sfm);
       if(m==antimatter) VfSIE = -Conjugate(VfSIE);
       #pragma omp critical
-      VfSI[matter] += VfSIE;
+      s.VfSI[matter] += VfSIE;
     }
   }//end for loop over i
 
   #pragma omp single
-  VfSI[antimatter]=-Conjugate(VfSI[matter]);
+  s.VfSI[antimatter]=-Conjugate(s.VfSI[matter]);
 
   // *********************
   // SI part of solution *
@@ -664,7 +666,7 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr,
     // Matter *
     //*********
     MATRIX<complex<double>,NF,NF> Ha,HB;
-    Ha = Adjoint(s.UWBW[matter][i])*VfSI[matter]*s.UWBW[matter][i];
+    Ha = Adjoint(s.UWBW[matter][i])*s.VfSI[matter]*s.UWBW[matter][i];
 
     K[matter][i][si][4]=dr*real(Ha[0][0])/(M_2PI*cgs::constants::hbarc);
     K[matter][i][si][5]=dr*real(Ha[1][1])/(M_2PI*cgs::constants::hbarc);
@@ -691,7 +693,7 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr,
     //*************
     // Antimatter *
     //*************
-    Ha=Adjoint(s.UWBW[antimatter][i])*VfSI[antimatter]*s.UWBW[antimatter][i];
+    Ha=Adjoint(s.UWBW[antimatter][i])*s.VfSI[antimatter]*s.UWBW[antimatter][i];
 
     K[antimatter][i][si][4]=dr*real(Ha[0][0])/(M_2PI*cgs::constants::hbarc);
     K[antimatter][i][si][5]=dr*real(Ha[1][1])/(M_2PI*cgs::constants::hbarc);
