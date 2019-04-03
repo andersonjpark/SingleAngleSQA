@@ -250,7 +250,7 @@ int main(int argc, char *argv[]){
     // *************************************************
 
     set_Ebins(E);
-    State *s = new State(E);
+    State s(E);
     // vectors of energies and vacuum eigenvalues
     //s.kV = set_kV(E);
     
@@ -273,8 +273,8 @@ int main(int argc, char *argv[]){
     // **************************************
     
     // MSW potential matrix
-    s->r=rmin;
-    s->update_background(lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP);
+    s.r=rmin;
+    s.update_background(lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP);
     
     
     // cofactor matrices at initial point - will be recycled as cofactor matrices at beginning of every step
@@ -286,23 +286,23 @@ int main(int argc, char *argv[]){
     // mixing angles to MSW basis at initial point
     for(state m=matter; m<=antimatter; m++){
       for(int i=0;i<=NE-1;i++){
-	MATRIX<complex<double>,NF,NF> Hf0=s->HfV[m][i]+s->VfMSW[m];
+	MATRIX<complex<double>,NF,NF> Hf0=s.HfV[m][i]+s.VfMSW[m];
 	array<double,NF> k0=k(Hf0);
 	array<double,NF-1> deltak0=deltak(Hf0);
 	C0[m][i]=CofactorMatrices(Hf0,k0);
 	
 	for(int j=0;j<=NF-1;j++){
-	  if(real(C0[m][i][j][mu][e]*s->CV[i][j][mu][e]) < 0.)
-	    A0[m][i][j][e]=-s->AV[i][j][e];
-	  else A0[m][i][j][e]=s->AV[i][j][e];
-	  A0[m][i][j][mu]=s->AV[i][j][mu];
+	  if(real(C0[m][i][j][mu][e]*s.CV[i][j][mu][e]) < 0.)
+	    A0[m][i][j][e]=-s.AV[i][j][e];
+	  else A0[m][i][j][e]=s.AV[i][j][e];
+	  A0[m][i][j][mu]=s.AV[i][j][mu];
 	}
-	s->U0[m][i]=U(deltak0,C0[m][i],A0[m][i]);
+	s.U0[m][i]=U(deltak0,C0[m][i],A0[m][i]);
       }
     }
 
     // yzhu14 density/potential matrices art rmin
-    initialize(*s,rmin,eD,eBarD,xD);
+    initialize(s,rmin,eD,eBarD,xD);
 
     // ***************************************
     // quantities needed for the calculation *
@@ -340,7 +340,7 @@ int main(int argc, char *argv[]){
       // initialize at beginning of every domain *
       // *****************************************
       dr=1e-3*cgs::units::cm;
-      drmin=4.*s->r*numeric_limits<double>::epsilon();
+      drmin=4.*s.r*numeric_limits<double>::epsilon();
       
       for(state m=matter;m<=antimatter;m++)
 	for(int i=0;i<=NE-1;i++){
@@ -358,32 +358,32 @@ int main(int argc, char *argv[]){
 	
       finish=output=false;
       counterout=1;
-      s->update_background(lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP);
-      Outputvsr(fout,foutP,foutf,foutdangledr,Y,C,A,*s,eP,eBarP,xP);
+      s.update_background(lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP);
+      Outputvsr(fout,foutP,foutf,foutdangledr,Y,C,A,s,eP,eBarP,xP);
 	
       for(state m=matter; m<=antimatter; m++)
 	for(int i=0; i<NE; i++)
 	  for(flavour f1=e; f1<=mu; f1++)
 	    for(flavour f2=e; f2<=mu; f2++)
-	      assert(s->fmatrixf[m][i][f1][f2] == s->fmatrixf[m][i][f1][f2]);
+	      assert(s.fmatrixf[m][i][f1][f2] == s.fmatrixf[m][i][f1][f2]);
       
       // ***********************
       // start the loop over r *
       // ***********************
       do{ 
-	double intkm = int(s->r/1e5)*1e5;
-	if(s->r - intkm <= dr){
-	  cout << s->r/1e5 << " " << dr << " " << s->rho << " " << s->T << " " << s->Ye << endl;
+	double intkm = int(s.r/1e5)*1e5;
+	if(s.r - intkm <= dr){
+	  cout << s.r/1e5 << " " << dr << " " << s.rho << " " << s.T << " " << s.Ye << endl;
 	  cout.flush();
 	}
 
-	if(s->r+dr>rmax){
-	  dr=rmax-s->r;
+	if(s.r+dr>rmax){
+	  dr=rmax-s.r;
 	  finish=true;
 	  output=true;
 	}
 	  
-	r0=s->r;
+	r0=s.r;
 	Y0=Y;
 	C0=C;
 	A0=A;
@@ -392,13 +392,13 @@ int main(int argc, char *argv[]){
 	  for(int i=0; i<NE; i++)
 	    for(flavour f1=e; f1<=mu; f1++)
 	      for(flavour f2=e; f2<=mu; f2++)
-		assert(s->fmatrixf[m][i][f1][f2] == s->fmatrixf[m][i][f1][f2]);
+		assert(s.fmatrixf[m][i][f1][f2] == s.fmatrixf[m][i][f1][f2]);
 	
 	// beginning of RK section
 	do{ 
 	  repeat=false;
 	  for(int k=0;k<=NRK-1;k++){
-	    s->r=r0+AA[k]*dr;
+	    s.r=r0+AA[k]*dr;
 	    Y=Y0;
 
 	    for(state m = matter; m <= antimatter; m++)
@@ -408,12 +408,12 @@ int main(int argc, char *argv[]){
 		    for(int l=0;l<=k-1;l++)
 		      Y[m][i][x][j] += BB[k][l] * Ks[l][m][i][x][j];
 
-	    s->update_background(lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP);
-	    Ks[k] = K(dr,Y,C,A,*s);
+	    s.update_background(lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP);
+	    Ks[k] = K(dr,Y,C,A,s);
 	  }
 	  
 	  // increment all quantities and update C and A arrays
-	  s->r=r0+dr;
+	  s.r=r0+dr;
 	  for(state m=matter;m<=antimatter;m++){
 	    for(int i=0;i<=NE-1;i++){
 	      for(solution x=msw;x<=si;x++){
@@ -432,7 +432,7 @@ int main(int argc, char *argv[]){
 	    }
 	  }
 	  
-	  C=UpdateC(*s,lnrho,Ye);
+	  C=UpdateC(s,lnrho,Ye);
 	  A=UpdateA(C,C0,A0);
 	    
 	  // find largest error
@@ -452,7 +452,7 @@ int main(int argc, char *argv[]){
 
 	  // reset integration variables to those at beginning of step
 	  if(repeat==true){
-	    s->r=r0;
+	    s.r=r0;
 	    Y=Y0;
 	    C=C0;
 	    A=A0;
@@ -462,21 +462,21 @@ int main(int argc, char *argv[]){
 
 	// interact with the matter
 	if(do_interact)
-	  interact(dr_this_step, *s,eD,eBarD,xD);
+	  interact(dr_this_step, s,eD,eBarD,xD);
 	for(state m=matter; m<=antimatter; m++)
 	  for(int i=0; i<NE; i++)
 	    for(flavour f1=e; f1<=mu; f1++)
 	      for(flavour f2=e; f2<=mu; f2++)
-		assert(s->fmatrixf[m][i][f1][f2] == s->fmatrixf[m][i][f1][f2]);
+		assert(s.fmatrixf[m][i][f1][f2] == s.fmatrixf[m][i][f1][f2]);
 
 	// accumulate S and reset variables
-	array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> old_fmatrixf = s->fmatrixf;
+	array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> old_fmatrixf = s.fmatrixf;
 	for(state m=matter;m<=antimatter;m++){
 	  for(int i=0;i<=NE-1;i++){
 	    SSMSW = W(Y[m][i][msw])*B(Y[m][i][msw]);
 	    SSSI  = W(Y[m][i][si ])*B(Y[m][i][si ]);
 	    SThisStep = SSMSW*SSSI;
-	    s->Scumulative[m][i]=MATRIX<complex<double>,NF,NF>(SThisStep*s->Scumulative[m][i] );
+	    s.Scumulative[m][i]=MATRIX<complex<double>,NF,NF>(SThisStep*s.Scumulative[m][i] );
 
 	    // convert fmatrix from flavor basis to mass basis
 	    // oscillate fmatrix in mass basis
@@ -484,21 +484,21 @@ int main(int argc, char *argv[]){
 	    // don't need to modify pmatrix since it's re-read at each timestep
 	    for(flavour f1=e; f1<=mu; f1++)
 	      for(flavour f2=e; f2<=mu; f2++){
-		assert(s->fmatrixm[m][i][f1][f2] == s->fmatrixm[m][i][f1][f2]);
-		assert(s->fmatrixf[m][i][f1][f2] == s->fmatrixf[m][i][f1][f2]);
+		assert(s.fmatrixm[m][i][f1][f2] == s.fmatrixm[m][i][f1][f2]);
+		assert(s.fmatrixf[m][i][f1][f2] == s.fmatrixf[m][i][f1][f2]);
 	      }
-	    s->fmatrixm[m][i] = SThisStep
-	      * Adjoint( s->U0[m][i] ) 
-	      * s->fmatrixf[m][i] 
-	      * s->U0[m][i]
+	    s.fmatrixm[m][i] = SThisStep
+	      * Adjoint( s.U0[m][i] ) 
+	      * s.fmatrixf[m][i] 
+	      * s.U0[m][i]
 	      * Adjoint( SThisStep );
-	    s->fmatrixf[m][i] = s->U0[m][i]
-	      * s->fmatrixm[m][i] 
-	      * Adjoint(  s->U0[m][i] );
+	    s.fmatrixf[m][i] = s.U0[m][i]
+	      * s.fmatrixm[m][i] 
+	      * Adjoint(  s.U0[m][i] );
 	    for(flavour f1=e; f1<=mu; f1++)
 	      for(flavour f2=e; f2<=mu; f2++){
-		assert(s->fmatrixm[m][i][f1][f2] == s->fmatrixm[m][i][f1][f2]);
-		assert(s->fmatrixf[m][i][f1][f2] == s->fmatrixf[m][i][f1][f2]);
+		assert(s.fmatrixm[m][i][f1][f2] == s.fmatrixm[m][i][f1][f2]);
+		assert(s.fmatrixf[m][i][f1][f2] == s.fmatrixf[m][i][f1][f2]);
 	      }
 	    
 	    // reset the evolution matrix to identity
@@ -515,14 +515,14 @@ int main(int argc, char *argv[]){
 	    // get rate of change of fmatrix from oscillation
 	    double hold[4], hnew[4];
 	    pauli_decompose(old_fmatrixf[m][i], hold);
-	    pauli_decompose(  s->fmatrixf[m][i], hnew);
+	    pauli_decompose(  s.fmatrixf[m][i], hnew);
 	    double oldmag   = sqrt(hold[0]*hold[0] + hold[1]*hold[1] + hold[2]*hold[2]);
 	    double newmag   = sqrt(hnew[0]*hnew[0] + hnew[1]*hnew[1] + hnew[2]*hnew[2]);
 	    double costheta = (hold[0]*hnew[0] + hold[1]*hnew[1] + hold[2]*hnew[2]) / (newmag*oldmag);
 	    assert(costheta-1. < 1e-10);
 	    costheta = min(1.,costheta);
-	    s->dtheta_dr_osc[i][m] = (acos(hnew[2]/newmag) - acos(hold[2]/oldmag)) / dr;
-	    s->dphi_dr_osc[i][m] = (atan2(hnew[1],hnew[0]) - atan2(hold[1],hold[0])) / dr;
+	    s.dtheta_dr_osc[i][m] = (acos(hnew[2]/newmag) - acos(hold[2]/oldmag)) / dr;
+	    s.dphi_dr_osc[i][m] = (atan2(hnew[1],hnew[0]) - atan2(hold[1],hold[0])) / dr;
 	  }
 	}
 
@@ -534,8 +534,8 @@ int main(int argc, char *argv[]){
 	else counterout++;
 	
 	if(output==true || finish==true){
-	  s->update_background(lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP);
-	  Outputvsr(fout,foutP,foutf,foutdangledr,Y,C,A,*s,eP,eBarP,xP);
+	  s.update_background(lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP);
+	  Outputvsr(fout,foutP,foutf,foutdangledr,Y,C,A,s,eP,eBarP,xP);
 	  output=false;
 	}
 
@@ -543,13 +543,13 @@ int main(int argc, char *argv[]){
 	// could be moved up to RK section but better left here 
 	// in case adjustments are necessary based on new S matrices
 	dr = min(dr*pow(accuracy/maxerror,1./max(1,NRKOrder)),increase*dr);
-	drmin = 4.*s->r*numeric_limits<double>::epsilon();
+	drmin = 4.*s.r*numeric_limits<double>::epsilon();
 	dr = max(dr,drmin);
 
       } while(finish==false);
 
-      s->update_background(lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP);
-      Outputvsr(fout,foutP,foutf,foutdangledr,Y,C,A,*s,eP,eBarP,xP);
+      s.update_background(lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP);
+      Outputvsr(fout,foutP,foutf,foutdangledr,Y,C,A,s,eP,eBarP,xP);
     fPvsE.close();
     fFvsE.close();
 
