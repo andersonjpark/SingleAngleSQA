@@ -647,6 +647,8 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr,
       }
       K[m][i][msw][3] = 0.;
       dkkdr[m] = dkdr(UU[m],s.dVfMSWdr[m]);
+      dCCdr[m] = CofactorMatricesDerivatives(Hf[m],s.dVfMSWdr[m],dkkdr[m]);
+      QQ[m] =  Q(UU[m],dkk[m],CC[m],dCCdr[m]);
     }
     
     // ****************
@@ -657,8 +659,6 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr,
       K[matter][i][msw][j]*=dr;
     }
     
-    dCCdr[matter] = CofactorMatricesDerivatives(Hf[matter],s.dVfMSWdr[matter],dkkdr[matter]);
-    QQ[matter] =  Q(UU[matter],dkk[matter],CC[matter],dCCdr[matter]);
     
     K[matter][i][msw][4] = (kk[matter][0]+QQ[matter][0])*dr/M_2PI/cgs::constants::hbarc;
     K[matter][i][msw][5] = (kk[matter][1]+QQ[matter][1])*dr/M_2PI/cgs::constants::hbarc;
@@ -672,9 +672,6 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr,
       for(int k=j;k<=3;k++) K[antimatter][i][msw][j] += JI[antimatter][j][k]*dvdr[antimatter][k];
       K[antimatter][i][msw][j] *= dr;
     }
-
-    dCCdr[antimatter] = CofactorMatricesDerivatives(Hf[antimatter],s.dVfMSWdr[antimatter],dkkdr[antimatter]);
-    QQ[antimatter] = Q(UU[antimatter],dkk[antimatter],CC[antimatter],dCCdr[antimatter]);
 
     K[antimatter][i][msw][4] = (kk[antimatter][0]+QQ[antimatter][0])*dr/M_2PI/cgs::constants::hbarc;
     K[antimatter][i][msw][5] = (kk[antimatter][1]+QQ[antimatter][1])*dr/M_2PI/cgs::constants::hbarc;
