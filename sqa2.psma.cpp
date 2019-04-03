@@ -601,7 +601,6 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr,
     array<array<double,4>,NM> dvdr;
 
     array<array<MATRIX<complex<double>,NF,NF>,NF>,NM> CC;
-    array<MATRIX<complex<double>,NF,NF>,NM> UU;
     array<MATRIX<complex<double>,NF,NF>,NM> BB;
     array<MATRIX<complex<double>,NF,NF>,NM> Ha,HB;
     array<array<double,NF-1>,NM> phase;
@@ -613,17 +612,17 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr,
       array<double,NF-1> dkk = deltak(Hf);
       CC[m]  = CofactorMatrices(Hf,kk[m]);
       array<array<double,NF>,NF> AA = MixingMatrixFactors(CC[m],C0[m][i],A0[m][i]);
-      UU[m] = U(dkk,CC[m],AA);
+      MATRIX<complex<double>,NF,NF> UU = U(dkk,CC[m],AA);
       BB[m]  = B(Y[m][i][msw]);
       Sa[m][i][si] = B(Y[m][i][si]);
-      UWBW[m][i] = UU[m] * W(Y[m][i][msw]) * BB[m] * W(Y[m][i][si]);
+      UWBW[m][i] = UU * W(Y[m][i][msw]) * BB[m] * W(Y[m][i][si]);
 
       phase[m][0] = M_2PI*(Y[m][i][msw][4]-Y[m][i][msw][5]);
       Ha[m][0][1]=0.;
       for(int j=0;j<=NF-2;j++)
 	for(int k=j+1;k<=NF-1;k++)
 	  for(flavour f=e;f<=mu;f++)
-	    Ha[m][j][k]+= conj(UU[m][f][j])*s.dVfMSWdr[m][f][f]*UU[m][f][k];
+	    Ha[m][j][k]+= conj(UU[f][j])*s.dVfMSWdr[m][f][f]*UU[f][k];
     
       Ha[m][0][1] *= I*cgs::constants::hbarc/dkk[0]*exp(I*phase[m][0]);
       Ha[m][1][0] = conj(Ha[m][0][1]);
@@ -643,9 +642,9 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr,
 	K[m][i][msw][j]=0.;
       }
       K[m][i][msw][3] = 0.;
-      array<double,NF> dkkdr = dkdr(UU[m],s.dVfMSWdr[m]);
+      array<double,NF> dkkdr = dkdr(UU,s.dVfMSWdr[m]);
       dCCdr[m] = CofactorMatricesDerivatives(Hf,s.dVfMSWdr[m],dkkdr);
-      QQ[m] =  Q(UU[m],dkk,CC[m],dCCdr[m]);
+      QQ[m] =  Q(UU,dkk,CC[m],dCCdr[m]);
     }
     
     // ****************
