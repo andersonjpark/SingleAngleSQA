@@ -637,14 +637,21 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr,
 
       JI[m] = JInverse(Y[m][i][msw]);
       
-      for(int j=0;j<=2;j++){
-	K[m][i][msw][j]=0.;
-      }
-      K[m][i][msw][3] = 0.;
       array<double,NF> dkkdr = dkdr(UU,s.dVfMSWdr[m]);
       dCCdr[m] = CofactorMatricesDerivatives(Hf,s.dVfMSWdr[m],dkkdr);
       QQ[m] =  Q(UU,dkk,CC[m],dCCdr[m]);
 
+      for(int j=0;j<=2;j++){
+	K[m][i][msw][j]=0.;
+	for(int k=j;k<=3;k++)
+	  K[m][i][msw][j] += JI[m][j][k]*dvdr[m][k];
+      }
+      K[m][i][msw][3] = 0.;
+      K[m][i][msw][4] = (kk[m][0]+QQ[m][0])/M_2PI/cgs::constants::hbarc;
+      K[m][i][msw][5] = (kk[m][1]+QQ[m][1])/M_2PI/cgs::constants::hbarc;
+      for(int j=0;j<NY;j++)
+	K[m][i][msw][j]*=dr;
+      
       // contribution to the self-interaction potential from this energy
       MATRIX<complex<double>,NF,NF> Sfm    = UWBW[m][i]*Sa[m][i][si];
       MATRIX<complex<double>,NF,NF> VfSIE = Sfm * s.pmatrixm0[m][i] * Adjoint(Sfm);
@@ -652,32 +659,6 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr,
       #pragma omp critical
       VfSI[matter] += VfSIE;
     }
-    
-    // ****************
-    // Matter section *
-    // ****************
-    for(int j=0;j<=2;j++){
-      for(int k=j;k<=3;k++) K[matter][i][msw][j] += JI[matter][j][k]*dvdr[matter][k];
-      K[matter][i][msw][j]*=dr;
-    }
-    
-    
-    K[matter][i][msw][4] = (kk[matter][0]+QQ[matter][0])*dr/M_2PI/cgs::constants::hbarc;
-    K[matter][i][msw][5] = (kk[matter][1]+QQ[matter][1])*dr/M_2PI/cgs::constants::hbarc;
-
-    // ********************
-    // Antimatter section *
-    // ********************
-    
-
-    for(int j=0;j<=2;j++){
-      for(int k=j;k<=3;k++) K[antimatter][i][msw][j] += JI[antimatter][j][k]*dvdr[antimatter][k];
-      K[antimatter][i][msw][j] *= dr;
-    }
-
-    K[antimatter][i][msw][4] = (kk[antimatter][0]+QQ[antimatter][0])*dr/M_2PI/cgs::constants::hbarc;
-    K[antimatter][i][msw][5] = (kk[antimatter][1]+QQ[antimatter][1])*dr/M_2PI/cgs::constants::hbarc;
-
   }//end for loop over i
 
   #pragma omp single
