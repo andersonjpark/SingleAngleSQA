@@ -598,7 +598,6 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr,
     array<array<double,NF>,NM> kk;
     array<array<double,4>,NM> dvdr;
 
-    array<array<MATRIX<complex<double>,NF,NF>,NF>,NM> CC;
     array<MATRIX<complex<double>,NF,NF>,NM> Ha,HB;
     array<array<MATRIX<complex<double>,NF,NF>,NF>,NM> dCCdr;
     
@@ -606,9 +605,9 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr,
       MATRIX<complex<double>,NF,NF> Hf = s.HfV[m][i]+s.VfMSW[m];
       kk[m] = k(Hf);
       array<double,NF-1> dkk = deltak(Hf);
-      CC[m]  = CofactorMatrices(Hf,kk[m]);
-      array<array<double,NF>,NF> AA = MixingMatrixFactors(CC[m],C0[m][i],A0[m][i]);
-      MATRIX<complex<double>,NF,NF> UU = U(dkk,CC[m],AA);
+      array<MATRIX<complex<double>,NF,NF>,NF> CC  = CofactorMatrices(Hf,kk[m]);
+      array<array<double,NF>,NF> AA = MixingMatrixFactors(CC,C0[m][i],A0[m][i]);
+      MATRIX<complex<double>,NF,NF> UU = U(dkk,CC,AA);
       MATRIX<complex<double>,NF,NF> BB = B(Y[m][i][msw]);
       Sa[m][i][si] = B(Y[m][i][si]);
       UWBW[m][i] = UU * W(Y[m][i][msw]) * BB * W(Y[m][i][si]);
@@ -637,7 +636,7 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr,
       
       array<double,NF> dkkdr = dkdr(UU,s.dVfMSWdr[m]);
       dCCdr[m] = CofactorMatricesDerivatives(Hf,s.dVfMSWdr[m],dkkdr);
-      array<double,NF> QQ =  Q(UU,dkk,CC[m],dCCdr[m]);
+      array<double,NF> QQ =  Q(UU,dkk,CC,dCCdr[m]);
 
       for(int j=0;j<=2;j++){
 	K[m][i][msw][j]=0.;
