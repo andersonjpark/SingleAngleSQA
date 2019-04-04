@@ -29,6 +29,7 @@ class State{
   // potentials and potential derivatives
   array<MATRIX<complex<double>,NF,NF>,NM> VfMSW, dVfMSWdr, VfSI;
   array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> Scumulative;
+  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> Sf;
 
   // other matrices
   array<array<double,NM>,NE> dphi_dr_interact, dtheta_dr_interact;
@@ -127,6 +128,7 @@ class State{
 	BB[m][i] = B(Y[m][i][msw]);
 	UWBW[m][i] = UU[m][i] * W(Y[m][i][msw]) * BB[m][i] * W(Y[m][i][si]);
 	Sa[m][i][si] = B(Y[m][i][si]);
+	Sf[m][i] = UU[m][i] * UWBW[m][i] * Sa[m][i][si] * Scumulative[m][i];
 
 	// contribution to the self-interaction potential from this energy
 	MATRIX<complex<double>,NF,NF> Sfm    = UWBW[m][i]*Sa[m][i][si];

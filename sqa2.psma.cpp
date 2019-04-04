@@ -587,22 +587,15 @@ void Outputvsr(ofstream &fout,
 	       const array<DISCONTINUOUS,NE>& eBarP,
 	       const array<DISCONTINUOUS,NE>& xP){
 
-  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> Sf;
-  for(int m=matter; m<=antimatter; m++){
-    for(int i=0; i<NE; i++){
-      Sf[m][i] = s.UU[m][i] * s.UWBW[m][i] * s.Sa[m][i][si] * s.Scumulative[m][i];
-    }
-  }
-  
   array<double,NE> ePotentialSum,ebarPotentialSum,heavyPotentialSum;
   array<double,NE> Pe,Pebar,Pheavy;
   for(int i=0;i<=NE-1;i++){
     ePotentialSum[i]=eP[i](s.r);
     ebarPotentialSum[i]=eBarP[i](s.r);
     heavyPotentialSum[i]=xP[i](s.r);
-    Pe    [i] = norm(Sf[matter][i][e ][e ]);
-    Pebar [i] = norm(Sf[antimatter][i][e ][e ]);
-    Pheavy[i] = norm(Sf[matter][i][mu][mu]);
+    Pe    [i] = norm(s.Sf[matter][i][e ][e ]);
+    Pebar [i] = norm(s.Sf[antimatter][i][e ][e ]);
+    Pheavy[i] = norm(s.Sf[matter][i][mu][mu]);
   }
 
 
@@ -611,8 +604,8 @@ void Outputvsr(ofstream &fout,
     for(state m=matter; m<=antimatter; m++){
       for(flavour f1=e; f1<=mu; f1++)
 	for(flavour f2=e; f2<=mu; f2++) {
-	  fout << real(s.Scumulative[m][i][f1][f2] ) << "\t";
-	  fout << imag(s.Scumulative[m][i][f1][f2] ) << "\t";
+	  fout << real(s.Sf[m][i][f1][f2] ) << "\t";
+	  fout << imag(s.Sf[m][i][f1][f2] ) << "\t";
 	}
     }
   fout << endl;
