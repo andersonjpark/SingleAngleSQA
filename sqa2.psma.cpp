@@ -615,8 +615,7 @@ void Outputvsr(ofstream &fout,
 
   array<MATRIX<complex<double>,NF,NF>,NM> VfSI;
 
-  array<array<array<MATRIX<complex<double>,NF,NF>,NM>,NE>,NS> WW,BB;
-  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> Sm, Smf, Sf;
+  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> Sf;
 
   array<double,NE> ePotentialSum,ebarPotentialSum,heavyPotentialSum;
   double totalANuFlux(0.);
@@ -635,33 +634,8 @@ void Outputvsr(ofstream &fout,
 
 
   for(int i=0;i<=NE-1;i++){
-    //---- matter
-    BB[matter][i][msw] = B(s.Y[matter][i][msw]);
-    WW[matter][i][msw] = W(s.Y[matter][i][msw]);
-    BB[matter][i][si] = B(s.Y[matter][i][si]);
-    WW[matter][i][si] = W(s.Y[matter][i][si]);
-    
-    Sm[matter][i] = WW[matter][i][msw]
-      * BB[matter][i][msw]
-      * WW[matter][i][si]
-      * BB[matter][i][si]
-      * s.Scumulative[matter][i];
-    Smf[matter][i]= Sm[matter][i] * Adjoint(s.U0[matter][i]);
-    Sf[matter][i] = s.UU[matter][i] * Smf[matter][i];
-    
-    //---- antimatter
-    BB[antimatter][i][msw] = B(s.Y[antimatter][i][msw]);
-    WW[antimatter][i][msw] = W(s.Y[antimatter][i][msw]);
-    BB[antimatter][i][si] = B(s.Y[antimatter][i][si]);
-    WW[antimatter][i][si] = W(s.Y[antimatter][i][si]);
-    
-    Sm[antimatter][i] = WW[antimatter][i][msw]
-      * BB[antimatter][i][msw]
-      * WW[antimatter][i][si]
-      * BB[antimatter][i][si]
-      * s.Scumulative[antimatter][i];
-    Smf[antimatter][i]= Sm[antimatter][i] * Adjoint(s.U0[antimatter][i]);
-    Sf[antimatter][i] = s.UU[antimatter][i] * Smf[antimatter][i];
+    Sf[matter][i] = s.Sf[matter][i] * s.Scumulative[matter][i]; 
+    Sf[antimatter][i] = s.Sf[antimatter][i] * s.Scumulative[antimatter][i]; 
     
     VfSI[matter] += s.pmatrixf0[matter][i] - Conjugate(s.pmatrixf0[antimatter][i]);
   }
