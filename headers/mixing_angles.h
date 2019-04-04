@@ -398,5 +398,4 @@ array<array<double,NF>,NE> set_kV(const vector<double>& E){
 }
 
 
-
 #endif

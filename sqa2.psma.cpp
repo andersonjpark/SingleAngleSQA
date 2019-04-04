@@ -547,11 +547,7 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr, State& s){
 #pragma omp parallel for collapse(2)
   for(int m=matter; m<=antimatter; m++){
     for(int i=0;i<=NE-1;i++){
-      array<double,NF> kk = k(s.Hf[m][i]);
-      array<double,NF-1> dkk = deltak(s.Hf[m][i]);
-      array<MATRIX<complex<double>,NF,NF>,NF> CC  = CofactorMatrices(s.Hf[m][i],kk);
-      array<array<double,NF>,NF> AA = MixingMatrixFactors(CC,s.C[m][i],s.A[m][i]);
-      MATRIX<complex<double>,NF,NF> UU = U(dkk,CC,AA);
+      MATRIX<complex<double>,NF,NF> UU = U(s.dkk[m][i],s.CC[m][i],s.AA[m][i]);
       MATRIX<complex<double>,NF,NF> BB = B(s.Y[m][i][msw]);
       Sa[m][i][si] = B(s.Y[m][i][si]);
       s.UWBW[m][i] = UU * W(s.Y[m][i][msw]) * BB * W(s.Y[m][i][si]);
@@ -565,7 +561,7 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr, State& s){
 	  for(flavour f=e;f<=mu;f++)
 	    Ha[j][k]+= conj(UU[f][j])*s.dVfMSWdr[m][f][f]*UU[f][k];
     
-      Ha[0][1] *= I*cgs::constants::hbarc/dkk[0]*exp(I*phase[0]);
+      Ha[0][1] *= I*cgs::constants::hbarc/s.dkk[m][i][0]*exp(I*phase[0]);
       Ha[1][0] = conj(Ha[0][1]);
     
       // HB = -I/cgs::constants::hbarc*Ha*BB;
@@ -582,7 +578,7 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr, State& s){
       
       array<double,NF> dkkdr = dkdr(UU,s.dVfMSWdr[m]);
       array<MATRIX<complex<double>,NF,NF>,NF> dCCdr = CofactorMatricesDerivatives(s.Hf[m][i],s.dVfMSWdr[m],dkkdr);
-      array<double,NF> QQ =  Q(UU,dkk,CC,dCCdr);
+      array<double,NF> QQ =  Q(UU,s.dkk[m][i],s.CC[m][i],dCCdr);
 
       for(int j=0;j<=2;j++){
 	K[m][i][msw][j]=0.;
@@ -590,8 +586,8 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr, State& s){
 	  K[m][i][msw][j] += JI[j][k]*dvdr[k];
       }
       K[m][i][msw][3] = 0.;
-      K[m][i][msw][4] = (kk[0]+QQ[0])/M_2PI/cgs::constants::hbarc;
-      K[m][i][msw][5] = (kk[1]+QQ[1])/M_2PI/cgs::constants::hbarc;
+      K[m][i][msw][4] = (s.kk[m][i][0]+QQ[0])/M_2PI/cgs::constants::hbarc;
+      K[m][i][msw][5] = (s.kk[m][i][1]+QQ[1])/M_2PI/cgs::constants::hbarc;
       for(int j=0;j<NY;j++)
 	K[m][i][msw][j]*=dr;
       
