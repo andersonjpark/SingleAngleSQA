@@ -375,7 +375,6 @@ int main(int argc, char *argv[]){
 	  for(int k=0;k<=NRK-1;k++){
 	    s = sReset;
 	    s.r +=AA[k]*dr;
-	    s.update_background(lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP);
 
 	    for(state m = matter; m <= antimatter; m++)
 	      for(int i=0;i<=NE-1;i++)
@@ -384,6 +383,7 @@ int main(int argc, char *argv[]){
 		    for(int l=0;l<=k-1;l++)
 		      s.Y[m][i][x][j] += BB[k][l] * Ks[l][m][i][x][j];
 
+	    s.update_background(lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP);
 	    Ks[k] = K(dr,s);
 	  }
 	  
@@ -521,7 +521,6 @@ int main(int argc, char *argv[]){
 array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr, State& s){
 
   array<array<array<array<double,NY>,NS>,NE>,NM> K;
-  array<array<array<MATRIX<complex<double>,NF,NF>,NS>,NE>,NM> Sa;
 
   s.VfSI[matter] = MATRIX<complex<double>,NF,NF>();
   s.VfSI[antimatter] = MATRIX<complex<double>,NF,NF>();
@@ -529,8 +528,6 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr, State& s){
 #pragma omp parallel for collapse(2)
   for(int m=matter; m<=antimatter; m++){
     for(int i=0;i<=NE-1;i++){
-      Sa[m][i][si] = B(s.Y[m][i][si]);
-
       array<double,NF-1> phase;
       MATRIX<complex<double>,NF,NF> Ha,HB;
       phase[0] = M_2PI*(s.Y[m][i][msw][4]-s.Y[m][i][msw][5]);
@@ -571,7 +568,7 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr, State& s){
 	K[m][i][msw][j]*=dr;
       
       // contribution to the self-interaction potential from this energy
-      MATRIX<complex<double>,NF,NF> Sfm    = s.UWBW[m][i]*Sa[m][i][si];
+      MATRIX<complex<double>,NF,NF> Sfm    = s.UWBW[m][i]*s.Sa[m][i][si];
       s.Sf[m][i] = s.UU[m][i] * Sfm;
       MATRIX<complex<double>,NF,NF> VfSIE = Sfm * s.pmatrixm0[m][i] * Adjoint(Sfm);
       if(m==antimatter) VfSIE = -Conjugate(VfSIE);
@@ -595,8 +592,8 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr, State& s){
       K[m][i][si][4]=dr*real(Ha[0][0])/(M_2PI*cgs::constants::hbarc);
       K[m][i][si][5]=dr*real(Ha[1][1])/(M_2PI*cgs::constants::hbarc);
     
-      HB[0][0]=-I/cgs::constants::hbarc*( Ha[0][1]*Sa[m][i][si][1][0] );
-      HB[0][1]=-I/cgs::constants::hbarc*( Ha[0][1]*Sa[m][i][si][1][1] );
+      HB[0][0]=-I/cgs::constants::hbarc*( Ha[0][1]*s.Sa[m][i][si][1][0] );
+      HB[0][1]=-I/cgs::constants::hbarc*( Ha[0][1]*s.Sa[m][i][si][1][1] );
     
       array<double,4> dvdr;
       dvdr[0]=real(HB[0][1]);

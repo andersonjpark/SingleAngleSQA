@@ -44,6 +44,7 @@ class State{
   array<array<array<MATRIX<complex<double>,NF,NF>,NF>,NE>,NM> CC; 
   array<array<array<array<double,NF>,NF>,NE>,NM> AA;
   array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> UU,BB;
+  array<array<array<MATRIX<complex<double>,NF,NF>,NS>,NE>,NM> Sa;
   
   State(/*string nulibfilename, string eosfilename, double rho_in, double Ye_in, double T_in, double dr0, double mixing, bool do_interact*/const vector<double>& E){
   /*   r=0; */
@@ -136,6 +137,7 @@ class State{
 	UU[m][i] = U(dkk[m][i],CC[m][i],AA[m][i]);
 	BB[m][i] = B(Y[m][i][msw]);
 	UWBW[m][i] = UU[m][i] * W(Y[m][i][msw]) * BB[m][i] * W(Y[m][i][si]);
+	Sa[m][i][si] = B(Y[m][i][si]);
 
       }
     }
