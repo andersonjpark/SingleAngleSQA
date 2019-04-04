@@ -69,7 +69,7 @@ using std::array;
 //======//
 int main(int argc, char *argv[]){
     string inputfilename;
-    ofstream fout,foutC,foutP,foutS, foutf, foutdangledr;
+    ofstream fout,foutP,foutf, foutdangledr;
     
     inputfilename=string(argv[1]);
     ifstream fin(inputfilename.c_str());
@@ -88,7 +88,7 @@ int main(int argc, char *argv[]){
     const int out_every = get_parameter<int>(fin, "out_every");
     fin.close();
     
-    const string outputfilenamestem = outputfilename+"/";
+    init_output(outputfilename, fout, foutP, foutf, foutdangledr);
 
     //nulib_init(nulibfilename, 0);
 
@@ -117,54 +117,6 @@ int main(int argc, char *argv[]){
       xD   [i].Open(potential_directory+"/density_s3_g"+patch::to_string(i+1)+"_.txt",'#');
     }
 
-    // output filestreams: the arrays of ofstreams cannot use the vector container - bug in g++
-    foutS.open((outputfilename+"/S.dat").c_str());
-    foutS.precision(12);
-    foutS.flush();
-    foutP.open((outputfilename+"/2p.dat").c_str());
-    foutP.precision(12);
-    foutP.flush();
-    fout.open((outputfilename+"/out.dat").c_str());
-    fout.precision(12);
-    foutf.open((outputfilename+"/f.dat").c_str());
-    foutf.precision(12);
-    foutf << "# 1:r ";
-    fout << "# 1:r ";
-    for(int i=0; i<NE; i++)
-      for(state m=matter; m<=antimatter; m++)
-	for(flavour f1=e; f1<=mu; f1++)
-	  for(flavour f2=e; f2<=mu; f2++) {
-	    int istart = 2*( f2 + f1*2 + m*2*2 + i*2*2*2) + 2;
-	    foutf << istart   << ":ie"<<i<<"m"<<m<<"f"<<f1<<f2<<"R\t";
-	    foutf << istart+1 << ":ie"<<i<<"m"<<m<<"f"<<f1<<f2<<"I\t";
-	    fout  << istart   << ":ie"<<i<<"m"<<m<<"f"<<f1<<f2<<"R\t";
-	    fout  << istart+1 << ":ie"<<i<<"m"<<m<<"f"<<f1<<f2<<"I\t";
-    }
-    foutf << endl;
-    fout << endl;
-    fout.flush();
-    foutf.flush();
-    
-    foutdangledr.open((outputfilename+"/dangledr.dat").c_str());
-    foutdangledr.precision(12);
-    foutdangledr << "# 1:r ";
-    for(state m=matter; m<=antimatter; m++)
-      for(int i=0; i<NE; i++)
-	foutdangledr << 2+0*NE*2 + i + m*NE << ":OscThetaie"<<i<<"m"<<m<<"\t";
-    for(state m=matter; m<=antimatter; m++)
-      for(int i=0; i<NE; i++)
-	foutdangledr << 2+1*NE*2 + i + m*NE << ":OscPhiie"<<i<<"m"<<m<<"\t";
-    for(state m=matter; m<=antimatter; m++)
-      for(int i=0; i<NE; i++)
-	foutdangledr << 2+2*NE*2 + i + m*NE << ":InteractThetaie"<<i<<"m"<<m<<"\t";
-    for(state m=matter; m<=antimatter; m++)
-      for(int i=0; i<NE; i++)
-	foutdangledr << 2+3*NE*2 + i + m*NE << ":InteractPhiie"<<i<<"m"<<m<<"\t";
-    foutdangledr << endl;
-    foutdangledr.flush();
-    
-    ofstream fPvsE, fFvsE;
-    
     // *************************************************
     // set up global variables defined in parameters.h *
     // *************************************************
@@ -402,8 +354,6 @@ int main(int argc, char *argv[]){
 
       s.update_background(lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP);
       Outputvsr(fout,foutP,foutf,foutdangledr,s,eP,eBarP,xP);
-    fPvsE.close();
-    fFvsE.close();
 
   cout<<"\nFinished\n\a"; cout.flush();
 
