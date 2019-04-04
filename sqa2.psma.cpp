@@ -148,10 +148,7 @@ int main(int argc, char *argv[]){
   // mixing angles to MSW basis at initial point
   for(state m=matter; m<=antimatter; m++){
     for(int i=0;i<=NE-1;i++){
-      MATRIX<complex<double>,NF,NF> Hf0=s.Hf[m][i];
-      array<double,NF> k0=k(Hf0);
-      array<double,NF-1> deltak0=deltak(Hf0);
-      C0[m][i]=CofactorMatrices(Hf0,k0);
+      C0[m][i]=CofactorMatrices(s.Hf[m][i],s.kk[m][i]);
 	
       for(int j=0;j<=NF-1;j++){
 	if(real(C0[m][i][j][mu][e]*CV[i][j][mu][e]) < 0.)
@@ -159,7 +156,7 @@ int main(int argc, char *argv[]){
 	else A0[m][i][j][e]=AV[i][j][e];
 	A0[m][i][j][mu]=AV[i][j][mu];
       }
-      s.U0[m][i]=U(deltak0,C0[m][i],A0[m][i]);
+      s.U0[m][i]=U(s.dkk[m][i],C0[m][i],A0[m][i]);
     }
   }
   s.C = C0;
