@@ -60,7 +60,6 @@ using std::array;
 #include "headers/State.h"
 
 
-MATRIX<complex<double>,NF,NF> B(array<double,NY> y);
 array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr, State& s);
 void Outputvsr(ofstream &fout,
 	       ofstream &foutP,
@@ -517,23 +516,6 @@ int main(int argc, char *argv[]){
 
 
 //===//
-// B //
-//===//
-MATRIX<complex<double>,NF,NF> B(array<double,NY> y){
-  MATRIX<complex<double>,NF,NF> s;
-  double cPsi1=cos(y[0]),sPsi1=sin(y[0]), cPsi2=cos(y[1]),sPsi2=sin(y[1]), cPsi3=cos(y[2]),sPsi3=sin(y[2]);
-  
-  s[0][1] = cPsi1 + I*sPsi1*cPsi2;
-  sPsi1 *= sPsi2;
-  s[0][0] = sPsi1 * (cPsi3 + I*sPsi3);
-
-  s[1][0] = -y[3]*conj(s[0][1]);
-  s[1][1] =  y[3]*conj(s[0][0]);
-
-  return s;
-}
-
-//===//
 // K //
 //===//
 array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr, State& s){
@@ -547,10 +529,8 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr, State& s){
 #pragma omp parallel for collapse(2)
   for(int m=matter; m<=antimatter; m++){
     for(int i=0;i<=NE-1;i++){
-      MATRIX<complex<double>,NF,NF> UU = U(s.dkk[m][i],s.CC[m][i],s.AA[m][i]);
-      MATRIX<complex<double>,NF,NF> BB = B(s.Y[m][i][msw]);
       Sa[m][i][si] = B(s.Y[m][i][si]);
-      s.UWBW[m][i] = UU * W(s.Y[m][i][msw]) * BB * W(s.Y[m][i][si]);
+      s.UWBW[m][i] = s.UU[m][i] * W(s.Y[m][i][msw]) * s.BB[m][i] * W(s.Y[m][i][si]);
 
       array<double,NF-1> phase;
       MATRIX<complex<double>,NF,NF> Ha,HB;
@@ -559,14 +539,14 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr, State& s){
       for(int j=0;j<=NF-2;j++)
 	for(int k=j+1;k<=NF-1;k++)
 	  for(flavour f=e;f<=mu;f++)
-	    Ha[j][k]+= conj(UU[f][j])*s.dVfMSWdr[m][f][f]*UU[f][k];
+	    Ha[j][k]+= conj(s.UU[m][i][f][j])*s.dVfMSWdr[m][f][f]*s.UU[m][i][f][k];
     
       Ha[0][1] *= I*cgs::constants::hbarc/s.dkk[m][i][0]*exp(I*phase[0]);
       Ha[1][0] = conj(Ha[0][1]);
     
       // HB = -I/cgs::constants::hbarc*Ha*BB;
-      HB[0][0]=-I/cgs::constants::hbarc*( Ha[0][1]*BB[1][0] );
-      HB[0][1]=-I/cgs::constants::hbarc*( Ha[0][1]*BB[1][1] );
+      HB[0][0]=-I/cgs::constants::hbarc*( Ha[0][1]*s.BB[m][i][1][0] );
+      HB[0][1]=-I/cgs::constants::hbarc*( Ha[0][1]*s.BB[m][i][1][1] );
 
       array<double,4> dvdr;
       dvdr[0]=real(HB[0][1]);
@@ -576,9 +556,9 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr, State& s){
 
       MATRIX<double,3,4> JI = JInverse(s.Y[m][i][msw]);
       
-      array<double,NF> dkkdr = dkdr(UU,s.dVfMSWdr[m]);
+      array<double,NF> dkkdr = dkdr(s.UU[m][i],s.dVfMSWdr[m]);
       array<MATRIX<complex<double>,NF,NF>,NF> dCCdr = CofactorMatricesDerivatives(s.Hf[m][i],s.dVfMSWdr[m],dkkdr);
-      array<double,NF> QQ =  Q(UU,s.dkk[m][i],s.CC[m][i],dCCdr);
+      array<double,NF> QQ =  Q(s.UU[m][i],s.dkk[m][i],s.CC[m][i],dCCdr);
 
       for(int j=0;j<=2;j++){
 	K[m][i][msw][j]=0.;
@@ -593,7 +573,7 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr, State& s){
       
       // contribution to the self-interaction potential from this energy
       MATRIX<complex<double>,NF,NF> Sfm    = s.UWBW[m][i]*Sa[m][i][si];
-      s.Sf[m][i] = UU * Sfm;
+      s.Sf[m][i] = s.UU[m][i] * Sfm;
       MATRIX<complex<double>,NF,NF> VfSIE = Sfm * s.pmatrixm0[m][i] * Adjoint(Sfm);
       if(m==antimatter) VfSIE = -Conjugate(VfSIE);
       #pragma omp critical

@@ -397,5 +397,23 @@ array<array<double,NF>,NE> set_kV(const vector<double>& E){
   return kV;
 }
 
+//===//
+// B //
+//===//
+MATRIX<complex<double>,NF,NF> B(array<double,NY> y){
+  MATRIX<complex<double>,NF,NF> s;
+  double cPsi1=cos(y[0]),sPsi1=sin(y[0]), cPsi2=cos(y[1]),sPsi2=sin(y[1]), cPsi3=cos(y[2]),sPsi3=sin(y[2]);
+  
+  s[0][1] = cPsi1 + I*sPsi1*cPsi2;
+  sPsi1 *= sPsi2;
+  s[0][0] = sPsi1 * (cPsi3 + I*sPsi3);
+
+  s[1][0] = -y[3]*conj(s[0][1]);
+  s[1][1] =  y[3]*conj(s[0][0]);
+
+  return s;
+}
+
+
 
 #endif

@@ -43,7 +43,7 @@ class State{
   array<array<array<double,NF-1>,NE>,NM> dkk;
   array<array<array<MATRIX<complex<double>,NF,NF>,NF>,NE>,NM> CC; 
   array<array<array<array<double,NF>,NF>,NE>,NM> AA;
-  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> UU;
+  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> UU,BB;
   
   State(/*string nulibfilename, string eosfilename, double rho_in, double Ye_in, double T_in, double dr0, double mixing, bool do_interact*/const vector<double>& E){
   /*   r=0; */
@@ -133,6 +133,8 @@ class State{
 	CC[m][i]  = CofactorMatrices(Hf[m][i],kk[m][i]);
 	AA[m][i] = MixingMatrixFactors(CC[m][i],C[m][i],A[m][i]);
 	UU[m][i] = U(dkk[m][i],CC[m][i],AA[m][i]);
+	BB[m][i] = B(Y[m][i][msw]);
+
       }
     }
 
