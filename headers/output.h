@@ -56,16 +56,14 @@ void Outputvsr(ofstream &fout,
 	       ofstream &foutf,
 	       ofstream &foutdangledr,
 	       const State& s,
-	       const array<DISCONTINUOUS,NE>& eP,
-	       const array<DISCONTINUOUS,NE>& eBarP,
-	       const array<DISCONTINUOUS,NE>& xP){
+	       const array<array<array<DISCONTINUOUS,NF>,NE>,NM>& P_unosc){
 
   array<double,NE> ePotentialSum,ebarPotentialSum,heavyPotentialSum;
   array<double,NE> Pe,Pebar,Pheavy;
   for(int i=0;i<=NE-1;i++){
-    ePotentialSum[i]=eP[i](s.r);
-    ebarPotentialSum[i]=eBarP[i](s.r);
-    heavyPotentialSum[i]=xP[i](s.r);
+    ePotentialSum[i]=P_unosc[matter][i][e](s.r);
+    ebarPotentialSum[i]=P_unosc[antimatter][i][e](s.r);
+    heavyPotentialSum[i]=P_unosc[matter][i][mu](s.r);
     Pe    [i] = norm(s.Sf[matter][i][e ][e ]);
     Pebar [i] = norm(s.Sf[antimatter][i][e ][e ]);
     Pheavy[i] = norm(s.Sf[matter][i][mu][mu]);

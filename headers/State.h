@@ -62,9 +62,7 @@ class State{
   void update_potential(const DISCONTINUOUS& lnrho,
 			const DISCONTINUOUS& temperature,
 			const DISCONTINUOUS& electronfraction,
-			const array<DISCONTINUOUS,NE>& eP,
-			const array<DISCONTINUOUS,NE>& eBarP,
-			const array<DISCONTINUOUS,NE>& xP,
+			const array<array<array<DISCONTINUOUS,NF>,NE>,NM>& P_unosc,
 			const array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& HfV){
     // fluid background
     rho = exp(lnrho(r));
@@ -88,13 +86,11 @@ class State{
     for(int m=matter; m<=antimatter; m++){
       for(int i=0;i<=NE-1;i++){
 	// decompose unoscillated potential
-	double P0 = (m==matter ? eP[i](r) : eBarP[i](r));
-	double P1 = xP[i](r);
 	MATRIX<complex<double>,NF,NF> pmatrixf0;
-	pmatrixf0[e ][e ] = complex<double>(P0,0);
+	pmatrixf0[e ][e ] = complex<double>(P_unosc[m][i][e](r),0);
 	pmatrixf0[mu][e ] = complex<double>(0,0);
 	pmatrixf0[e ][mu] = complex<double>(0,0);
-	pmatrixf0[mu][mu] = complex<double>(P1,0);
+	pmatrixf0[mu][mu] = complex<double>(P_unosc[m][i][mu](r),0);
 
 	// stuff that used to be in K()
 	Hf[m][i] = HfV[m][i]+VfMSW[m];

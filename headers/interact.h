@@ -2,15 +2,13 @@
 #define INTERACT_H
 
 void interact(double dr, State& s,
-	      const array<DISCONTINUOUS,NE>& eD,
-	      const array<DISCONTINUOUS,NE>& eBarD,
-	      const array<DISCONTINUOUS,NE>& xD){
+	      const array<array<array<DISCONTINUOUS,NF>,NE>,NM>& D_unosc){
   
   // save old fmatrix
   array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> old_fmatrixf = s.fmatrixf;
 
   // let neutrinos interact
-  my_interact(s.fmatrixf, dr, s, eD,eBarD,xD);
+  my_interact(s.fmatrixf, dr, s, D_unosc);
   
   // loop through getting rotation matrices
   double hold[4];

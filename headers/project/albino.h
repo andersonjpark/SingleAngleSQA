@@ -42,9 +42,7 @@ T phaseVolDensity(const T density, const unsigned i){
 //============//
 void initialize(State& s,
 		double r,
-		const array<DISCONTINUOUS,NE>& eD,
-		const array<DISCONTINUOUS,NE>& eBarD,
-		const array<DISCONTINUOUS,NE>& xD){
+		const array<array<array<DISCONTINUOUS,NF>,NE>,NM>& D_unosc){
   // T should be MeV
   cout << "Setting initial data." << endl;
   cout << "rho = " << s.rho << " g/ccm" << endl;
@@ -57,19 +55,12 @@ void initialize(State& s,
   /* 					 &__nulibtable_MOD_nulibtable_number_easvariables); */
   
   for(int i=0; i<NE; i++){
-    for(state m=matter; m<=antimatter; m++)
-      for(flavour f1=e; f1<=mu; f1++)
-	for(flavour f2=e; f2<=mu; f2++) 
-	  s.fmatrixf[m][i][f1][f2] = 0;
-    double De = phaseVolDensity(eD[i](r)   , i); //eas.emis(0,i) / eas.abs(0,i); //
-    double Da = phaseVolDensity(eBarD[i](r), i); //eas.emis(1,i) / eas.abs(1,i); //
-    double Dx = phaseVolDensity(xD[i](r)   , i); //eas.emis(2,i) / eas.abs(2,i); //
+    for(state m=matter; m<=antimatter; m++){
+      s.fmatrixf[m][i] = MATRIX<complex<double>,NF,NF>();
+      for(flavour f=e; f<=mu; f++)
+	s.fmatrixf[m][i][f][f] = D_unosc[m][i][f](s.r);
+    }
     
-    s.fmatrixf[    matter][i][e ][e ] = De; 
-    s.fmatrixf[    matter][i][mu][mu] = Dx;
-    s.fmatrixf[antimatter][i][e ][e ] = Da;
-    s.fmatrixf[antimatter][i][mu][mu] = Dx;
-      
     cout << "GROUP " << i << endl;
     /* cout << "\teas.emis = {" << eas.emis(0,i) << ", " << eas.emis(1,i) << ", " << eas.emis(2,i) << "}" << endl; */
     /* cout << "\teas.abs = {" << eas.abs(0,i) << ", " << eas.abs(1,i) << ", " << eas.abs(2,i) << "}" << endl; */
@@ -112,9 +103,7 @@ double dVmudr(double rho, double drhodr, double Ye, double dYedr){ return 0.;}
 
 void my_interact(array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& fmatrixf,
 		 double dr, const State& s,
-		 const array<DISCONTINUOUS,NE>& eD,
-		 const array<DISCONTINUOUS,NE>& eBarD,
-		 const array<DISCONTINUOUS,NE>& xD){
+		 const array<array<array<DISCONTINUOUS,NF>,NE>,NM>& D_unosc){
   
   // don't do anything if too sparse
   if(log10(s.rho) <= __nulibtable_MOD_nulibtable_logrho_min)
@@ -123,9 +112,7 @@ void my_interact(array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& fmatrixf,
   // set up rate matrix
   MATRIX<complex<double>,NF,NF> dfdr, dfbardr, block, blockbar;
   MATRIX<double,NF,NF> Phi0avg, Phi0tilde, Phi0avgbar, Phi0tildebar, Phi0, Phi0bar;
-  vector<MATRIX<complex<double>,NF,NF>> DBackground, DbarBackground;
-  DBackground.resize(eas.ng);
-  DbarBackground.resize(eas.ng);
+  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> DBackground;
 
   // T should be MeV
   nulibtable_range_species_range_energy_(&s.rho, &s.T, &s.Ye, &eas.eas.front(),
@@ -134,21 +121,13 @@ void my_interact(array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& fmatrixf,
   					 &__nulibtable_MOD_nulibtable_number_easvariables);
 
   // get background density
-  for(int ig=0; ig<NE; ig++){
-    DBackground[ig][e ][e ]    =    eD[ig](s.r);
-    DBackground[ig][mu][mu]    =    xD[ig](s.r);
-    DbarBackground[ig][e ][e ] = eBarD[ig](s.r);
-    DbarBackground[ig][mu][mu] =    xD[ig](s.r);
-    DBackground[ig][e][mu]     = 0;
-    DBackground[ig][mu][e]     = 0;
-    DbarBackground[ig][e][mu]  = 0;
-    DbarBackground[ig][mu][e]  = 0;
-    DBackground[ig] = s.Sf[matter][ig]
-      * DBackground[ig]
-      * Adjoint(s.Sf[matter][ig]);
-    DbarBackground[ig] = s.Sf[antimatter][ig]
-      * DbarBackground[ig]
-      * Adjoint(s.Sf[antimatter][ig]);
+  for(state m=matter; m<=antimatter; m++){
+    for(int ig=0; ig<NE; ig++){
+      for(flavour f=e; f<=mu; f++){
+	DBackground[m][ig][e ][e ] = D_unosc[m][ig][f](s.r);
+      }
+      DBackground[m][ig] = s.Sf[m][ig] * DBackground[m][ig] * Adjoint(s.Sf[m][ig]);
+    }
   }
 
   double kappa_e, kappa_ebar, kappa_mu, kappa_avg, kappa_avgbar;
@@ -187,12 +166,12 @@ void my_interact(array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& fmatrixf,
       Phi0tildebar = eas.tilde_matrix(eas.Phi0(1,j,i), eas.Phi0(2,j,i));
       Phi0     = Phi0avg    - Phi0tilde;
       Phi0bar  = Phi0avgbar - Phi0tildebar;
-      block    = eas.blocking_term0(Phi0,    fmatrixf[    matter][i],    DBackground[j]);
-      blockbar = eas.blocking_term0(Phi0bar, fmatrixf[antimatter][i], DbarBackground[j]);
+      block    = eas.blocking_term0(Phi0,    fmatrixf[    matter][i], DBackground[matter][j]);
+      blockbar = eas.blocking_term0(Phi0bar, fmatrixf[antimatter][i], DBackground[antimatter][j]);
       for(flavour f1=e; f1<=mu; f1++)
 	for(flavour f2=e; f2<=mu; f2++){
-	  dfdr   [f1][f2] += phaseVolDensity(   DBackground[j][f1][f2]*Phi0   [f1][f2] - block[f1][f2], i);
-	  dfbardr[f1][f2] += phaseVolDensity(DbarBackground[j][f1][f2]*Phi0bar[f1][f2] - block[f1][f2], i);
+	  dfdr   [f1][f2] += phaseVolDensity(DBackground[matter][j][f1][f2]*Phi0   [f1][f2] - block[f1][f2], i);
+	  dfbardr[f1][f2] += phaseVolDensity(DBackground[antimatter][j][f1][f2]*Phi0bar[f1][f2] - block[f1][f2], i);
 	}
 
       // out-scattering from i to j. for blocking, get phase space vol from D[j] in j
@@ -202,8 +181,8 @@ void my_interact(array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& fmatrixf,
       Phi0tildebar = eas.avg_matrix(eas.Phi0(1,i,j), eas.Phi0(2,i,j));
       Phi0    = Phi0avg    - Phi0tilde;
       Phi0bar = Phi0avgbar - Phi0tildebar;
-      block    = eas.blocking_term0(Phi0   , fmatrixf[    matter][i],    DBackground[j] );
-      blockbar = eas.blocking_term0(Phi0bar, fmatrixf[antimatter][i], DbarBackground[j] );
+      block    = eas.blocking_term0(Phi0   , fmatrixf[    matter][i], DBackground[matter][j] );
+      blockbar = eas.blocking_term0(Phi0bar, fmatrixf[antimatter][i], DBackground[antimatter][j] );
       for(flavour f1=e; f1<=mu; f1++)
 	for(flavour f2=e; f2<=mu; f2++){
 	  dfdr   [f1][f2] += fmatrixf[    matter][i][f1][f2]*Phi0avg   [f1][f2] - phaseVolDensity(block   [f1][f2], j);

@@ -92,13 +92,8 @@ int main(int argc, char *argv[]){
 
   //nulib_init(nulibfilename, 0);
 
-  // interpolation variables
-  DISCONTINUOUS lnrho, Ye, temperature; // rho is the mass density
-  array<DISCONTINUOUS,NE> eP,eBarP,xP;
-  array<DISCONTINUOUS,NE> eD,eBarD,xD;
-
-    
   // load rho and Ye data
+  DISCONTINUOUS lnrho, Ye, temperature; // rho is the mass density
   lnrho.Open(rhofilename,'#');
   Ye.Open(Yefilename,'#');
   temperature.Open(temperaturefilename,'#');
@@ -108,13 +103,16 @@ int main(int argc, char *argv[]){
   lnrho = lnrho.copy_logy();
     
   // load and compute spectral data
-  for(int i=0;i<=NE-1;i++){
-    eP   [i].Open(potential_directory+"/potential_s1_g"+patch::to_string(i+1)+"_.txt",'#');
-    eBarP[i].Open(potential_directory+"/potential_s2_g"+patch::to_string(i+1)+"_.txt",'#');
-    xP   [i].Open(potential_directory+"/potential_s3_g"+patch::to_string(i+1)+"_.txt",'#');
-    eD   [i].Open(potential_directory+"/density_s1_g"+patch::to_string(i+1)+"_.txt",'#');
-    eBarD[i].Open(potential_directory+"/density_s2_g"+patch::to_string(i+1)+"_.txt",'#');
-    xD   [i].Open(potential_directory+"/density_s3_g"+patch::to_string(i+1)+"_.txt",'#');
+  array<array<array<DISCONTINUOUS,NF>,NE>,NM> P_unosc, D_unosc;
+  for(int i=0; i<NE; i++){
+    P_unosc[matter    ][i][e ].Open(potential_directory+"/potential_s1_g"+patch::to_string(i+1)+"_.txt",'#');
+    P_unosc[antimatter][i][e ].Open(potential_directory+"/potential_s2_g"+patch::to_string(i+1)+"_.txt",'#');
+    P_unosc[matter    ][i][mu].Open(potential_directory+"/potential_s3_g"+patch::to_string(i+1)+"_.txt",'#');
+    P_unosc[antimatter][i][mu].Open(potential_directory+"/potential_s3_g"+patch::to_string(i+1)+"_.txt",'#');
+    D_unosc[matter    ][i][e ].Open(potential_directory+"/density_s1_g"+patch::to_string(i+1)+"_.txt",'#');
+    D_unosc[antimatter][i][e ].Open(potential_directory+"/density_s2_g"+patch::to_string(i+1)+"_.txt",'#');
+    D_unosc[matter    ][i][mu].Open(potential_directory+"/density_s3_g"+patch::to_string(i+1)+"_.txt",'#');
+    D_unosc[antimatter][i][mu].Open(potential_directory+"/density_s3_g"+patch::to_string(i+1)+"_.txt",'#');
   }
 
   // *************************************************
@@ -136,7 +134,7 @@ int main(int argc, char *argv[]){
     
   // MSW potential matrix
   s.r=rmin;
-  s.update_potential(lnrho,temperature,Ye,eP,eBarP,xP,HfV);
+  s.update_potential(lnrho,temperature,Ye,P_unosc,HfV);
     
   // mixing angles to MSW basis at initial point
   for(state m=matter; m<=antimatter; m++){
@@ -154,7 +152,7 @@ int main(int argc, char *argv[]){
   }
 
   // yzhu14 density/potential matrices art rmin
-  initialize(s,rmin,eD,eBarD,xD);
+  initialize(s,rmin,D_unosc);
 
   // ***************************************
   // quantities needed for the calculation *
@@ -191,8 +189,8 @@ int main(int argc, char *argv[]){
 	
   finish=output=false;
   counterout=1;
-  s.update_potential(lnrho,temperature,Ye,eP,eBarP,xP,HfV);
-  Outputvsr(fout,foutP,foutf,foutdangledr,s,eP,eBarP,xP);
+  s.update_potential(lnrho,temperature,Ye,P_unosc,HfV);
+  Outputvsr(fout,foutP,foutf,foutdangledr,s,P_unosc);
 	
   for(state m=matter; m<=antimatter; m++)
     for(int i=0; i<NE; i++)
@@ -238,7 +236,7 @@ int main(int argc, char *argv[]){
 		for(int l=0;l<=k-1;l++)
 		  s.Y[m][i][x][j] += BB[k][l] * Ks[l][m][i][x][j];
 
-	s.update_potential(lnrho,temperature,Ye,eP,eBarP,xP,HfV);
+	s.update_potential(lnrho,temperature,Ye,P_unosc,HfV);
 	Ks[k] = K(dr,s);
       }
 	  
@@ -263,7 +261,7 @@ int main(int argc, char *argv[]){
 	  }
 	}
       }
-      s.update_potential(lnrho,temperature,Ye,eP,eBarP,xP,HfV);
+      s.update_potential(lnrho,temperature,Ye,P_unosc,HfV);
 	    
       // decide whether to accept step, if not adjust step size
       dr_this_step = dr;
@@ -279,7 +277,7 @@ int main(int argc, char *argv[]){
 
     // interact with the matter
     if(do_interact)
-      interact(dr_this_step, s,eD,eBarD,xD);
+      interact(dr_this_step, s,D_unosc);
     for(state m=matter; m<=antimatter; m++)
       for(int i=0; i<NE; i++)
 	for(flavour f1=e; f1<=mu; f1++)
@@ -326,8 +324,8 @@ int main(int argc, char *argv[]){
     else counterout++;
 	
     if(output==true || finish==true){
-      s.update_potential(lnrho,temperature,Ye,eP,eBarP,xP,HfV);
-      Outputvsr(fout,foutP,foutf,foutdangledr,s,eP,eBarP,xP);
+      s.update_potential(lnrho,temperature,Ye,P_unosc,HfV);
+      Outputvsr(fout,foutP,foutf,foutdangledr,s,P_unosc);
       output=false;
     }
 
@@ -340,8 +338,8 @@ int main(int argc, char *argv[]){
 
   } while(finish==false);
 
-  s.update_potential(lnrho,temperature,Ye,eP,eBarP,xP,HfV);
-  Outputvsr(fout,foutP,foutf,foutdangledr,s,eP,eBarP,xP);
+  s.update_potential(lnrho,temperature,Ye,P_unosc,HfV);
+  Outputvsr(fout,foutP,foutf,foutdangledr,s,P_unosc);
 
   cout<<"\nFinished\n\a"; cout.flush();
 
