@@ -109,14 +109,6 @@ class State{
 	pmatrixf0[mu][e ] = complex<double>(0,0);
 	pmatrixf0[e ][mu] = complex<double>(0,0);
 	pmatrixf0[mu][mu] = complex<double>(P1,0);
-	
-	// oscillate the potential and put into the mass basis
-	MATRIX<complex<double>,NF,NF> pmatrixm0 =
-	  Scumulative[m][i]
-	  * Adjoint(U0[m][i])
-	  * pmatrixf0
-	  * U0[m][i]
-	  * Adjoint(Scumulative[m][i]);
 
 	// stuff that used to be in K()
 	Hf[m][i] = HfV[m][i]+VfMSW[m];
@@ -128,11 +120,10 @@ class State{
 	BB[m][i] = B(Y[m][i][msw]);
 	UWBW[m][i] = UU[m][i] * W(Y[m][i][msw]) * BB[m][i] * W(Y[m][i][si]);
 	Sa[m][i][si] = B(Y[m][i][si]);
-	Sf[m][i] = UU[m][i] * UWBW[m][i] * Sa[m][i][si] * Scumulative[m][i];
+	Sf[m][i] = UWBW[m][i] * Sa[m][i][si] * Scumulative[m][i] * Adjoint(UU[m][i]);
 
 	// contribution to the self-interaction potential from this energy
-	MATRIX<complex<double>,NF,NF> Sfm    = UWBW[m][i]*Sa[m][i][si];
-	MATRIX<complex<double>,NF,NF> VfSIE = Sfm * pmatrixm0 * Adjoint(Sfm);
+	MATRIX<complex<double>,NF,NF> VfSIE = Sf[m][i] * pmatrixf0 * Adjoint(Sf[m][i]);
 	if(m==antimatter) VfSIE = -Conjugate(VfSIE);
         #pragma omp critical
 	VfSI[matter] += VfSIE;
