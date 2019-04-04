@@ -9,7 +9,7 @@ class State{
   double r;
   double rho, T, Ye;
   double drhodr, dYedr;
-  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> fmatrixf, fmatrixm;
+  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> fmatrixf;
   array<array<array<array<double,NY>,NS>,NE>,NM> Y;
   
   // vacuum matrices set at initial conditions

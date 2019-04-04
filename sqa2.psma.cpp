@@ -84,11 +84,6 @@ void interact(double dr, State& s,
 
   // let neutrinos interact
   my_interact(s.fmatrixf, dr, s, eD,eBarD,xD);
-  for(int i=0; i<NE; i++){
-    for(state m=matter; m<=antimatter; m++){
-      s.fmatrixm[m][i] = Adjoint(s.U0[m][i]) * s.fmatrixf[m][i] * s.U0[m][i];
-    }
-  }
   
   // loop through getting rotation matrices
   double hold[4];
@@ -432,20 +427,16 @@ int main(int argc, char *argv[]){
 	    // don't need to modify pmatrix since it's re-read at each timestep
 	    for(flavour f1=e; f1<=mu; f1++)
 	      for(flavour f2=e; f2<=mu; f2++){
-		assert(s.fmatrixm[m][i][f1][f2] == s.fmatrixm[m][i][f1][f2]);
 		assert(s.fmatrixf[m][i][f1][f2] == s.fmatrixf[m][i][f1][f2]);
 	      }
-	    s.fmatrixm[m][i] = SThisStep
+	    MATRIX<complex<double>,NF,NF> fmatrixm = SThisStep
 	      * Adjoint( s.U0[m][i] ) 
 	      * s.fmatrixf[m][i] 
 	      * s.U0[m][i]
 	      * Adjoint( SThisStep );
-	    s.fmatrixf[m][i] = s.U0[m][i]
-	      * s.fmatrixm[m][i] 
-	      * Adjoint(  s.U0[m][i] );
+	    s.fmatrixf[m][i] = s.U0[m][i] * fmatrixm * Adjoint(s.U0[m][i] );
 	    for(flavour f1=e; f1<=mu; f1++)
 	      for(flavour f2=e; f2<=mu; f2++){
-		assert(s.fmatrixm[m][i][f1][f2] == s.fmatrixm[m][i][f1][f2]);
 		assert(s.fmatrixf[m][i][f1][f2] == s.fmatrixf[m][i][f1][f2]);
 	      }
 	    
