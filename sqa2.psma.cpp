@@ -243,22 +243,6 @@ int main(int argc, char *argv[]){
 
     set_Ebins(E);
     State s(E);
-    // vectors of energies and vacuum eigenvalues
-    //s.kV = set_kV(E);
-    
-    // vaccum mixing matrices and Hamiltonians
-    //Evaluate_UV();
-    
-    //HfV[matter] = vector<MATRIX<complex<double>,NF,NF> >(NE);
-    //HfV[antimatter] = vector<MATRIX<complex<double>,NF,NF> >(NE);
-    //Evaluate_HfV(s.kV);
-    
-    // cofactor matrices in vacuum
-    //CV = Evaluate_CV(s.kV);
-    
-    // mixing matrix element prefactors in vacuum
-    //AV=vector<vector<vector<double> > >(NE,vector<vector<double> >(NF,vector<double>(NF)));
-    //Evaluate_AV(s.kV);
     
     // **************************************
     // quantities evaluated at inital point *
@@ -569,7 +553,6 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr, State& s){
       // *********************
       // SI part of solution *
       // *********************
-      //MATRIX<complex<double>,NF,NF> Ha,HB;
       Ha = Adjoint(s.UWBW[m][i])*s.VfSI[m]*s.UWBW[m][i];
 
       K[m][i][si][4]=dr*real(Ha[0][0])/(M_2PI*cgs::constants::hbarc);
