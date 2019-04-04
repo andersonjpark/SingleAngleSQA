@@ -319,7 +319,7 @@ int main(int argc, char *argv[]){
     // variables followed as a function of r *
     // ***************************************
     
-    array<array<array<array<double,NY>,NS>,NE>,NM> Y, dY, Y0, Yerror;
+    array<array<array<array<double,NY>,NS>,NE>,NM> Y, dY, Y0;
     
     // cofactor matrices
     C=C0;
@@ -414,19 +414,21 @@ int main(int argc, char *argv[]){
 	  
 	  // increment all quantities and update C and A arrays
 	  s.r=r0+dr;
+	  maxerror=0.;
 	  for(state m=matter;m<=antimatter;m++){
 	    for(int i=0;i<=NE-1;i++){
 	      for(solution x=msw;x<=si;x++){
 		for(int j=0;j<=NY-1;j++){
 		  Y[m][i][x][j] = Y0[m][i][x][j];
-		  Yerror[m][i][x][j] = 0.;
+		  double Yerror = 0.;
 		  for(int k=0;k<=NRK-1;k++){
 		    assert(CC[k] == CC[k]);
 		    assert(Ks[k][m][i][x][j] == Ks[k][m][i][x][j]);
 		    Y[m][i][x][j] += CC[k] * Ks[k][m][i][x][j];
-		    Yerror[m][i][x][j] += (CC[k]-DD[k]) * Ks[k][m][i][x][j];
+		    Yerror += (CC[k]-DD[k]) * Ks[k][m][i][x][j];
 		    assert(Y[m][i][x][j] == Y[m][i][x][j]);
 		  }
+		  maxerror = max(maxerror, fabs(Yerror));
 		}
 	      }
 	    }
@@ -434,14 +436,6 @@ int main(int argc, char *argv[]){
 	  
 	  C=UpdateC(s,lnrho,Ye);
 	  A=UpdateA(C,C0,A0);
-	    
-	  // find largest error
-	  maxerror=0.;
-	  for(state m=matter;m<=antimatter;m++)
-	    for(int i=0;i<=NE-1;i++)
-	      for(solution x=msw;x<=si;x++)
-		for(int j=0;j<=NY-1;j++)
-		  maxerror = max( maxerror, fabs(Yerror[m][i][x][j]) );
 	    
 	  // decide whether to accept step, if not adjust step size
 	  dr_this_step = dr;
