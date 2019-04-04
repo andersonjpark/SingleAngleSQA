@@ -6,13 +6,10 @@
 
 class State{
  public:
+  double r;
   double rho, T, Ye;
   double drhodr, dYedr;
-  double r, dr_block, dr_osc, dr_int;
-  int counter;
-  //EAS eas;
   array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> fmatrixf, fmatrixm;
-  hid_t dset_f, dset_r, dset_dr_osc, dset_dr_int, dset_dr_block;
   array<array<array<array<double,NY>,NS>,NE>,NM> Y;
   
   // vacuum matrices set at initial conditions
@@ -46,18 +43,7 @@ class State{
   array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> UU,BB;
   array<array<array<MATRIX<complex<double>,NF,NF>,NS>,NE>,NM> Sa;
   
-  State(/*string nulibfilename, string eosfilename, double rho_in, double Ye_in, double T_in, double dr0, double mixing, bool do_interact*/const vector<double>& E){
-  /*   r=0; */
-  /*   rho = rho_in; */
-  /*   T = T_in; */
-  /*   Ye = Ye_in; */
-  /*   eas = EAS(nulibfilename, eosfilename); */
-  /*   initialize(fmatrixf,eas,rho,T,Ye, mixing, do_interact); */
-  /*   dr_block = dr0; */
-  /*   dr_osc = dr0; */
-  /*   dr_int = dr0; */
-  /*   counter = 0; */
-  
+  State(const vector<double>& E){
     // vectors of energies and vacuum eigenvalues
     kV  = set_kV(E);
     UV  = Evaluate_UV();
