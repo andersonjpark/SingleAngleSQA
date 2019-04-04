@@ -62,7 +62,6 @@ using std::array;
 
 MATRIX<complex<double>,NF,NF> B(array<double,NY> y);
 array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr,
-       array<array<array<array<double,NY>,NS>,NE>,NM>& Y,
        array<array<array<MATRIX<complex<double>,NF,NF>,NF>,NE>,NM>& C0,
        array<array<array<array<double,NF>,NF>,NE>,NM> &A0,
        State& s);
@@ -70,7 +69,6 @@ void Outputvsr(ofstream &fout,
 	       ofstream &foutP,
 	       ofstream &foutf,
 	       ofstream &foutdangledr,
-	       const array<array<array<array<double,NY>,NS>,NE>,NM>& Y,
 	       const array<array<array<MATRIX<complex<double>,NF,NF>,NF>,NE>,NM>& C0,
 	       const array<array<array<array<double,NF>,NF>,NE>,NM>& A0,
 	       const State& s,
@@ -319,7 +317,7 @@ int main(int argc, char *argv[]){
     // variables followed as a function of r *
     // ***************************************
     
-    array<array<array<array<double,NY>,NS>,NE>,NM> Y, Y0;
+    array<array<array<array<double,NY>,NS>,NE>,NM> Y0;
     
     // cofactor matrices
     C=C0;
@@ -342,11 +340,6 @@ int main(int argc, char *argv[]){
       dr=1e-3*cgs::units::cm;
       drmin=4.*s.r*numeric_limits<double>::epsilon();
       
-      for(state m=matter;m<=antimatter;m++)
-	for(int i=0;i<=NE-1;i++){
-	  Y[m][i] = YIdentity;
-	}
-      
       // *************************************************
       // comment out if not following as a function of r *
       // *************************************************
@@ -354,7 +347,7 @@ int main(int argc, char *argv[]){
       finish=output=false;
       counterout=1;
       s.update_background(lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP);
-      Outputvsr(fout,foutP,foutf,foutdangledr,Y,C,A,s,eP,eBarP,xP);
+      Outputvsr(fout,foutP,foutf,foutdangledr,C,A,s,eP,eBarP,xP);
 	
       for(state m=matter; m<=antimatter; m++)
 	for(int i=0; i<NE; i++)
@@ -379,7 +372,7 @@ int main(int argc, char *argv[]){
 	}
 	  
 	r0=s.r;
-	Y0=Y;
+	Y0=s.Y;
 	C0=C;
 	A0=A;
 	  
@@ -394,17 +387,17 @@ int main(int argc, char *argv[]){
 	  repeat=false;
 	  for(int k=0;k<=NRK-1;k++){
 	    s.r=r0+AA[k]*dr;
-	    Y=Y0;
+	    s.Y=Y0;
 
 	    for(state m = matter; m <= antimatter; m++)
 	      for(int i=0;i<=NE-1;i++)
 		for(solution x=msw;x<=si;x++)
 		  for(int j=0;j<=NY-1;j++)
 		    for(int l=0;l<=k-1;l++)
-		      Y[m][i][x][j] += BB[k][l] * Ks[l][m][i][x][j];
+		      s.Y[m][i][x][j] += BB[k][l] * Ks[l][m][i][x][j];
 
 	    s.update_background(lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP);
-	    Ks[k] = K(dr,Y,C,A,s);
+	    Ks[k] = K(dr,C,A,s);
 	  }
 	  
 	  // increment all quantities and update C and A arrays
@@ -414,14 +407,14 @@ int main(int argc, char *argv[]){
 	    for(int i=0;i<=NE-1;i++){
 	      for(solution x=msw;x<=si;x++){
 		for(int j=0;j<=NY-1;j++){
-		  Y[m][i][x][j] = Y0[m][i][x][j];
+		  s.Y[m][i][x][j] = Y0[m][i][x][j];
 		  double Yerror = 0.;
 		  for(int k=0;k<=NRK-1;k++){
 		    assert(CC[k] == CC[k]);
 		    assert(Ks[k][m][i][x][j] == Ks[k][m][i][x][j]);
-		    Y[m][i][x][j] += CC[k] * Ks[k][m][i][x][j];
+		    s.Y[m][i][x][j] += CC[k] * Ks[k][m][i][x][j];
 		    Yerror += (CC[k]-DD[k]) * Ks[k][m][i][x][j];
-		    assert(Y[m][i][x][j] == Y[m][i][x][j]);
+		    assert(s.Y[m][i][x][j] == s.Y[m][i][x][j]);
 		  }
 		  maxerror = max(maxerror, fabs(Yerror));
 		}
@@ -442,7 +435,7 @@ int main(int argc, char *argv[]){
 	  // reset integration variables to those at beginning of step
 	  if(repeat==true){
 	    s.r=r0;
-	    Y=Y0;
+	    s.Y=Y0;
 	    C=C0;
 	    A=A0;
 	  }
@@ -462,8 +455,8 @@ int main(int argc, char *argv[]){
 	array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> old_fmatrixf = s.fmatrixf;
 	for(state m=matter;m<=antimatter;m++){
 	  for(int i=0;i<=NE-1;i++){
-	    SSMSW = W(Y[m][i][msw])*B(Y[m][i][msw]);
-	    SSSI  = W(Y[m][i][si ])*B(Y[m][i][si ]);
+	    SSMSW = W(s.Y[m][i][msw])*B(s.Y[m][i][msw]);
+	    SSSI  = W(s.Y[m][i][si ])*B(s.Y[m][i][si ]);
 	    SThisStep = SSMSW*SSSI;
 	    s.Scumulative[m][i]=MATRIX<complex<double>,NF,NF>(SThisStep*s.Scumulative[m][i] );
 
@@ -491,7 +484,7 @@ int main(int argc, char *argv[]){
 	      }
 	    
 	    // reset the evolution matrix to identity
-	    Y[m][i] = YIdentity;
+	    s.Y[m][i] = YIdentity;
 
 	    // get rate of change of fmatrix from oscillation
 	    double hold[4], hnew[4];
@@ -516,7 +509,7 @@ int main(int argc, char *argv[]){
 	
 	if(output==true || finish==true){
 	  s.update_background(lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP);
-	  Outputvsr(fout,foutP,foutf,foutdangledr,Y,C,A,s,eP,eBarP,xP);
+	  Outputvsr(fout,foutP,foutf,foutdangledr,C,A,s,eP,eBarP,xP);
 	  output=false;
 	}
 
@@ -530,7 +523,7 @@ int main(int argc, char *argv[]){
       } while(finish==false);
 
       s.update_background(lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP);
-      Outputvsr(fout,foutP,foutf,foutdangledr,Y,C,A,s,eP,eBarP,xP);
+      Outputvsr(fout,foutP,foutf,foutdangledr,C,A,s,eP,eBarP,xP);
     fPvsE.close();
     fFvsE.close();
 
@@ -561,7 +554,6 @@ MATRIX<complex<double>,NF,NF> B(array<double,NY> y){
 // K //
 //===//
 array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr,
-       array<array<array<array<double,NY>,NS>,NE>,NM>& Y,
        array<array<array<MATRIX<complex<double>,NF,NF>,NF>,NE>,NM>& C0,
        array<array<array<array<double,NF>,NF>,NE>,NM> &A0,
        State& s){
@@ -581,13 +573,13 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr,
       array<MATRIX<complex<double>,NF,NF>,NF> CC  = CofactorMatrices(Hf,kk);
       array<array<double,NF>,NF> AA = MixingMatrixFactors(CC,C0[m][i],A0[m][i]);
       MATRIX<complex<double>,NF,NF> UU = U(dkk,CC,AA);
-      MATRIX<complex<double>,NF,NF> BB = B(Y[m][i][msw]);
-      Sa[m][i][si] = B(Y[m][i][si]);
-      s.UWBW[m][i] = UU * W(Y[m][i][msw]) * BB * W(Y[m][i][si]);
+      MATRIX<complex<double>,NF,NF> BB = B(s.Y[m][i][msw]);
+      Sa[m][i][si] = B(s.Y[m][i][si]);
+      s.UWBW[m][i] = UU * W(s.Y[m][i][msw]) * BB * W(s.Y[m][i][si]);
 
       array<double,NF-1> phase;
       MATRIX<complex<double>,NF,NF> Ha,HB;
-      phase[0] = M_2PI*(Y[m][i][msw][4]-Y[m][i][msw][5]);
+      phase[0] = M_2PI*(s.Y[m][i][msw][4]-s.Y[m][i][msw][5]);
       Ha[0][1]=0.;
       for(int j=0;j<=NF-2;j++)
 	for(int k=j+1;k<=NF-1;k++)
@@ -607,7 +599,7 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr,
       dvdr[2]=real(HB[0][0]);
       dvdr[3]=imag(HB[0][0]);
 
-      MATRIX<double,3,4> JI = JInverse(Y[m][i][msw]);
+      MATRIX<double,3,4> JI = JInverse(s.Y[m][i][msw]);
       
       array<double,NF> dkkdr = dkdr(UU,s.dVfMSWdr[m]);
       array<MATRIX<complex<double>,NF,NF>,NF> dCCdr = CofactorMatricesDerivatives(Hf,s.dVfMSWdr[m],dkkdr);
@@ -658,7 +650,7 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr,
       dvdr[2]=real(HB[0][0]);
       dvdr[3]=imag(HB[0][0]);
     
-      MATRIX<double,3,4> JI = JInverse(Y[m][i][si]);
+      MATRIX<double,3,4> JI = JInverse(s.Y[m][i][si]);
     
       for(int j=0;j<=2;j++){
 	K[m][i][si][j]=0.;
@@ -681,7 +673,6 @@ void Outputvsr(ofstream &fout,
 	       ofstream &foutP,
 	       ofstream &foutf,
 	       ofstream &foutdangledr,
-	       const array<array<array<array<double,NY>,NS>,NE>,NM>& Y,
 	       const array<array<array<MATRIX<complex<double>,NF,NF>,NF>,NE>,NM>& C0,
 	       const array<array<array<array<double,NF>,NF>,NE>,NM>& A0,
 	       const State& s,
@@ -720,10 +711,10 @@ void Outputvsr(ofstream &fout,
     dkk[matter][i] = deltak(Hf[matter][i]);
     UU[matter][i]  = U(dkk[matter][i],C0[matter][i],A0[matter][i]);
     
-    BB[matter][i][msw] = B(Y[matter][i][msw]);
-    WW[matter][i][msw] = W(Y[matter][i][msw]);
-    BB[matter][i][si] = B(Y[matter][i][si]);
-    WW[matter][i][si] = W(Y[matter][i][si]);
+    BB[matter][i][msw] = B(s.Y[matter][i][msw]);
+    WW[matter][i][msw] = W(s.Y[matter][i][msw]);
+    BB[matter][i][si] = B(s.Y[matter][i][si]);
+    WW[matter][i][si] = W(s.Y[matter][i][si]);
     
     Sm[matter][i] = WW[matter][i][msw]
       * BB[matter][i][msw]
@@ -739,10 +730,10 @@ void Outputvsr(ofstream &fout,
     dkk[antimatter][i] = deltakbar(Hf[antimatter][i]);
     UU[antimatter][i]  = Conjugate(U(dkk[antimatter][i],C0[antimatter][i],A0[antimatter][i]));
     
-    BB[antimatter][i][msw] = B(Y[antimatter][i][msw]);
-    WW[antimatter][i][msw] = W(Y[antimatter][i][msw]);
-    BB[antimatter][i][si] = B(Y[antimatter][i][si]);
-    WW[antimatter][i][si] = W(Y[antimatter][i][si]);
+    BB[antimatter][i][msw] = B(s.Y[antimatter][i][msw]);
+    WW[antimatter][i][msw] = W(s.Y[antimatter][i][msw]);
+    BB[antimatter][i][si] = B(s.Y[antimatter][i][si]);
+    WW[antimatter][i][si] = W(s.Y[antimatter][i][si]);
     
     Sm[antimatter][i] = WW[antimatter][i][msw]
       * BB[antimatter][i][msw]

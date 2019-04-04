@@ -13,7 +13,8 @@ class State{
   //EAS eas;
   array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> fmatrixf, fmatrixm;
   hid_t dset_f, dset_r, dset_dr_osc, dset_dr_int, dset_dr_block;
-
+  array<array<array<array<double,NY>,NS>,NE>,NM> Y;
+  
   // vacuum matrices set at initial conditions
   array<array<double,NF>,NE> kV;
   array<MATRIX<complex<double>,NF,NF>,NM> UV;
@@ -52,13 +53,16 @@ class State{
     AV  = Evaluate_AV(kV,HfV,UV);
     
     // set Scumulative to identity
-    for(int m=0; m<NM; m++)
-      for(int ig=0; ig<NE; ig++)
+    for(int m=0; m<NM; m++){
+      for(int ig=0; ig<NE; ig++){
 	for(int f1=0; f1<NF; f1++){
 	  for(int f2=0; f2<NF; f2++)
 	    Scumulative[m][ig][f1][f2] = 0.;
 	  Scumulative[m][ig][f1][f1] = 1.;
 	}
+	Y[m][ig] = YIdentity;
+      }
+    }
   }
 
 
