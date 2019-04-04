@@ -27,7 +27,7 @@ class State{
   array<array<array<array<double,NF>,NF>,NE>,NM> A;
   
   // potentials and potential derivatives
-  array<MATRIX<complex<double>,NF,NF>,NM> VfMSW, VfSI;
+  array<MATRIX<complex<double>,NF,NF>,NM> VfSI;
 
   // evolution matrices
   // for fm0 in initial matter basis and fm in current matter basis,
@@ -88,6 +88,7 @@ class State{
     dYedr=electronfraction.Derivative(r);
 
     // Matter Potential
+    array<MATRIX<complex<double>,NF,NF>,NM> VfMSW;
     VfMSW[matter][e][e]=Ve(rho,Ye);
     VfMSW[matter][mu][mu]=Vmu(rho,Ye);
     VfMSW[matter][e][mu] = 0;
