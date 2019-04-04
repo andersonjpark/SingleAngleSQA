@@ -18,7 +18,7 @@ class State{
   // vacuum matrices set at initial conditions
   array<array<double,NF>,NE> kV;
   array<MATRIX<complex<double>,NF,NF>,NM> UV;
-  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> HfV, UWBW, Sf;
+  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> HfV, UWBW;
   array<array<MATRIX<complex<double>,NF,NF>,NF>,NE> CV;
   array<array<array<double,NF>,NF>,NE> AV;
 
@@ -143,7 +143,6 @@ class State{
 
 	// contribution to the self-interaction potential from this energy
 	MATRIX<complex<double>,NF,NF> Sfm    = UWBW[m][i]*Sa[m][i][si];
-	Sf[m][i] = UU[m][i] * Sfm;
 	MATRIX<complex<double>,NF,NF> VfSIE = Sfm * pmatrixm0[m][i] * Adjoint(Sfm);
 	if(m==antimatter) VfSIE = -Conjugate(VfSIE);
         #pragma omp critical

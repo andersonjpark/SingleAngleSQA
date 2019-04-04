@@ -596,17 +596,22 @@ void Outputvsr(ofstream &fout,
 	       const array<DISCONTINUOUS,NE>& eBarP,
 	       const array<DISCONTINUOUS,NE>& xP){
 
+  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> Sf;
+  for(int m=matter; m<=antimatter; m++){
+    for(int i=0; i<NE; i++){
+      Sf[m][i] = s.UU[m][i] * s.UWBW[m][i] * s.Sa[m][i][si] * s.Scumulative[m][i];
+    }
+  }
+  
   array<double,NE> ePotentialSum,ebarPotentialSum,heavyPotentialSum;
   array<double,NE> Pe,Pebar,Pheavy;
   for(int i=0;i<=NE-1;i++){
     ePotentialSum[i]=eP[i](s.r);
     ebarPotentialSum[i]=eBarP[i](s.r);
     heavyPotentialSum[i]=xP[i](s.r);
-    MATRIX<complex<double>,NF,NF> S = s.Sf[matter][i] * s.Scumulative[matter][i];
-    MATRIX<complex<double>,NF,NF> Sbar= s.Sf[antimatter][i] * s.Scumulative[antimatter][i];
-    Pe    [i] = norm(S[e ][e ]);
-    Pebar [i] = norm(Sbar[e ][e ]);
-    Pheavy[i] = norm(S[mu][mu]);
+    Pe    [i] = norm(Sf[matter][i][e ][e ]);
+    Pebar [i] = norm(Sf[antimatter][i][e ][e ]);
+    Pheavy[i] = norm(Sf[matter][i][mu][mu]);
   }
 
 
