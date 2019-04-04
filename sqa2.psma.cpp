@@ -344,12 +344,7 @@ int main(int argc, char *argv[]){
       
       for(state m=matter;m<=antimatter;m++)
 	for(int i=0;i<=NE-1;i++){
-	  Y[m][i][msw][0] = Y[m][i][si][0] = M_PI/2.;
-	  Y[m][i][msw][1] = Y[m][i][si][1] = M_PI/2.;
-	  Y[m][i][msw][2] = Y[m][i][si][2] = 0.;
-	  Y[m][i][msw][3] = Y[m][i][si][3] = 1.; // The determinant of the S matrix
-	  Y[m][i][msw][4] = Y[m][i][si][4] = 0.;
-	  Y[m][i][msw][5] = Y[m][i][si][5] = 0.;
+	  Y[m][i] = YIdentity;
 	}
       
       // *************************************************
@@ -496,15 +491,7 @@ int main(int argc, char *argv[]){
 	      }
 	    
 	    // reset the evolution matrix to identity
-	    Y[m][i][msw][0]=Y[m][i][msw][1]=M_PI/2.;
-	    Y[m][i][msw][2]=0.;
-	    Y[m][i][msw][3]=1.;
-	    Y[m][i][msw][4]=Y[m][i][msw][5]=0.;
-	    
-	    Y[m][i][si][0]=Y[m][i][si][1]=M_PI/2.;
-	    Y[m][i][si][2]=0.;
-	    Y[m][i][si][3]=1.;
-	    Y[m][i][si][4]=Y[m][i][si][5]=0.;
+	    Y[m][i] = YIdentity;
 
 	    // get rate of change of fmatrix from oscillation
 	    double hold[4], hnew[4];

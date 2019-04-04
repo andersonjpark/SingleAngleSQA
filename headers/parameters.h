@@ -9,8 +9,14 @@ const int NF=2;
 enum flavour { e, mu };
 flavour operator++(flavour &n,int){ flavour tmp=n; n=(flavour)( (int)n+1 ); return tmp;};
 
+// the problem is broken up into seperate 'solutions'
+const int NS=2; 
+enum solution { msw, si};
+solution operator++(solution &n,int){ solution tmp=n; n=(solution)( (int)n+1 ); return tmp;};
+
 // number of parametrs needed to describe neutrino S matrix
 const int NY=6; 
+const array<array<double,NY>,NS> YIdentity{array<double,NY>{M_PI/2., M_PI/2., 0., 1., 0., 0.},array<double,NY>{M_PI/2., M_PI/2., 0., 1., 0., 0.}};
 
 // number of nuclei followed 
 const int NN=1; 
@@ -20,10 +26,6 @@ const int NE = 16;
 double Emin, Emax;
 vector<double> E; 
 
-// the problem is broken up into seperate 'solutions'
-const int NS=2; 
-enum solution { msw, si};
-solution operator++(solution &n,int){ solution tmp=n; n=(solution)( (int)n+1 ); return tmp;};
 
 /* // vacuum Hamiltonian and mixing matrices */
 /* vector<vector<MATRIX<complex<double>,NF,NF> > > HfV(NM); */
