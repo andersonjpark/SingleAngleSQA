@@ -61,16 +61,11 @@ using std::array;
 
 
 MATRIX<complex<double>,NF,NF> B(array<double,NY> y);
-array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr,
-       array<array<array<MATRIX<complex<double>,NF,NF>,NF>,NE>,NM>& C0,
-       array<array<array<array<double,NF>,NF>,NE>,NM> &A0,
-       State& s);
+array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr, State& s);
 void Outputvsr(ofstream &fout,
 	       ofstream &foutP,
 	       ofstream &foutf,
 	       ofstream &foutdangledr,
-	       const array<array<array<MATRIX<complex<double>,NF,NF>,NF>,NE>,NM>& C0,
-	       const array<array<array<array<double,NF>,NF>,NE>,NM>& A0,
 	       const State& s,
 	       const array<DISCONTINUOUS,NE>& eP,
 	       const array<DISCONTINUOUS,NE>& eBarP,
@@ -276,10 +271,10 @@ int main(int argc, char *argv[]){
     
     
     // cofactor matrices at initial point - will be recycled as cofactor matrices at beginning of every step
-    array<array<array<MATRIX<complex<double>,NF,NF>,NF>,NE>,NM> C0, C;
+    array<array<array<MATRIX<complex<double>,NF,NF>,NF>,NE>,NM> C0;
 
     // mixing matrix element prefactors at initial point - will be recycled like C0
-    array<array<array<array<double,NF>,NF>,NE>,NM> A0, A;
+    array<array<array<array<double,NF>,NF>,NE>,NM> A0;
     
     // mixing angles to MSW basis at initial point
     for(state m=matter; m<=antimatter; m++){
@@ -298,6 +293,8 @@ int main(int argc, char *argv[]){
 	s.U0[m][i]=U(deltak0,C0[m][i],A0[m][i]);
       }
     }
+    s.C = C0;
+    s.A = A0;
 
     // yzhu14 density/potential matrices art rmin
     initialize(s,rmin,eD,eBarD,xD);
@@ -319,11 +316,6 @@ int main(int argc, char *argv[]){
     
     array<array<array<array<double,NY>,NS>,NE>,NM> Y0;
     
-    // cofactor matrices
-    C=C0;
-    // mixing matrix prefactors
-    A=A0;
-        
     // ************************
     // Runge-Kutta quantities *
     // ************************
@@ -347,7 +339,7 @@ int main(int argc, char *argv[]){
       finish=output=false;
       counterout=1;
       s.update_background(lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP);
-      Outputvsr(fout,foutP,foutf,foutdangledr,C,A,s,eP,eBarP,xP);
+      Outputvsr(fout,foutP,foutf,foutdangledr,s,eP,eBarP,xP);
 	
       for(state m=matter; m<=antimatter; m++)
 	for(int i=0; i<NE; i++)
@@ -373,8 +365,8 @@ int main(int argc, char *argv[]){
 	  
 	r0=s.r;
 	Y0=s.Y;
-	C0=C;
-	A0=A;
+	C0=s.C;
+	A0=s.A;
 	  
 	for(state m=matter; m<=antimatter; m++)
 	  for(int i=0; i<NE; i++)
@@ -397,7 +389,7 @@ int main(int argc, char *argv[]){
 		      s.Y[m][i][x][j] += BB[k][l] * Ks[l][m][i][x][j];
 
 	    s.update_background(lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP);
-	    Ks[k] = K(dr,C,A,s);
+	    Ks[k] = K(dr,s);
 	  }
 	  
 	  // increment all quantities and update C and A arrays
@@ -422,8 +414,8 @@ int main(int argc, char *argv[]){
 	    }
 	  }
 	  
-	  C=UpdateC(s,lnrho,Ye);
-	  A=UpdateA(C,C0,A0);
+	  s.C=UpdateC(s,lnrho,Ye);
+	  s.A=UpdateA(s.C,C0,A0);
 	    
 	  // decide whether to accept step, if not adjust step size
 	  dr_this_step = dr;
@@ -436,8 +428,8 @@ int main(int argc, char *argv[]){
 	  if(repeat==true){
 	    s.r=r0;
 	    s.Y=Y0;
-	    C=C0;
-	    A=A0;
+	    s.C=C0;
+	    s.A=A0;
 	  }
 	  
 	}while(repeat==true); // end of RK section
@@ -509,7 +501,7 @@ int main(int argc, char *argv[]){
 	
 	if(output==true || finish==true){
 	  s.update_background(lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP);
-	  Outputvsr(fout,foutP,foutf,foutdangledr,C,A,s,eP,eBarP,xP);
+	  Outputvsr(fout,foutP,foutf,foutdangledr,s,eP,eBarP,xP);
 	  output=false;
 	}
 
@@ -523,7 +515,7 @@ int main(int argc, char *argv[]){
       } while(finish==false);
 
       s.update_background(lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP);
-      Outputvsr(fout,foutP,foutf,foutdangledr,C,A,s,eP,eBarP,xP);
+      Outputvsr(fout,foutP,foutf,foutdangledr,s,eP,eBarP,xP);
     fPvsE.close();
     fFvsE.close();
 
@@ -553,10 +545,7 @@ MATRIX<complex<double>,NF,NF> B(array<double,NY> y){
 //===//
 // K //
 //===//
-array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr,
-       array<array<array<MATRIX<complex<double>,NF,NF>,NF>,NE>,NM>& C0,
-       array<array<array<array<double,NF>,NF>,NE>,NM> &A0,
-       State& s){
+array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr, State& s){
 
   array<array<array<array<double,NY>,NS>,NE>,NM> K;
   array<array<array<MATRIX<complex<double>,NF,NF>,NS>,NE>,NM> Sa;
@@ -571,7 +560,7 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr,
       array<double,NF> kk = k(Hf);
       array<double,NF-1> dkk = deltak(Hf);
       array<MATRIX<complex<double>,NF,NF>,NF> CC  = CofactorMatrices(Hf,kk);
-      array<array<double,NF>,NF> AA = MixingMatrixFactors(CC,C0[m][i],A0[m][i]);
+      array<array<double,NF>,NF> AA = MixingMatrixFactors(CC,s.C[m][i],s.A[m][i]);
       MATRIX<complex<double>,NF,NF> UU = U(dkk,CC,AA);
       MATRIX<complex<double>,NF,NF> BB = B(s.Y[m][i][msw]);
       Sa[m][i][si] = B(s.Y[m][i][si]);
@@ -673,8 +662,6 @@ void Outputvsr(ofstream &fout,
 	       ofstream &foutP,
 	       ofstream &foutf,
 	       ofstream &foutdangledr,
-	       const array<array<array<MATRIX<complex<double>,NF,NF>,NF>,NE>,NM>& C0,
-	       const array<array<array<array<double,NF>,NF>,NE>,NM>& A0,
 	       const State& s,
 	       const array<DISCONTINUOUS,NE>& eP,
 	       const array<DISCONTINUOUS,NE>& eBarP,
@@ -709,7 +696,7 @@ void Outputvsr(ofstream &fout,
     Hf[matter][i]  = s.HfV[matter][i] + s.VfMSW[matter];
     kk[matter][i]  = k(Hf[matter][i]);
     dkk[matter][i] = deltak(Hf[matter][i]);
-    UU[matter][i]  = U(dkk[matter][i],C0[matter][i],A0[matter][i]);
+    UU[matter][i]  = U(dkk[matter][i],s.C[matter][i],s.A[matter][i]);
     
     BB[matter][i][msw] = B(s.Y[matter][i][msw]);
     WW[matter][i][msw] = W(s.Y[matter][i][msw]);
@@ -728,7 +715,7 @@ void Outputvsr(ofstream &fout,
     Hf[antimatter][i]  = s.HfV[antimatter][i] + s.VfMSW[antimatter];
     kk[antimatter][i]  = kbar(Hf[antimatter][i]);
     dkk[antimatter][i] = deltakbar(Hf[antimatter][i]);
-    UU[antimatter][i]  = Conjugate(U(dkk[antimatter][i],C0[antimatter][i],A0[antimatter][i]));
+    UU[antimatter][i]  = Conjugate(U(dkk[antimatter][i],s.C[antimatter][i],s.A[antimatter][i]));
     
     BB[antimatter][i][msw] = B(s.Y[antimatter][i][msw]);
     WW[antimatter][i][msw] = W(s.Y[antimatter][i][msw]);

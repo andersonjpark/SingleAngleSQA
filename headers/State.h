@@ -25,6 +25,10 @@ class State{
   // mixing angles to MSW basis at initial point
   array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> U0;
 
+  // other matrices...
+  array<array<array<MATRIX<complex<double>,NF,NF>,NF>,NE>,NM> C;
+  array<array<array<array<double,NF>,NF>,NE>,NM> A;
+  
   // potentials and potential derivatives
   array<MATRIX<complex<double>,NF,NF>,NM> VfMSW, dVfMSWdr, VfSI;
   array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> pmatrixf0, pmatrixm0, Scumulative;
