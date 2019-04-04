@@ -522,8 +522,6 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr, State& s){
 
   array<array<array<array<double,NY>,NS>,NE>,NM> K;
 
-  s.VfSI[matter] = MATRIX<complex<double>,NF,NF>();
-  s.VfSI[antimatter] = MATRIX<complex<double>,NF,NF>();
   
 #pragma omp parallel for collapse(2)
   for(int m=matter; m<=antimatter; m++){
@@ -566,27 +564,12 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr, State& s){
       K[m][i][msw][5] = (s.kk[m][i][1]+QQ[1])/M_2PI/cgs::constants::hbarc;
       for(int j=0;j<NY;j++)
 	K[m][i][msw][j]*=dr;
+
       
-      // contribution to the self-interaction potential from this energy
-      MATRIX<complex<double>,NF,NF> Sfm    = s.UWBW[m][i]*s.Sa[m][i][si];
-      s.Sf[m][i] = s.UU[m][i] * Sfm;
-      MATRIX<complex<double>,NF,NF> VfSIE = Sfm * s.pmatrixm0[m][i] * Adjoint(Sfm);
-      if(m==antimatter) VfSIE = -Conjugate(VfSIE);
-      #pragma omp critical
-      s.VfSI[matter] += VfSIE;
-    }
-  }//end for loop over i
-
-  #pragma omp single
-  s.VfSI[antimatter]=-Conjugate(s.VfSI[matter]);
-
-  // *********************
-  // SI part of solution *
-  // *********************
-  #pragma omp parallel for collapse(2)
-  for(int m=matter; m<=antimatter; m++){
-    for(int i=0;i<=NE-1;i++){
-      MATRIX<complex<double>,NF,NF> Ha,HB;
+      // *********************
+      // SI part of solution *
+      // *********************
+      //MATRIX<complex<double>,NF,NF> Ha,HB;
       Ha = Adjoint(s.UWBW[m][i])*s.VfSI[m]*s.UWBW[m][i];
 
       K[m][i][si][4]=dr*real(Ha[0][0])/(M_2PI*cgs::constants::hbarc);
@@ -595,13 +578,14 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr, State& s){
       HB[0][0]=-I/cgs::constants::hbarc*( Ha[0][1]*s.Sa[m][i][si][1][0] );
       HB[0][1]=-I/cgs::constants::hbarc*( Ha[0][1]*s.Sa[m][i][si][1][1] );
     
-      array<double,4> dvdr;
+      //array<double,4> dvdr;
       dvdr[0]=real(HB[0][1]);
       dvdr[1]=imag(HB[0][1]);
       dvdr[2]=real(HB[0][0]);
       dvdr[3]=imag(HB[0][0]);
     
-      MATRIX<double,3,4> JI = JInverse(s.Y[m][i][si]);
+      //MATRIX<double,3,4>
+      JI = JInverse(s.Y[m][i][si]);
     
       for(int j=0;j<=2;j++){
 	K[m][i][si][j]=0.;

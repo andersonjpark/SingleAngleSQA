@@ -109,6 +109,8 @@ class State{
     dVfMSWdr[antimatter]=-Conjugate(dVfMSWdr[matter]);
 
     // SI potential
+    VfSI[matter] = MATRIX<complex<double>,NF,NF>();
+    VfSI[antimatter] = MATRIX<complex<double>,NF,NF>();
     #pragma omp parallel for collapse(2)
     for(int m=matter; m<=antimatter; m++){
       for(int i=0;i<=NE-1;i++){
@@ -139,8 +141,17 @@ class State{
 	UWBW[m][i] = UU[m][i] * W(Y[m][i][msw]) * BB[m][i] * W(Y[m][i][si]);
 	Sa[m][i][si] = B(Y[m][i][si]);
 
+	// contribution to the self-interaction potential from this energy
+	MATRIX<complex<double>,NF,NF> Sfm    = UWBW[m][i]*Sa[m][i][si];
+	Sf[m][i] = UU[m][i] * Sfm;
+	MATRIX<complex<double>,NF,NF> VfSIE = Sfm * pmatrixm0[m][i] * Adjoint(Sfm);
+	if(m==antimatter) VfSIE = -Conjugate(VfSIE);
+        #pragma omp critical
+	VfSI[matter] += VfSIE;
       }
     }
+    VfSI[antimatter]=-Conjugate(VfSI[matter]);
+
 
   }
 };
