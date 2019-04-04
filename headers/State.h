@@ -28,7 +28,7 @@ class State{
   
   // potentials and potential derivatives
   array<MATRIX<complex<double>,NF,NF>,NM> VfMSW, dVfMSWdr, VfSI;
-  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> pmatrixf0, pmatrixm0, Scumulative;
+  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> Scumulative;
 
   // other matrices
   array<array<double,NM>,NE> dphi_dr_interact, dtheta_dr_interact;
@@ -103,18 +103,19 @@ class State{
 	// decompose unoscillated potential
 	double P0 = (m==matter ? eP[i](r) : eBarP[i](r));
 	double P1 = xP[i](r);
-	pmatrixf0[m][i][e ][e ] = complex<double>(P0,0);
-	pmatrixf0[m][i][mu][e ] = complex<double>(0,0);
-	pmatrixf0[m][i][e ][mu] = complex<double>(0,0);
-	pmatrixf0[m][i][mu][mu] = complex<double>(P1,0);
+	MATRIX<complex<double>,NF,NF> pmatrixf0;
+	pmatrixf0[e ][e ] = complex<double>(P0,0);
+	pmatrixf0[mu][e ] = complex<double>(0,0);
+	pmatrixf0[e ][mu] = complex<double>(0,0);
+	pmatrixf0[mu][mu] = complex<double>(P1,0);
 	
 	// oscillate the potential and put into the mass basis
-	pmatrixm0[m][i] = Scumulative[m][i]
+	MATRIX<complex<double>,NF,NF> pmatrixm0 =
+	  Scumulative[m][i]
 	  * Adjoint(U0[m][i])
-	  * pmatrixf0[m][i]
+	  * pmatrixf0
 	  * U0[m][i]
 	  * Adjoint(Scumulative[m][i]);
-	pmatrixf0[m][i] =  U0[m][i] * pmatrixm0[m][i] * Adjoint(U0[m][i]);
 
 	// stuff that used to be in K()
 	Hf[m][i] = HfV[m][i]+VfMSW[m];
@@ -129,7 +130,7 @@ class State{
 
 	// contribution to the self-interaction potential from this energy
 	MATRIX<complex<double>,NF,NF> Sfm    = UWBW[m][i]*Sa[m][i][si];
-	MATRIX<complex<double>,NF,NF> VfSIE = Sfm * pmatrixm0[m][i] * Adjoint(Sfm);
+	MATRIX<complex<double>,NF,NF> VfSIE = Sfm * pmatrixm0 * Adjoint(Sfm);
 	if(m==antimatter) VfSIE = -Conjugate(VfSIE);
         #pragma omp critical
 	VfSI[matter] += VfSIE;
