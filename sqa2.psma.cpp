@@ -138,29 +138,20 @@ int main(int argc, char *argv[]){
   s.r=rmin;
   s.update_potential(lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP,HfV);
     
-    
-  // cofactor matrices at initial point - will be recycled as cofactor matrices at beginning of every step
-  array<array<array<MATRIX<complex<double>,NF,NF>,NF>,NE>,NM> C0;
-
-  // mixing matrix element prefactors at initial point - will be recycled like C0
-  array<array<array<array<double,NF>,NF>,NE>,NM> A0;
-    
   // mixing angles to MSW basis at initial point
   for(state m=matter; m<=antimatter; m++){
     for(int i=0;i<=NE-1;i++){
-      C0[m][i]=CofactorMatrices(s.Hf[m][i],s.kk[m][i]);
+      s.C[m][i]=CofactorMatrices(s.Hf[m][i],s.kk[m][i]);
 	
       for(int j=0;j<=NF-1;j++){
-	if(real(C0[m][i][j][mu][e]*CV[i][j][mu][e]) < 0.)
-	  A0[m][i][j][e]=-AV[i][j][e];
-	else A0[m][i][j][e]=AV[i][j][e];
-	A0[m][i][j][mu]=AV[i][j][mu];
+	if(real(s.C[m][i][j][mu][e]*CV[i][j][mu][e]) < 0.)
+	  s.A[m][i][j][e]=-AV[i][j][e];
+	else s.A[m][i][j][e]=AV[i][j][e];
+	s.A[m][i][j][mu]=AV[i][j][mu];
       }
-      s.U0[m][i]=U(s.dkk[m][i],C0[m][i],A0[m][i]);
+      s.U0[m][i]=U(s.dkk[m][i],s.C[m][i],s.A[m][i]);
     }
   }
-  s.C = C0;
-  s.A = A0;
 
   // yzhu14 density/potential matrices art rmin
   initialize(s,rmin,eD,eBarD,xD);
