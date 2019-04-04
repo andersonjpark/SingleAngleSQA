@@ -613,10 +613,6 @@ void Outputvsr(ofstream &fout,
 	       const array<DISCONTINUOUS,NE>& eBarP,
 	       const array<DISCONTINUOUS,NE>& xP){
 
-  array<MATRIX<complex<double>,NF,NF>,NM> VfSI;
-
-  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> Sf;
-
   array<double,NE> ePotentialSum,ebarPotentialSum,heavyPotentialSum;
   double totalANuFlux(0.);
   double totalNuFlux(0.);
@@ -633,20 +629,6 @@ void Outputvsr(ofstream &fout,
   }
 
 
-  for(int i=0;i<=NE-1;i++){
-    Sf[matter][i] = s.Sf[matter][i] * s.Scumulative[matter][i]; 
-    Sf[antimatter][i] = s.Sf[antimatter][i] * s.Scumulative[antimatter][i]; 
-    
-    VfSI[matter] += s.pmatrixf0[matter][i] - Conjugate(s.pmatrixf0[antimatter][i]);
-  }
-  
-  complex<double> Tr=VfSI[matter][e][e]+VfSI[matter][mu][mu];
-  VfSI[matter][e][e]+=Tr;
-  VfSI[matter][mu][mu]+=Tr;
-
-  VfSI[antimatter] = -Conjugate(VfSI[matter]);
-
-
   fout << s.r << "\t";
   for(int i=0; i<NE; i++)
     for(state m=matter; m<=antimatter; m++){
@@ -659,15 +641,16 @@ void Outputvsr(ofstream &fout,
   fout << endl;
   fout.flush();
   for(int i=0;i<NE;i++){
-    fout.flush();
-    Pe    [i] = norm(Sf[    matter][i][e ][e ]);
-    Pebar [i] = norm(Sf[antimatter][i][e ][e ]);
-    Pheavy[i] = norm(Sf[    matter][i][mu][mu]);
+    MATRIX<complex<double>,NF,NF> S = s.Sf[matter][i] * s.Scumulative[matter][i];
+    MATRIX<complex<double>,NF,NF> Sbar= s.Sf[antimatter][i] * s.Scumulative[antimatter][i];
+    Pe    [i] = norm(S[e ][e ]);
+    Pebar [i] = norm(Sbar[e ][e ]);
+    Pheavy[i] = norm(S[mu][mu]);
   }
 
   foutP<<s.r<<"\t"<<Ve(s.rho,s.Ye)<<"\t";//1,2
-  foutP<<real(VfSI[    matter][e ][e ])<<"\t"<<real(VfSI[    matter][mu][mu])<<"\t";
-  foutP<<real(VfSI[antimatter][e ][e ])<<"\t"<<real(VfSI[antimatter][mu][mu])<<"\t";//3,4,5,6
+  foutP<<real(s.VfSI[    matter][e ][e ])<<"\t"<<real(s.VfSI[    matter][mu][mu])<<"\t";
+  foutP<<real(s.VfSI[antimatter][e ][e ])<<"\t"<<real(s.VfSI[antimatter][mu][mu])<<"\t";//3,4,5,6
   Pvalues = averageProbability(Pe,Pebar,Pheavy,ebarPotentialSum,ePotentialSum,heavyPotentialSum);
   totalNuFlux = Pvalues[3];
   totalANuFlux =Pvalues[4];
