@@ -319,7 +319,7 @@ int main(int argc, char *argv[]){
     // variables followed as a function of r *
     // ***************************************
     
-    array<array<array<array<double,NY>,NS>,NE>,NM> Y, dY, Y0;
+    array<array<array<array<double,NY>,NS>,NE>,NM> Y, Y0;
     
     // cofactor matrices
     C=C0;
