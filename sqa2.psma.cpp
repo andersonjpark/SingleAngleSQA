@@ -614,18 +614,16 @@ void Outputvsr(ofstream &fout,
 	       const array<DISCONTINUOUS,NE>& xP){
 
   array<double,NE> ePotentialSum,ebarPotentialSum,heavyPotentialSum;
-  double totalANuFlux(0.);
-  double totalNuFlux(0.);
-  double totalHeavyFlux(0.);
   array<double,NE> Pe,Pebar,Pheavy;
-  array<double,6> Pvalues;
-  array<double,(NE+2)*2> predP;
-
-  MATRIX<complex<double>,NF,NF> p_unosc;
   for(int i=0;i<=NE-1;i++){
     ePotentialSum[i]=eP[i](s.r);
     ebarPotentialSum[i]=eBarP[i](s.r);
     heavyPotentialSum[i]=xP[i](s.r);
+    MATRIX<complex<double>,NF,NF> S = s.Sf[matter][i] * s.Scumulative[matter][i];
+    MATRIX<complex<double>,NF,NF> Sbar= s.Sf[antimatter][i] * s.Scumulative[antimatter][i];
+    Pe    [i] = norm(S[e ][e ]);
+    Pebar [i] = norm(Sbar[e ][e ]);
+    Pheavy[i] = norm(S[mu][mu]);
   }
 
 
@@ -640,27 +638,20 @@ void Outputvsr(ofstream &fout,
     }
   fout << endl;
   fout.flush();
-  for(int i=0;i<NE;i++){
-    MATRIX<complex<double>,NF,NF> S = s.Sf[matter][i] * s.Scumulative[matter][i];
-    MATRIX<complex<double>,NF,NF> Sbar= s.Sf[antimatter][i] * s.Scumulative[antimatter][i];
-    Pe    [i] = norm(S[e ][e ]);
-    Pebar [i] = norm(Sbar[e ][e ]);
-    Pheavy[i] = norm(S[mu][mu]);
-  }
 
   foutP<<s.r<<"\t"<<Ve(s.rho,s.Ye)<<"\t";//1,2
   foutP<<real(s.VfSI[    matter][e ][e ])<<"\t"<<real(s.VfSI[    matter][mu][mu])<<"\t";
   foutP<<real(s.VfSI[antimatter][e ][e ])<<"\t"<<real(s.VfSI[antimatter][mu][mu])<<"\t";//3,4,5,6
-  Pvalues = averageProbability(Pe,Pebar,Pheavy,ebarPotentialSum,ePotentialSum,heavyPotentialSum);
-  totalNuFlux = Pvalues[3];
-  totalANuFlux =Pvalues[4];
-  totalHeavyFlux = Pvalues[5];
+  array<double,6> Pvalues = averageProbability(Pe,Pebar,Pheavy,ebarPotentialSum,ePotentialSum,heavyPotentialSum);
+  double totalNuFlux = Pvalues[3];
+  double totalANuFlux =Pvalues[4];
+  double totalHeavyFlux = Pvalues[5];
   foutP<<totalNuFlux<<"\t";//Nu,7
   foutP<<totalANuFlux<<"\t";//ANu,8
   foutP<<Pvalues[5]<<"\t";//Heavy,9
   foutP<<Pvalues[0]<<"\t"<<Pvalues[1]<<"\t"<<Pvalues[2]<<"\t";//Pe,Pebar,Pheavy;10,11,12
 
-  predP=predictProbability(Pvalues[3],Pvalues[4],Ve(s.rho,s.Ye),E,ebarPotentialSum,ePotentialSum,heavyPotentialSum);
+  array<double,(NE+2)*2> predP=predictProbability(Pvalues[3],Pvalues[4],Ve(s.rho,s.Ye),E,ebarPotentialSum,ePotentialSum,heavyPotentialSum);
   foutP<<predP[0]<<"\t"<<predP[1+NE]<<"\t";//13,14
   for(int i=0;i<NE;i++) foutP<<predP[1+i]<<"\t"<<predP[(NE+1)+i+1]<<"\t";//15,16,...2*(NE-1)+15,
   foutP<<predP[(NE+1)*2]<<"\t"<<predP[(NE+1)*2+1]<<"\t";//2*(NE-1)+17,2*(NE-1)+18
