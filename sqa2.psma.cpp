@@ -374,8 +374,9 @@ int main(int argc, char *argv[]){
 	do{ 
 	  repeat=false;
 	  for(int k=0;k<=NRK-1;k++){
-	    s.r=sReset.r+AA[k]*dr;
-	    s.Y=sReset.Y;
+	    s = sReset;
+	    s.r +=AA[k]*dr;
+	    s.update_background(lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP);
 
 	    for(state m = matter; m <= antimatter; m++)
 	      for(int i=0;i<=NE-1;i++)
@@ -384,7 +385,6 @@ int main(int argc, char *argv[]){
 		    for(int l=0;l<=k-1;l++)
 		      s.Y[m][i][x][j] += BB[k][l] * Ks[l][m][i][x][j];
 
-	    s.update_background(lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP);
 	    Ks[k] = K(dr,s);
 	  }
 	  
