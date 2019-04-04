@@ -615,12 +615,9 @@ void Outputvsr(ofstream &fout,
 
   array<MATRIX<complex<double>,NF,NF>,NM> VfSI;
 
-  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> Hf, UU;
   array<array<array<MATRIX<complex<double>,NF,NF>,NM>,NE>,NS> WW,BB;
   array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> Sm, Smf, Sf;
 
-  array<array<array<double,NF>,NE>,NM> kk;
-  array<array<array<double,NF-1>,NE>,NM> dkk;
   array<double,NE> ePotentialSum,ebarPotentialSum,heavyPotentialSum;
   double totalANuFlux(0.);
   double totalNuFlux(0.);
@@ -639,11 +636,6 @@ void Outputvsr(ofstream &fout,
 
   for(int i=0;i<=NE-1;i++){
     //---- matter
-    Hf[matter][i]  = s.HfV[matter][i] + s.VfMSW[matter];
-    kk[matter][i]  = k(Hf[matter][i]);
-    dkk[matter][i] = deltak(Hf[matter][i]);
-    UU[matter][i]  = U(dkk[matter][i],s.C[matter][i],s.A[matter][i]);
-    
     BB[matter][i][msw] = B(s.Y[matter][i][msw]);
     WW[matter][i][msw] = W(s.Y[matter][i][msw]);
     BB[matter][i][si] = B(s.Y[matter][i][si]);
@@ -655,14 +647,9 @@ void Outputvsr(ofstream &fout,
       * BB[matter][i][si]
       * s.Scumulative[matter][i];
     Smf[matter][i]= Sm[matter][i] * Adjoint(s.U0[matter][i]);
-    Sf[matter][i] = UU[matter][i] * Smf[matter][i];
+    Sf[matter][i] = s.UU[matter][i] * Smf[matter][i];
     
     //---- antimatter
-    Hf[antimatter][i]  = s.HfV[antimatter][i] + s.VfMSW[antimatter];
-    kk[antimatter][i]  = kbar(Hf[antimatter][i]);
-    dkk[antimatter][i] = deltakbar(Hf[antimatter][i]);
-    UU[antimatter][i]  = Conjugate(U(dkk[antimatter][i],s.C[antimatter][i],s.A[antimatter][i]));
-    
     BB[antimatter][i][msw] = B(s.Y[antimatter][i][msw]);
     WW[antimatter][i][msw] = W(s.Y[antimatter][i][msw]);
     BB[antimatter][i][si] = B(s.Y[antimatter][i][si]);
@@ -674,16 +661,8 @@ void Outputvsr(ofstream &fout,
       * BB[antimatter][i][si]
       * s.Scumulative[antimatter][i];
     Smf[antimatter][i]= Sm[antimatter][i] * Adjoint(s.U0[antimatter][i]);
-    Sf[antimatter][i] = UU[antimatter][i] * Smf[antimatter][i];
+    Sf[antimatter][i] = s.UU[antimatter][i] * Smf[antimatter][i];
     
-    // compute contribution to self interaction potential
-    // scattering matrix matter(electron - x) - scattering matrix Antimatter(antielectron - anti-x)
-    // what is VfSI[antimatter]?
-    // MATRIX<complex<double>,NF,NF> p_unosc_matter, p_unosc_antimatter;
-    // getPunosc(r, matter,     i,     p_unosc_matter);
-    // getPunosc(r, antimatter, i, p_unosc_antimatter);
-    // VfSI[matter] += Sf[    matter][i]*p_unosc_matter    *Adjoint(Sf[    matter][i])
-    //   - Conjugate(  Sf[antimatter][i]*p_unosc_antimatter*Adjoint(Sf[antimatter][i]) );
     VfSI[matter] += s.pmatrixf0[matter][i] - Conjugate(s.pmatrixf0[antimatter][i]);
   }
   
