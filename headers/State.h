@@ -108,7 +108,8 @@ class State{
     dVfMSWdr[antimatter]=-Conjugate(dVfMSWdr[matter]);
 
     // SI potential
-    for(state m=matter; m<=antimatter; m++){
+    #pragma omp parallel for collapse(2)
+    for(int m=matter; m<=antimatter; m++){
       for(int i=0;i<=NE-1;i++){
 	// decompose unoscillated potential
 	double P0 = (m==matter ? eP[i](r) : eBarP[i](r));
@@ -134,6 +135,7 @@ class State{
 	AA[m][i] = MixingMatrixFactors(CC[m][i],C[m][i],A[m][i]);
 	UU[m][i] = U(dkk[m][i],CC[m][i],AA[m][i]);
 	BB[m][i] = B(Y[m][i][msw]);
+	UWBW[m][i] = UU[m][i] * W(Y[m][i][msw]) * BB[m][i] * W(Y[m][i][si]);
 
       }
     }

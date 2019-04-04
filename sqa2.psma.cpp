@@ -530,7 +530,6 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr, State& s){
   for(int m=matter; m<=antimatter; m++){
     for(int i=0;i<=NE-1;i++){
       Sa[m][i][si] = B(s.Y[m][i][si]);
-      s.UWBW[m][i] = s.UU[m][i] * W(s.Y[m][i][msw]) * s.BB[m][i] * W(s.Y[m][i][si]);
 
       array<double,NF-1> phase;
       MATRIX<complex<double>,NF,NF> Ha,HB;
