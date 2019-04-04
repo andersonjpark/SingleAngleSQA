@@ -136,7 +136,7 @@ int main(int argc, char *argv[]){
     
   // MSW potential matrix
   s.r=rmin;
-  s.update_potential(lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP,HfV);
+  s.update_potential(lnrho,temperature,Ye,eP,eBarP,xP,HfV);
     
   // mixing angles to MSW basis at initial point
   for(state m=matter; m<=antimatter; m++){
@@ -191,7 +191,7 @@ int main(int argc, char *argv[]){
 	
   finish=output=false;
   counterout=1;
-  s.update_potential(lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP,HfV);
+  s.update_potential(lnrho,temperature,Ye,eP,eBarP,xP,HfV);
   Outputvsr(fout,foutP,foutf,foutdangledr,s,eP,eBarP,xP);
 	
   for(state m=matter; m<=antimatter; m++)
@@ -238,7 +238,7 @@ int main(int argc, char *argv[]){
 		for(int l=0;l<=k-1;l++)
 		  s.Y[m][i][x][j] += BB[k][l] * Ks[l][m][i][x][j];
 
-	s.update_potential(lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP,HfV);
+	s.update_potential(lnrho,temperature,Ye,eP,eBarP,xP,HfV);
 	Ks[k] = K(dr,s);
       }
 	  
@@ -263,7 +263,7 @@ int main(int argc, char *argv[]){
 	  }
 	}
       }
-      s.update_potential(lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP,HfV);
+      s.update_potential(lnrho,temperature,Ye,eP,eBarP,xP,HfV);
 	    
       // decide whether to accept step, if not adjust step size
       dr_this_step = dr;
@@ -326,7 +326,7 @@ int main(int argc, char *argv[]){
     else counterout++;
 	
     if(output==true || finish==true){
-      s.update_potential(lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP,HfV);
+      s.update_potential(lnrho,temperature,Ye,eP,eBarP,xP,HfV);
       Outputvsr(fout,foutP,foutf,foutdangledr,s,eP,eBarP,xP);
       output=false;
     }
@@ -340,7 +340,7 @@ int main(int argc, char *argv[]){
 
   } while(finish==false);
 
-  s.update_potential(lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP,HfV);
+  s.update_potential(lnrho,temperature,Ye,eP,eBarP,xP,HfV);
   Outputvsr(fout,foutP,foutf,foutdangledr,s,eP,eBarP,xP);
 
   cout<<"\nFinished\n\a"; cout.flush();
