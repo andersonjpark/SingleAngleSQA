@@ -120,8 +120,14 @@ int main(int argc, char *argv[]){
   // *************************************************
   // set up global variables defined in parameters.h *
   // *************************************************
-
+  // vectors of energies and vacuum eigenvalues
   set_Ebins(E);
+  const array<array<double,NF>,NE> kV = set_kV(E);
+  const array<MATRIX<complex<double>,NF,NF>,NM> UV = Evaluate_UV();
+  const array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> HfV = Evaluate_HfV(kV,UV);
+  const array<array<MATRIX<complex<double>,NF,NF>,NF>,NE> CV  = Evaluate_CV(kV, HfV);
+  const array<array<array<double,NF>,NF>,NE> AV = Evaluate_AV(kV,HfV,UV);
+  
   State s(E);
     
   // **************************************
@@ -130,7 +136,7 @@ int main(int argc, char *argv[]){
     
   // MSW potential matrix
   s.r=rmin;
-  s.update_background(lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP);
+  s.update_potential(lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP,HfV);
     
     
   // cofactor matrices at initial point - will be recycled as cofactor matrices at beginning of every step
@@ -148,10 +154,10 @@ int main(int argc, char *argv[]){
       C0[m][i]=CofactorMatrices(Hf0,k0);
 	
       for(int j=0;j<=NF-1;j++){
-	if(real(C0[m][i][j][mu][e]*s.CV[i][j][mu][e]) < 0.)
-	  A0[m][i][j][e]=-s.AV[i][j][e];
-	else A0[m][i][j][e]=s.AV[i][j][e];
-	A0[m][i][j][mu]=s.AV[i][j][mu];
+	if(real(C0[m][i][j][mu][e]*CV[i][j][mu][e]) < 0.)
+	  A0[m][i][j][e]=-AV[i][j][e];
+	else A0[m][i][j][e]=AV[i][j][e];
+	A0[m][i][j][mu]=AV[i][j][mu];
       }
       s.U0[m][i]=U(deltak0,C0[m][i],A0[m][i]);
     }
@@ -197,7 +203,7 @@ int main(int argc, char *argv[]){
 	
   finish=output=false;
   counterout=1;
-  s.update_background(lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP);
+  s.update_potential(lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP,HfV);
   Outputvsr(fout,foutP,foutf,foutdangledr,s,eP,eBarP,xP);
 	
   for(state m=matter; m<=antimatter; m++)
@@ -244,7 +250,7 @@ int main(int argc, char *argv[]){
 		for(int l=0;l<=k-1;l++)
 		  s.Y[m][i][x][j] += BB[k][l] * Ks[l][m][i][x][j];
 
-	s.update_background(lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP);
+	s.update_potential(lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP,HfV);
 	Ks[k] = K(dr,s);
       }
 	  
@@ -269,7 +275,7 @@ int main(int argc, char *argv[]){
 	  }
 	}
       }
-      s.update_background(lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP);
+      s.update_potential(lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP,HfV);
 	    
       // decide whether to accept step, if not adjust step size
       dr_this_step = dr;
@@ -332,7 +338,7 @@ int main(int argc, char *argv[]){
     else counterout++;
 	
     if(output==true || finish==true){
-      s.update_background(lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP);
+      s.update_potential(lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP,HfV);
       Outputvsr(fout,foutP,foutf,foutdangledr,s,eP,eBarP,xP);
       output=false;
     }
@@ -346,7 +352,7 @@ int main(int argc, char *argv[]){
 
   } while(finish==false);
 
-  s.update_background(lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP);
+  s.update_potential(lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP,HfV);
   Outputvsr(fout,foutP,foutf,foutdangledr,s,eP,eBarP,xP);
 
   cout<<"\nFinished\n\a"; cout.flush();

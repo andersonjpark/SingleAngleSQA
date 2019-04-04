@@ -12,16 +12,10 @@ class State{
   array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> fmatrixf;
   array<array<array<array<double,NY>,NS>,NE>,NM> Y;
   
-  // vacuum matrices set at initial conditions
-  array<array<double,NF>,NE> kV;
-  array<MATRIX<complex<double>,NF,NF>,NM> UV;
-  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> HfV, UWBW;
-  array<array<MATRIX<complex<double>,NF,NF>,NF>,NE> CV;
-  array<array<array<double,NF>,NF>,NE> AV;
-
   // mixing angles to MSW basis at initial point
   array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> U0;
-
+  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> UWBW;
+  
   // other matrices...
   array<array<array<MATRIX<complex<double>,NF,NF>,NF>,NE>,NM> C;
   array<array<array<array<double,NF>,NF>,NE>,NM> A;
@@ -50,12 +44,6 @@ class State{
   array<array<array<MATRIX<complex<double>,NF,NF>,NS>,NE>,NM> Sa;
   
   State(const vector<double>& E){
-    // vectors of energies and vacuum eigenvalues
-    kV  = set_kV(E);
-    UV  = Evaluate_UV();
-    HfV = Evaluate_HfV(kV,UV);
-    CV  = Evaluate_CV(kV, HfV);
-    AV  = Evaluate_AV(kV,HfV,UV);
     
     // set Scumulative to identity
     for(int m=0; m<NM; m++){
@@ -71,15 +59,16 @@ class State{
   }
 
 
-  void update_background(const DISCONTINUOUS& lnrho,
-			 const DISCONTINUOUS& temperature,
-			 const DISCONTINUOUS& electronfraction,
-			 const array<DISCONTINUOUS,NE>& eD,
-			 const array<DISCONTINUOUS,NE>& eBarD,
-			 const array<DISCONTINUOUS,NE>& xD,
-			 const array<DISCONTINUOUS,NE>& eP,
-			 const array<DISCONTINUOUS,NE>& eBarP,
-			 const array<DISCONTINUOUS,NE>& xP){
+  void update_potential(const DISCONTINUOUS& lnrho,
+			const DISCONTINUOUS& temperature,
+			const DISCONTINUOUS& electronfraction,
+			const array<DISCONTINUOUS,NE>& eD,
+			const array<DISCONTINUOUS,NE>& eBarD,
+			const array<DISCONTINUOUS,NE>& xD,
+			const array<DISCONTINUOUS,NE>& eP,
+			const array<DISCONTINUOUS,NE>& eBarP,
+			const array<DISCONTINUOUS,NE>& xP,
+			const array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& HfV){
     // fluid background
     rho = exp(lnrho(r));
     T = temperature(r);
