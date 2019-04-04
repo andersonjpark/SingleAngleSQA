@@ -8,10 +8,18 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr, const State& s){
 
   array<array<array<array<double,NY>,NS>,NE>,NM> K;
 
+  // derivative of MSW potential
+  array<MATRIX<complex<double>,NF,NF>,NM> dVfMSWdr;
+  dVfMSWdr[matter][e][e]=dVedr(s.rho,s.drhodr,s.Ye,s.dYedr);
+  dVfMSWdr[matter][mu][mu]=dVmudr(s.rho,s.drhodr,s.Ye,s.dYedr);
+  dVfMSWdr[matter][e][mu]=0;
+  dVfMSWdr[matter][mu][e]=0;
+  dVfMSWdr[antimatter]=-Conjugate(dVfMSWdr[matter]);
   
 #pragma omp parallel for collapse(2)
   for(int m=matter; m<=antimatter; m++){
     for(int i=0;i<=NE-1;i++){
+
       array<double,NF-1> phase;
       MATRIX<complex<double>,NF,NF> Ha,HB;
       phase[0] = M_2PI*(s.Y[m][i][msw][4]-s.Y[m][i][msw][5]);
@@ -19,7 +27,7 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr, const State& s){
       for(int j=0;j<=NF-2;j++)
 	for(int k=j+1;k<=NF-1;k++)
 	  for(flavour f=e;f<=mu;f++)
-	    Ha[j][k]+= conj(s.UU[m][i][f][j])*s.dVfMSWdr[m][f][f]*s.UU[m][i][f][k];
+	    Ha[j][k]+= conj(s.UU[m][i][f][j])*dVfMSWdr[m][f][f]*s.UU[m][i][f][k];
     
       Ha[0][1] *= I*cgs::constants::hbarc/s.dkk[m][i][0]*exp(I*phase[0]);
       Ha[1][0] = conj(Ha[0][1]);
@@ -36,8 +44,8 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr, const State& s){
 
       MATRIX<double,3,4> JI = JInverse(s.Y[m][i][msw]);
       
-      array<double,NF> dkkdr = dkdr(s.UU[m][i],s.dVfMSWdr[m]);
-      array<MATRIX<complex<double>,NF,NF>,NF> dCCdr = CofactorMatricesDerivatives(s.Hf[m][i],s.dVfMSWdr[m],dkkdr);
+      array<double,NF> dkkdr = dkdr(s.UU[m][i],dVfMSWdr[m]);
+      array<MATRIX<complex<double>,NF,NF>,NF> dCCdr = CofactorMatricesDerivatives(s.Hf[m][i],dVfMSWdr[m],dkkdr);
       array<double,NF> QQ =  Q(s.UU[m][i],s.dkk[m][i],s.CC[m][i],dCCdr);
 
       for(int j=0;j<=2;j++){

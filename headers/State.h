@@ -27,7 +27,7 @@ class State{
   array<array<array<array<double,NF>,NF>,NE>,NM> A;
   
   // potentials and potential derivatives
-  array<MATRIX<complex<double>,NF,NF>,NM> VfMSW, dVfMSWdr, VfSI;
+  array<MATRIX<complex<double>,NF,NF>,NM> VfMSW, VfSI;
 
   // evolution matrices
   // for fm0 in initial matter basis and fm in current matter basis,
@@ -94,12 +94,6 @@ class State{
     VfMSW[matter][mu][e] = 0;
     VfMSW[antimatter]=-Conjugate(VfMSW[matter]);
     
-    dVfMSWdr[matter][e][e]=dVedr(rho,drhodr,Ye,dYedr);
-    dVfMSWdr[matter][mu][mu]=dVmudr(rho,drhodr,Ye,dYedr);
-    dVfMSWdr[matter][e][mu]=0;
-    dVfMSWdr[matter][mu][e]=0;
-    dVfMSWdr[antimatter]=-Conjugate(dVfMSWdr[matter]);
-
     // SI potential
     VfSI[matter] = MATRIX<complex<double>,NF,NF>();
     VfSI[antimatter] = MATRIX<complex<double>,NF,NF>();
