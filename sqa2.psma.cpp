@@ -70,7 +70,6 @@ void Outputvsr(ofstream &fout,
 	       const array<DISCONTINUOUS,NE>& eBarP,
 	       const array<DISCONTINUOUS,NE>& xP);
 
-#include "headers/update.h"
 #include "headers/project/albino.h"
 //#include "headers/project/test_case_B.h"
 
@@ -387,9 +386,7 @@ int main(int argc, char *argv[]){
 	      }
 	    }
 	  }
-	  
-	  s.C=UpdateC(s,lnrho,Ye);
-	  s.A=UpdateA(s.C,sReset.C,sReset.A);
+	  s.update_background(lnrho,temperature,Ye,eD,eBarD,xD,eP,eBarP,xP);
 	    
 	  // decide whether to accept step, if not adjust step size
 	  dr_this_step = dr;
