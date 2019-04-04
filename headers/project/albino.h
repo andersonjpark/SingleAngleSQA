@@ -143,20 +143,12 @@ void my_interact(array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& fmatrixf,
     DBackground[ig][mu][e]     = 0;
     DbarBackground[ig][e][mu]  = 0;
     DbarBackground[ig][mu][e]  = 0;
-    DBackground[ig] = s.U0[matter][ig]
-      * s.Scumulative[matter][ig]
-      * Adjoint(s.U0[matter][ig])
+    DBackground[ig] = s.Sf[matter][ig]
       * DBackground[ig]
-      * s.U0[matter][ig]
-      * Adjoint(s.Scumulative[matter][ig])
-      * Adjoint(s.U0[matter][ig]);
-    DbarBackground[ig] = s.U0[antimatter][ig]
-      * s.Scumulative[antimatter][ig]
-      * Adjoint(s.U0[antimatter][ig])
+      * Adjoint(s.Sf[matter][ig]);
+    DbarBackground[ig] = s.Sf[antimatter][ig]
       * DbarBackground[ig]
-      * s.U0[antimatter][ig]
-      * Adjoint(s.Scumulative[antimatter][ig])
-      * Adjoint(s.U0[antimatter][ig]);
+      * Adjoint(s.Sf[antimatter][ig]);
   }
 
   double kappa_e, kappa_ebar, kappa_mu, kappa_avg, kappa_avgbar;
