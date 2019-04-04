@@ -419,26 +419,16 @@ int main(int argc, char *argv[]){
 	    SSMSW = W(s.Y[m][i][msw])*B(s.Y[m][i][msw]);
 	    SSSI  = W(s.Y[m][i][si ])*B(s.Y[m][i][si ]);
 	    SThisStep = SSMSW*SSSI;
-	    s.Scumulative[m][i]=MATRIX<complex<double>,NF,NF>(SThisStep*s.Scumulative[m][i] );
+	    s.Scumulative[m][i] = SThisStep*s.Scumulative[m][i];
 
-	    // convert fmatrix from flavor basis to mass basis
-	    // oscillate fmatrix in mass basis
-	    // convert back to flavor basis->
-	    // don't need to modify pmatrix since it's re-read at each timestep
-	    for(flavour f1=e; f1<=mu; f1++)
-	      for(flavour f2=e; f2<=mu; f2++){
-		assert(s.fmatrixf[m][i][f1][f2] == s.fmatrixf[m][i][f1][f2]);
-	      }
-	    MATRIX<complex<double>,NF,NF> fmatrixm = SThisStep
-	      * Adjoint( s.U0[m][i] ) 
-	      * s.fmatrixf[m][i] 
-	      * s.U0[m][i]
-	      * Adjoint( SThisStep );
-	    s.fmatrixf[m][i] = s.U0[m][i] * fmatrixm * Adjoint(s.U0[m][i] );
-	    for(flavour f1=e; f1<=mu; f1++)
-	      for(flavour f2=e; f2<=mu; f2++){
-		assert(s.fmatrixf[m][i][f1][f2] == s.fmatrixf[m][i][f1][f2]);
-	      }
+	    // convert fmatrix from flavor basis to (reset-point) mass basis
+	    // evolve fmatrix from reset-point to current-point mass basis
+	    // convert fmatrix from (current-point) mass basis to flavor basis
+	    MATRIX<complex<double>,NF,NF> SfThisStep =
+	      s.UU[m][i]
+	      * SThisStep
+	      * Adjoint(sReset.UU[m][i]);
+	    s.fmatrixf[m][i] = SfThisStep * sReset.fmatrixf[m][i] * Adjoint(SfThisStep);
 	    
 	    // reset the evolution matrix to identity
 	    s.Y[m][i] = YIdentity;

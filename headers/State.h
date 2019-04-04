@@ -28,6 +28,11 @@ class State{
   
   // potentials and potential derivatives
   array<MATRIX<complex<double>,NF,NF>,NM> VfMSW, dVfMSWdr, VfSI;
+
+  // evolution matrices
+  // for fm0 in initial matter basis and fm in current matter basis,
+  // fm = Scumulative fm0 Scumulative^+
+  // Sf goes from flavor basis to flavor basis
   array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> Scumulative;
   array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> Sf;
 
