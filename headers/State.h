@@ -37,6 +37,10 @@ class State{
   array<array<double,NM>,NE> dphi_dr_interact, dtheta_dr_interact;
   array<array<double,NM>,NE> dphi_dr_osc,      dtheta_dr_osc;
 
+  // stuff that used to be in K()
+  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> Hf;
+
+  
   State(/*string nulibfilename, string eosfilename, double rho_in, double Ye_in, double T_in, double dr0, double mixing, bool do_interact*/const vector<double>& E){
   /*   r=0; */
   /*   rho = rho_in; */
@@ -117,6 +121,9 @@ class State{
 	  * U0[m][i]
 	  * Adjoint(Scumulative[m][i]);
 	pmatrixf0[m][i] =  U0[m][i] * pmatrixm0[m][i] * Adjoint(U0[m][i]);
+
+	// stuff that used to be in K()
+	Hf[m][i] = HfV[m][i]+VfMSW[m];
       }
     }
 

@@ -547,10 +547,9 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr, State& s){
 #pragma omp parallel for collapse(2)
   for(int m=matter; m<=antimatter; m++){
     for(int i=0;i<=NE-1;i++){
-      MATRIX<complex<double>,NF,NF> Hf = s.HfV[m][i]+s.VfMSW[m];
-      array<double,NF> kk = k(Hf);
-      array<double,NF-1> dkk = deltak(Hf);
-      array<MATRIX<complex<double>,NF,NF>,NF> CC  = CofactorMatrices(Hf,kk);
+      array<double,NF> kk = k(s.Hf[m][i]);
+      array<double,NF-1> dkk = deltak(s.Hf[m][i]);
+      array<MATRIX<complex<double>,NF,NF>,NF> CC  = CofactorMatrices(s.Hf[m][i],kk);
       array<array<double,NF>,NF> AA = MixingMatrixFactors(CC,s.C[m][i],s.A[m][i]);
       MATRIX<complex<double>,NF,NF> UU = U(dkk,CC,AA);
       MATRIX<complex<double>,NF,NF> BB = B(s.Y[m][i][msw]);
@@ -582,7 +581,7 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr, State& s){
       MATRIX<double,3,4> JI = JInverse(s.Y[m][i][msw]);
       
       array<double,NF> dkkdr = dkdr(UU,s.dVfMSWdr[m]);
-      array<MATRIX<complex<double>,NF,NF>,NF> dCCdr = CofactorMatricesDerivatives(Hf,s.dVfMSWdr[m],dkkdr);
+      array<MATRIX<complex<double>,NF,NF>,NF> dCCdr = CofactorMatricesDerivatives(s.Hf[m][i],s.dVfMSWdr[m],dkkdr);
       array<double,NF> QQ =  Q(UU,dkk,CC,dCCdr);
 
       for(int j=0;j<=2;j++){
