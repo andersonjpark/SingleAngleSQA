@@ -120,7 +120,7 @@ class State{
 	BB[m][i] = B(Y[m][i][msw]);
 	UWBW[m][i] = UU[m][i] * W(Y[m][i][msw]) * BB[m][i] * W(Y[m][i][si]);
 	Sa[m][i][si] = B(Y[m][i][si]);
-	Sf[m][i] = UWBW[m][i] * Sa[m][i][si] * Scumulative[m][i] * Adjoint(UU[m][i]);
+	Sf[m][i] = UWBW[m][i] * Sa[m][i][si] * Scumulative[m][i] * Adjoint(U0[m][i]);
 
 	// contribution to the self-interaction potential from this energy
 	MATRIX<complex<double>,NF,NF> VfSIE = Sf[m][i] * pmatrixf0 * Adjoint(Sf[m][i]);
