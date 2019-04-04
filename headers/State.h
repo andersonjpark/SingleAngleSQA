@@ -34,7 +34,7 @@ class State{
   // fm = Scumulative fm0 Scumulative^+
   // Sf goes from flavor basis to flavor basis
   array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> Scumulative;
-  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> Sf;
+  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> Sf, SThisStep;
 
   // other matrices
   array<array<double,NM>,NE> dphi_dr_interact, dtheta_dr_interact;
@@ -125,6 +125,7 @@ class State{
 	BB[m][i] = B(Y[m][i][msw]);
 	UWBW[m][i] = UU[m][i] * W(Y[m][i][msw]) * BB[m][i] * W(Y[m][i][si]);
 	Sa[m][i][si] = B(Y[m][i][si]);
+	SThisStep[m][i] = W(Y[m][i][msw]) * BB[m][i] * W(Y[m][i][si]) * Sa[m][i][si];
 	Sf[m][i] = UWBW[m][i] * Sa[m][i][si] * Scumulative[m][i] * Adjoint(U0[m][i]);
 
 	// contribution to the self-interaction potential from this energy

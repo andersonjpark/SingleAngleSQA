@@ -184,9 +184,6 @@ int main(int argc, char *argv[]){
     
   array<array<array<array<array<double,NY>,NS>,NE>,NM>,NRK> Ks;
     
-  // temporaries
-  MATRIX<complex<double>,NF,NF> SSMSW,SSSI,SThisStep;
-    
     
   // *****************************************
   // initialize at beginning of every domain *
@@ -299,17 +296,14 @@ int main(int argc, char *argv[]){
     array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> old_fmatrixf = s.fmatrixf;
     for(state m=matter;m<=antimatter;m++){
       for(int i=0;i<=NE-1;i++){
-	SSMSW = W(s.Y[m][i][msw])*B(s.Y[m][i][msw]);
-	SSSI  = W(s.Y[m][i][si ])*B(s.Y[m][i][si ]);
-	SThisStep = SSMSW*SSSI;
-	s.Scumulative[m][i] = SThisStep*s.Scumulative[m][i];
+	s.Scumulative[m][i] = s.SThisStep[m][i] * s.Scumulative[m][i];
 
 	// convert fmatrix from flavor basis to (reset-point) mass basis
 	// evolve fmatrix from reset-point to current-point mass basis
 	// convert fmatrix from (current-point) mass basis to flavor basis
 	MATRIX<complex<double>,NF,NF> SfThisStep =
 	  s.UU[m][i]
-	  * SThisStep
+	  * s.SThisStep[m][i]
 	  * Adjoint(sReset.UU[m][i]);
 	s.fmatrixf[m][i] = SfThisStep * sReset.fmatrixf[m][i] * Adjoint(SfThisStep);
 	    
