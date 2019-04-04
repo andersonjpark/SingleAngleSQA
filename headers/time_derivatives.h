@@ -4,7 +4,7 @@
 //===//
 // K //
 //===//
-array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr, State& s){
+array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr, const State& s){
 
   array<array<array<array<double,NY>,NS>,NE>,NM> K;
 
