@@ -302,7 +302,7 @@ int main(int argc, char *argv[]){
     // ***************************************
     // quantities needed for the calculation *
     // ***************************************
-    double r0,dr,drmin,dr_this_step;
+    double dr,drmin,dr_this_step;
     
     double maxerror,increase=3.;
     bool repeat, finish, resetflag, output;
@@ -314,7 +314,6 @@ int main(int argc, char *argv[]){
     // variables followed as a function of r *
     // ***************************************
     
-    array<array<array<array<double,NY>,NS>,NE>,NM> Y0;
     
     // ************************
     // Runge-Kutta quantities *
@@ -363,10 +362,7 @@ int main(int argc, char *argv[]){
 	  output=true;
 	}
 	  
-	r0=s.r;
-	Y0=s.Y;
-	C0=s.C;
-	A0=s.A;
+	State sReset = s;
 	  
 	for(state m=matter; m<=antimatter; m++)
 	  for(int i=0; i<NE; i++)
@@ -378,8 +374,8 @@ int main(int argc, char *argv[]){
 	do{ 
 	  repeat=false;
 	  for(int k=0;k<=NRK-1;k++){
-	    s.r=r0+AA[k]*dr;
-	    s.Y=Y0;
+	    s.r=sReset.r+AA[k]*dr;
+	    s.Y=sReset.Y;
 
 	    for(state m = matter; m <= antimatter; m++)
 	      for(int i=0;i<=NE-1;i++)
@@ -393,13 +389,13 @@ int main(int argc, char *argv[]){
 	  }
 	  
 	  // increment all quantities and update C and A arrays
-	  s.r=r0+dr;
+	  s.r= sReset.r+dr;
+	  s.Y = sReset.Y;
 	  maxerror=0.;
 	  for(state m=matter;m<=antimatter;m++){
 	    for(int i=0;i<=NE-1;i++){
 	      for(solution x=msw;x<=si;x++){
 		for(int j=0;j<=NY-1;j++){
-		  s.Y[m][i][x][j] = Y0[m][i][x][j];
 		  double Yerror = 0.;
 		  for(int k=0;k<=NRK-1;k++){
 		    assert(CC[k] == CC[k]);
@@ -415,7 +411,7 @@ int main(int argc, char *argv[]){
 	  }
 	  
 	  s.C=UpdateC(s,lnrho,Ye);
-	  s.A=UpdateA(s.C,C0,A0);
+	  s.A=UpdateA(s.C,sReset.C,sReset.A);
 	    
 	  // decide whether to accept step, if not adjust step size
 	  dr_this_step = dr;
@@ -425,12 +421,7 @@ int main(int argc, char *argv[]){
 	  }
 
 	  // reset integration variables to those at beginning of step
-	  if(repeat==true){
-	    s.r=r0;
-	    s.Y=Y0;
-	    s.C=C0;
-	    s.A=A0;
-	  }
+	  if(repeat==true) s = sReset;
 	  
 	}while(repeat==true); // end of RK section
 
