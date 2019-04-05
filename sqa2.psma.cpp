@@ -263,7 +263,7 @@ int main(int argc, char *argv[]){
 	}
       }
       s.update_potential(lnrho,temperature,Ye,P_unosc,HfV,s0);
-	    
+
       // decide whether to accept step, if not adjust step size
       dr_this_step = dr;
       if(maxerror>accuracy){
@@ -279,12 +279,8 @@ int main(int argc, char *argv[]){
     // interact with the matter
     if(do_interact)
       interact(dr_this_step, s,D_unosc);
-    for(state m=matter; m<=antimatter; m++)
-      for(int i=0; i<NE; i++)
-	for(flavour f1=e; f1<=mu; f1++)
-	  for(flavour f2=e; f2<=mu; f2++)
-	    assert(s.fmatrixf[m][i][f1][f2] == s.fmatrixf[m][i][f1][f2]);
-
+    s.assert_noNaN();
+    
     // accumulate S and reset variables
     s.accumulate_S(dr, sReset);
     
@@ -296,7 +292,6 @@ int main(int argc, char *argv[]){
     else counterout++;
 	
     if(output==true || finish==true){
-      s.update_potential(lnrho,temperature,Ye,P_unosc,HfV,s0);
       Outputvsr(fout,foutP,foutf,foutdangledr,s,P_unosc);
       output=false;
     }
@@ -310,7 +305,6 @@ int main(int argc, char *argv[]){
 
   } while(finish==false);
 
-  s.update_potential(lnrho,temperature,Ye,P_unosc,HfV,s0);
   Outputvsr(fout,foutP,foutf,foutdangledr,s,P_unosc);
 
   cout<<"\nFinished\n\a"; cout.flush();
