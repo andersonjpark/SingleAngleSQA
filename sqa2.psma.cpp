@@ -147,7 +147,7 @@ int main(int argc, char *argv[]){
 	else s.AA[m][i][j][e]=AV[i][j][e];
 	s.AA[m][i][j][mu]=AV[i][j][mu];
       }
-      s.U0[m][i]=U(s.dkk[m][i],s.CC[m][i],s.AA[m][i]);
+      s.UU[m][i]=U(s.dkk[m][i],s.CC[m][i],s.AA[m][i]);
     }
   }
 

@@ -13,7 +13,6 @@ class State{
   array<array<array<array<double,NY>,NS>,NE>,NM> Y;
   
   // mixing angles to MSW basis at initial point
-  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> U0;
   array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> UWBW;
   
   // potentials and potential derivatives
@@ -100,7 +99,7 @@ class State{
 	UWBW[m][i] = UU[m][i] * W(Y[m][i][msw]) * BB[m][i] * W(Y[m][i][si]);
 	Sa[m][i][si] = B(Y[m][i][si]);
 	SThisStep[m][i] = W(Y[m][i][msw]) * BB[m][i] * W(Y[m][i][si]) * Sa[m][i][si];
-	Sf[m][i] = UWBW[m][i] * Sa[m][i][si] * Scumulative[m][i] * Adjoint(U0[m][i]);
+	Sf[m][i] = UWBW[m][i] * Sa[m][i][si] * Scumulative[m][i] * Adjoint(s0.UU[m][i]);
 
 	// contribution to the self-interaction potential from this energy
 	MATRIX<complex<double>,NF,NF> VfSIE = Sf[m][i] * pmatrixf0 * Adjoint(Sf[m][i]);
