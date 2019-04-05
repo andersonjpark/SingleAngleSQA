@@ -49,7 +49,7 @@ void interact(double dr, State& s,
       pauli_reconstruct(Rcoeff, R);
 
       // apply to Scumulative
-      s.Scumulative[m][i] = MATRIX<complex<double>,NF,NF>(Adjoint(s.U0[m][i]) * R * s.U0[m][i] * s.Scumulative[m][i]);
+      s.Scumulative[m][i] = Adjoint(s.UU[m][i]) * R * s.UU[m][i] * s.Scumulative[m][i];
     }
   }
 }
