@@ -160,16 +160,8 @@ int main(int argc, char *argv[]){
   // ***************************************
   double dr,drmin,dr_this_step;
     
-  double maxerror,increase=3.;
-  bool repeat, finish, resetflag, output;
+  double increase=3.;
   int counterout;
-    
-  // comment out if not following as a function of r
-    
-  // ***************************************
-  // variables followed as a function of r *
-  // ***************************************
-    
     
   // ************************
   // Runge-Kutta quantities *
@@ -188,7 +180,6 @@ int main(int argc, char *argv[]){
   // comment out if not following as a function of r *
   // *************************************************
 	
-  finish=output=false;
   counterout=1;
   s.update_potential(lnrho,temperature,Ye,P_unosc,HfV,s0);
   Outputvsr(fout,foutP,foutf,foutdangledr,s,P_unosc);
@@ -196,6 +187,7 @@ int main(int argc, char *argv[]){
   // ***********************
   // start the loop over r *
   // ***********************
+  bool finish = false;
   do{ 
     double intkm = int(s.r/1e5)*1e5;
     if(s.r - intkm <= dr){
@@ -203,15 +195,18 @@ int main(int argc, char *argv[]){
       cout.flush();
     }
 
+    bool output = false;
     if(s.r+dr>rmax){
       dr=rmax-s.r;
       finish=true;
       output=true;
     }
-	  
+
     // beginning of RK section
     s.assert_noNaN();
     State sReset = s;
+    bool repeat = false;
+    double maxerror = 0;
     do{ 
       repeat=false;
       for(int k=0;k<=NRK-1;k++){
