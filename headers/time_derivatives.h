@@ -33,8 +33,8 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr, const State& s){
       Ha[1][0] = conj(Ha[0][1]);
     
       // HB = -I/cgs::constants::hbarc*Ha*BB;
-      HB[0][0]=-I/cgs::constants::hbarc*( Ha[0][1]*s.BB[m][i][1][0] );
-      HB[0][1]=-I/cgs::constants::hbarc*( Ha[0][1]*s.BB[m][i][1][1] );
+      HB[0][0]=-I/cgs::constants::hbarc*( Ha[0][1]*s.BB[m][i][msw][1][0] );
+      HB[0][1]=-I/cgs::constants::hbarc*( Ha[0][1]*s.BB[m][i][msw][1][1] );
 
       array<double,4> dvdr;
       dvdr[0]=real(HB[0][1]);
@@ -68,8 +68,8 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr, const State& s){
       K[m][i][si][4]=dr*real(Ha[0][0])/(M_2PI*cgs::constants::hbarc);
       K[m][i][si][5]=dr*real(Ha[1][1])/(M_2PI*cgs::constants::hbarc);
     
-      HB[0][0]=-I/cgs::constants::hbarc*( Ha[0][1]*s.Sa[m][i][si][1][0] );
-      HB[0][1]=-I/cgs::constants::hbarc*( Ha[0][1]*s.Sa[m][i][si][1][1] );
+      HB[0][0]=-I/cgs::constants::hbarc*( Ha[0][1]*s.BB[m][i][si][1][0] );
+      HB[0][1]=-I/cgs::constants::hbarc*( Ha[0][1]*s.BB[m][i][si][1][1] );
     
       //array<double,4> dvdr;
       dvdr[0]=real(HB[0][1]);
