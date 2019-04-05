@@ -154,7 +154,8 @@ int main(int argc, char *argv[]){
 	
   counterout=1;
   s.update_potential(lnrho,temperature,Ye,P_unosc,HfV,s0);
-  Outputvsr(fout,foutP,foutf,foutdangledr,s,P_unosc);
+  //Outputvsr(fout,foutP,foutf,foutdangledr,s,P_unosc);
+  write_data_HDF5(fp, s);
 	
   // ***********************
   // start the loop over r *
@@ -226,7 +227,8 @@ int main(int argc, char *argv[]){
 
       // reset integration variables to those at beginning of step
       if(repeat==true) s = sReset;
-	  
+      else s.counter++;
+      
     }while(repeat==true); // end of RK section
 
     // interact with the matter
@@ -245,7 +247,8 @@ int main(int argc, char *argv[]){
     else counterout++;
 	
     if(output==true || finish==true){
-      Outputvsr(fout,foutP,foutf,foutdangledr,s,P_unosc);
+      //Outputvsr(fout,foutP,foutf,foutdangledr,s,P_unosc);
+      write_data_HDF5(fp, s);
       output=false;
     }
 
@@ -258,7 +261,8 @@ int main(int argc, char *argv[]){
 
   } while(finish==false);
 
-  Outputvsr(fout,foutP,foutf,foutdangledr,s,P_unosc);
+  //Outputvsr(fout,foutP,foutf,foutdangledr,s,P_unosc);
+  write_data_HDF5(fp, s);
 
   cout<<"\nFinished\n\a"; cout.flush();
 
