@@ -59,7 +59,7 @@ using std::array;
 #include "headers/misc.h"
 #include "headers/State.h"
 #include "headers/time_derivatives.h"
-#include "headers/output.h"
+#include "headers/IO.h"
 #include "headers/project/albino.h"
 #include "headers/interact.h"
 #include "headers/nulib_interface.h"
@@ -76,10 +76,7 @@ int main(int argc, char *argv[]){
     
   // load the nulib table
   const string nulibfilename = get_parameter<string>(fin,"nulibfilename");
-  const string potential_directory = get_parameter<string>(fin,"potential_directory");
-  const string rhofilename = get_parameter<string>(fin, "rhofilename");
-  const string Yefilename = get_parameter<string>(fin, "Yefilename");
-  const string temperaturefilename = get_parameter<string>(fin, "temparaturefilename");
+  const string input_directory = get_parameter<string>(fin,"input_directory");
   const string outputfilename = get_parameter<string>(fin, "outputfilename");
   const double rmin = get_parameter<double>(fin, "rmin"); // cm
   const double rmax = get_parameter<double>(fin, "rmax"); // cm
@@ -92,28 +89,11 @@ int main(int argc, char *argv[]){
 
   //nulib_init(nulibfilename, 0);
 
-  // load rho and Ye data
-  DISCONTINUOUS lnrho, Ye, temperature; // rho is the mass density
-  lnrho.Open(rhofilename,'#');
-  Ye.Open(Yefilename,'#');
-  temperature.Open(temperaturefilename,'#');
+  DISCONTINUOUS lnrho, Ye, temperature;
+  array<array<array<DISCONTINUOUS,NF>,NE>,NM> P_unosc, D_unosc;
+  load_input_data(input_directory, lnrho, Ye, temperature, P_unosc, D_unosc);
   assert(rmin >= lnrho.XMin());
   assert(rmin <= lnrho.XMax());
-
-  lnrho = lnrho.copy_logy();
-    
-  // load and compute spectral data
-  array<array<array<DISCONTINUOUS,NF>,NE>,NM> P_unosc, D_unosc;
-  for(int i=0; i<NE; i++){
-    P_unosc[matter    ][i][e ].Open(potential_directory+"/potential_s1_g"+patch::to_string(i+1)+"_.txt",'#');
-    P_unosc[antimatter][i][e ].Open(potential_directory+"/potential_s2_g"+patch::to_string(i+1)+"_.txt",'#');
-    P_unosc[matter    ][i][mu].Open(potential_directory+"/potential_s3_g"+patch::to_string(i+1)+"_.txt",'#');
-    P_unosc[antimatter][i][mu].Open(potential_directory+"/potential_s3_g"+patch::to_string(i+1)+"_.txt",'#');
-    D_unosc[matter    ][i][e ].Open(potential_directory+"/density_s1_g"+patch::to_string(i+1)+"_.txt",'#');
-    D_unosc[antimatter][i][e ].Open(potential_directory+"/density_s2_g"+patch::to_string(i+1)+"_.txt",'#');
-    D_unosc[matter    ][i][mu].Open(potential_directory+"/density_s3_g"+patch::to_string(i+1)+"_.txt",'#');
-    D_unosc[antimatter][i][mu].Open(potential_directory+"/density_s3_g"+patch::to_string(i+1)+"_.txt",'#');
-  }
 
   // *************************************************
   // set up global variables defined in parameters.h *

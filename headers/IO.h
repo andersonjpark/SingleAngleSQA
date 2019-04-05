@@ -1,5 +1,33 @@
 #ifndef OUTPUT_H
 #define OUTPUT_H
+#include <string>
+
+void load_input_data(string input_directory,
+		     DISCONTINUOUS& lnrho,
+		     DISCONTINUOUS& Ye,
+		     DISCONTINUOUS& temperature,
+		     array<array<array<DISCONTINUOUS,NF>,NE>,NM>& P_unosc,
+		     array<array<array<DISCONTINUOUS,NF>,NE>,NM>& D_unosc){
+
+  // load rho and Ye data
+  lnrho.Open(input_directory+"/rho.txt",'#');
+  Ye.Open(input_directory+"/Ye.txt",'#');
+  temperature.Open(input_directory+"/temp.txt",'#');
+  lnrho = lnrho.copy_logy();
+    
+  // load and compute spectral data
+  for(int i=0; i<NE; i++){
+    P_unosc[matter    ][i][e ].Open(input_directory+"/potential_s1_g"+patch::to_string(i+1)+"_.txt",'#');
+    P_unosc[antimatter][i][e ].Open(input_directory+"/potential_s2_g"+patch::to_string(i+1)+"_.txt",'#');
+    P_unosc[matter    ][i][mu].Open(input_directory+"/potential_s3_g"+patch::to_string(i+1)+"_.txt",'#');
+    P_unosc[antimatter][i][mu].Open(input_directory+"/potential_s3_g"+patch::to_string(i+1)+"_.txt",'#');
+    D_unosc[matter    ][i][e ].Open(input_directory+"/density_s1_g"+patch::to_string(i+1)+"_.txt",'#');
+    D_unosc[antimatter][i][e ].Open(input_directory+"/density_s2_g"+patch::to_string(i+1)+"_.txt",'#');
+    D_unosc[matter    ][i][mu].Open(input_directory+"/density_s3_g"+patch::to_string(i+1)+"_.txt",'#');
+    D_unosc[antimatter][i][mu].Open(input_directory+"/density_s3_g"+patch::to_string(i+1)+"_.txt",'#');
+  }
+
+}
 
 void init_output(string outputfilename,
 		 ofstream &fout,
