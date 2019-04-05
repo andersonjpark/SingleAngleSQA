@@ -144,11 +144,18 @@ class State{
   }
 
   void assert_noNaN(){
-    for(state m=matter; m<=antimatter; m++)
-      for(int i=0; i<NE; i++)
+    for(state m=matter; m<=antimatter; m++){
+      for(int i=0; i<NE; i++){
+
 	for(flavour f1=e; f1<=mu; f1++)
 	  for(flavour f2=e; f2<=mu; f2++)
 	    assert(fmatrixf[m][i][f1][f2] == fmatrixf[m][i][f1][f2]);
+
+	for(solution x=msw;x<=si;x++)
+	    for(int j=0;j<=NY-1;j++)
+	      assert(Y[m][i][x][j] == Y[m][i][x][j]);
+      }
+    }
   }
 };
 
