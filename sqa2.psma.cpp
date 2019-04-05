@@ -286,37 +286,8 @@ int main(int argc, char *argv[]){
 	    assert(s.fmatrixf[m][i][f1][f2] == s.fmatrixf[m][i][f1][f2]);
 
     // accumulate S and reset variables
-    array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> old_fmatrixf = s.fmatrixf;
-    for(state m=matter;m<=antimatter;m++){
-      for(int i=0;i<=NE-1;i++){
-	s.Scumulative[m][i] = s.SThisStep[m][i] * s.Scumulative[m][i];
-
-	// convert fmatrix from flavor basis to (reset-point) mass basis
-	// evolve fmatrix from reset-point to current-point mass basis
-	// convert fmatrix from (current-point) mass basis to flavor basis
-	MATRIX<complex<double>,NF,NF> SfThisStep =
-	  s.UU[m][i]
-	  * s.SThisStep[m][i]
-	  * Adjoint(sReset.UU[m][i]);
-	s.fmatrixf[m][i] = SfThisStep * sReset.fmatrixf[m][i] * Adjoint(SfThisStep);
-	    
-	// reset the evolution matrix to identity
-	s.Y[m][i] = YIdentity;
-
-	// get rate of change of fmatrix from oscillation
-	double hold[4], hnew[4];
-	pauli_decompose(old_fmatrixf[m][i], hold);
-	pauli_decompose(  s.fmatrixf[m][i], hnew);
-	double oldmag   = sqrt(hold[0]*hold[0] + hold[1]*hold[1] + hold[2]*hold[2]);
-	double newmag   = sqrt(hnew[0]*hnew[0] + hnew[1]*hnew[1] + hnew[2]*hnew[2]);
-	double costheta = (hold[0]*hnew[0] + hold[1]*hnew[1] + hold[2]*hnew[2]) / (newmag*oldmag);
-	assert(costheta-1. < 1e-10);
-	costheta = min(1.,costheta);
-	s.dtheta_dr_osc[i][m] = (acos(hnew[2]/newmag) - acos(hold[2]/oldmag)) / dr;
-	s.dphi_dr_osc[i][m] = (atan2(hnew[1],hnew[0]) - atan2(hold[1],hold[0])) / dr;
-      }
-    }
-
+    s.accumulate_S(dr, sReset);
+    
     // comment out if not following as a function of r
     if(counterout==out_every){
       output=true;

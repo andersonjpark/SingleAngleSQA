@@ -3,6 +3,7 @@
 
 #include "misc.h"
 #include "mixing_angles.h"
+#include "isospin.h"
 
 class State{
  public:
@@ -11,25 +12,23 @@ class State{
   double drhodr, dYedr;
 
   // distribution function in the direction of the trajectory
+  // value at the last reset
   array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> fmatrixf;
 
   // Evolution variables for neutrino oscillation
-  // Describes oscillation since Scumulative was last updated
-  array<array<array<array<double,NY>,NS>,NE>,NM> Y;
-
-  // Cumulative evolution matrix from initial mass basis (s0.UU) to mass basis
+  // Y Describes oscillation since Scumulative was last updated
+  // Scumulative is evolution matrix from initial mass basis (s0.UU) to mass basis
   // at the time of the last update. S = WBWB(Y) * Scumulative to current mass basis.
+  array<array<array<array<double,NY>,NS>,NE>,NM> Y;
   array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> Scumulative;
   
   // Intermediate quantities used in calculating potentials and K
-  array<MATRIX<complex<double>,NF,NF>,NM> VfSI;
-  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> Sf, SThisStep;
-  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> Hf;
   array<array<array<double,NF>,NE>,NM> kk;
   array<array<array<double,NF-1>,NE>,NM> dkk;
-  array<array<array<MATRIX<complex<double>,NF,NF>,NF>,NE>,NM> CC; 
   array<array<array<array<double,NF>,NF>,NE>,NM> AA;
-  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> UU;
+  array<MATRIX<complex<double>,NF,NF>,NM> VfSI;
+  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> Sf, SThisStep, Hf, UU;
+  array<array<array<MATRIX<complex<double>,NF,NF>,NF>,NE>,NM> CC; 
   array<array<array<MATRIX<complex<double>,NF,NF>,NS>,NE>,NM> BB,WW;
   
   // other matrices
@@ -108,8 +107,40 @@ class State{
       }
     }
     VfSI[antimatter]=-Conjugate(VfSI[matter]);
+  }
 
+  void accumulate_S(double dr, const State& sReset){
+    array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> old_fmatrixf = fmatrixf;
+    #pragma omp parallel for
+    for(int m=matter;m<=antimatter;m++){
+      for(int i=0;i<=NE-1;i++){
+	Scumulative[m][i] = SThisStep[m][i] * Scumulative[m][i];
+	
+	// convert fmatrix from flavor basis to (reset-point) mass basis
+	// evolve fmatrix from reset-point to current-point mass basis
+	// convert fmatrix from (current-point) mass basis to flavor basis
+	MATRIX<complex<double>,NF,NF> SfThisStep =
+	  UU[m][i]
+	  * SThisStep[m][i]
+	  * Adjoint(sReset.UU[m][i]);
+	fmatrixf[m][i] = SfThisStep * fmatrixf[m][i] * Adjoint(SfThisStep);
+	    
+	// reset the evolution matrix to identity
+	Y[m][i] = YIdentity;
 
+	// get rate of change of fmatrix from oscillation
+	double hold[4], hnew[4];
+	pauli_decompose(old_fmatrixf[m][i], hold);
+	pauli_decompose(    fmatrixf[m][i], hnew);
+	double oldmag   = sqrt(hold[0]*hold[0] + hold[1]*hold[1] + hold[2]*hold[2]);
+	double newmag   = sqrt(hnew[0]*hnew[0] + hnew[1]*hnew[1] + hnew[2]*hnew[2]);
+	double costheta = (hold[0]*hnew[0] + hold[1]*hnew[1] + hold[2]*hnew[2]) / (newmag*oldmag);
+	assert(costheta-1. < 1e-10);
+	costheta = min(1.,costheta);
+	dtheta_dr_osc[i][m] = (acos(hnew[2]/newmag) - acos(hold[2]/oldmag)) / dr;
+	dphi_dr_osc[i][m] = (atan2(hnew[1],hnew[0]) - atan2(hold[1],hold[0])) / dr;
+      }
+    }
   }
 };
 
