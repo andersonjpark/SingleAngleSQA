@@ -111,7 +111,7 @@ class State{
 
   void accumulate_S(double dr, const State& sReset){
     array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> old_fmatrixf = fmatrixf;
-    #pragma omp parallel for
+    #pragma omp parallel for collapse(2)
     for(int m=matter;m<=antimatter;m++){
       for(int i=0;i<=NE-1;i++){
 	Scumulative[m][i] = SThisStep[m][i] * Scumulative[m][i];
