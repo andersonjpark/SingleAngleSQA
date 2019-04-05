@@ -97,7 +97,6 @@ class State{
 	BB[m][i][si ] = B(Y[m][i][si ]);
 	WW[m][i][msw] = W(Y[m][i][msw]);
 	WW[m][i][si ] = W(Y[m][i][si ]);
-	BB[m][i][si] = B(Y[m][i][si]);
 	SThisStep[m][i] = WW[m][i][msw] * BB[m][i][msw] * WW[m][i][si] * BB[m][i][si];
 	Sf[m][i] = UU[m][i] * SThisStep[m][i] * Scumulative[m][i] * Adjoint(s0.UU[m][i]);
 
