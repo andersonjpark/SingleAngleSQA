@@ -9,35 +9,34 @@ class State{
   double r;
   double rho, T, Ye;
   double drhodr, dYedr;
+
+  // distribution function in the direction of the trajectory
   array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> fmatrixf;
+
+  // Evolution variables for neutrino oscillation
+  // Describes oscillation since Scumulative was last updated
   array<array<array<array<double,NY>,NS>,NE>,NM> Y;
-  
-  // mixing angles to MSW basis at initial point
-  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> UWBW;
-  
-  // potentials and potential derivatives
-  array<MATRIX<complex<double>,NF,NF>,NM> VfSI;
 
-  // evolution matrices
-  // for fm0 in initial matter basis and fm in current matter basis,
-  // fm = Scumulative fm0 Scumulative^+
-  // Sf goes from flavor basis to flavor basis
+  // Cumulative evolution matrix from initial mass basis (s0.UU) to mass basis
+  // at the time of the last update. S = WBWB(Y) * Scumulative to current mass basis.
   array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> Scumulative;
+  
+  // Intermediate quantities used in calculating potentials and K
+  array<MATRIX<complex<double>,NF,NF>,NM> VfSI;
   array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> Sf, SThisStep;
-
-  // other matrices
-  array<array<double,NM>,NE> dphi_dr_interact, dtheta_dr_interact;
-  array<array<double,NM>,NE> dphi_dr_osc,      dtheta_dr_osc;
-
-  // stuff that used to be in K()
   array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> Hf;
   array<array<array<double,NF>,NE>,NM> kk;
   array<array<array<double,NF-1>,NE>,NM> dkk;
   array<array<array<MATRIX<complex<double>,NF,NF>,NF>,NE>,NM> CC; 
   array<array<array<array<double,NF>,NF>,NE>,NM> AA;
   array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> UU,BB;
+  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> UWBW;
   array<array<array<MATRIX<complex<double>,NF,NF>,NS>,NE>,NM> Sa;
-  
+
+  // other matrices
+  array<array<double,NM>,NE> dphi_dr_interact, dtheta_dr_interact;
+  array<array<double,NM>,NE> dphi_dr_osc,      dtheta_dr_osc;
+
   State(const vector<double>& E){
     
     // set Scumulative to identity
