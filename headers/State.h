@@ -148,7 +148,7 @@ class State{
       for(int i=0; i<NE; i++)
 	for(flavour f1=e; f1<=mu; f1++)
 	  for(flavour f2=e; f2<=mu; f2++)
-	    assert(s.fmatrixf[m][i][f1][f2] == s.fmatrixf[m][i][f1][f2]);
+	    assert(fmatrixf[m][i][f1][f2] == fmatrixf[m][i][f1][f2]);
   }
 };
 

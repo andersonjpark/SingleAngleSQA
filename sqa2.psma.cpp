@@ -193,12 +193,6 @@ int main(int argc, char *argv[]){
   s.update_potential(lnrho,temperature,Ye,P_unosc,HfV,s0);
   Outputvsr(fout,foutP,foutf,foutdangledr,s,P_unosc);
 	
-  for(state m=matter; m<=antimatter; m++)
-    for(int i=0; i<NE; i++)
-      for(flavour f1=e; f1<=mu; f1++)
-	for(flavour f2=e; f2<=mu; f2++)
-	  assert(s.fmatrixf[m][i][f1][f2] == s.fmatrixf[m][i][f1][f2]);
-      
   // ***********************
   // start the loop over r *
   // ***********************
@@ -215,15 +209,9 @@ int main(int argc, char *argv[]){
       output=true;
     }
 	  
-    State sReset = s;
-	  
-    for(state m=matter; m<=antimatter; m++)
-      for(int i=0; i<NE; i++)
-	for(flavour f1=e; f1<=mu; f1++)
-	  for(flavour f2=e; f2<=mu; f2++)
-	    assert(s.fmatrixf[m][i][f1][f2] == s.fmatrixf[m][i][f1][f2]);
-	
     // beginning of RK section
+    s.assert_noNaN();
+    State sReset = s;
     do{ 
       repeat=false;
       for(int k=0;k<=NRK-1;k++){
