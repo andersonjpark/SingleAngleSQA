@@ -30,7 +30,6 @@ class State{
   array<array<array<MATRIX<complex<double>,NF,NF>,NF>,NE>,NM> CC; 
   array<array<array<array<double,NF>,NF>,NE>,NM> AA;
   array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> UU;
-  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> UWBW;
   array<array<array<MATRIX<complex<double>,NF,NF>,NS>,NE>,NM> Sa;
   array<array<array<MATRIX<complex<double>,NF,NF>,NS>,NE>,NM> BB,WW;
   
@@ -99,7 +98,6 @@ class State{
 	BB[m][i][si ] = B(Y[m][i][si ]);
 	WW[m][i][msw] = W(Y[m][i][msw]);
 	WW[m][i][si ] = W(Y[m][i][si ]);
-	UWBW[m][i] = UU[m][i] * WW[m][i][msw] * BB[m][i][msw] * WW[m][i][si];
 	BB[m][i][si] = B(Y[m][i][si]);
 	SThisStep[m][i] = WW[m][i][msw] * BB[m][i][msw] * WW[m][i][si] * BB[m][i][si];
 	Sf[m][i] = UU[m][i] * SThisStep[m][i] * Scumulative[m][i] * Adjoint(s0.UU[m][i]);

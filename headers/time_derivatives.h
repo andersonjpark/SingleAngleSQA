@@ -63,7 +63,12 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr, const State& s){
       // *********************
       // SI part of solution *
       // *********************
-      Ha = Adjoint(s.UWBW[m][i])*s.VfSI[m]*s.UWBW[m][i];
+      MATRIX<complex<double>,NF,NF> UWBW =
+	s.UU[m][i]
+	* s.WW[m][i][msw]
+	* s.BB[m][i][msw]
+	* s.WW[m][i][si];
+      Ha = Adjoint(UWBW)*s.VfSI[m]*UWBW;
 
       K[m][i][si][4]=dr*real(Ha[0][0])/(M_2PI*cgs::constants::hbarc);
       K[m][i][si][5]=dr*real(Ha[1][1])/(M_2PI*cgs::constants::hbarc);
