@@ -197,8 +197,8 @@ int main(int argc, char *argv[]){
       }
 	  
       // increment all quantities and update C and A arrays
+      s = sReset;
       s.r= sReset.r+dr;
-      s.Y = sReset.Y;
       maxerror=0.;
       for(state m=matter;m<=antimatter;m++){
 	for(int i=0;i<=NE-1;i++){
