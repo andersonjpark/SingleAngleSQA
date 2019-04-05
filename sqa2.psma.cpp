@@ -86,7 +86,7 @@ int main(int argc, char *argv[]){
   fin.close();
     
   init_output(outputfilename, fout, foutP, foutf, foutdangledr);
-
+  FilePointers fp = setup_HDF5_file();
   //nulib_init(nulibfilename, 0);
 
   DISCONTINUOUS lnrho, Ye, temperature;

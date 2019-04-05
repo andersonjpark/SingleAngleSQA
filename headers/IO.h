@@ -1,6 +1,8 @@
 #ifndef OUTPUT_H
 #define OUTPUT_H
 #include <string>
+#include "hdf5.h"
+#include "State.h"
 
 void load_input_data(string input_directory,
 		     DISCONTINUOUS& lnrho,
@@ -158,5 +160,59 @@ void Outputvsr(ofstream &fout,
   foutdangledr << endl;
   foutdangledr.flush();
 }
+
+class FilePointers{
+ public:
+  hid_t file;
+  hid_t dset_f, dset_S, dset_U, dset_r, dset_dr_osc, dset_dr_int, dset_dr_block;
+  const hsize_t       dims[6] = {0,             NM, NE, NF, NF, 2};
+  const hsize_t   max_dims[6] = {H5S_UNLIMITED, NM, NE, NF, NF, 2};
+  const hsize_t chunk_dims[6] = {1,             NM, NE, NF, NF, 2};
+};
+
+//============//
+// setup_file //
+//============//
+FilePointers setup_HDF5_file(){
+  FilePointers fp;
+  
+  fp.file = H5Fcreate("output.h5", H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+  hid_t file_space;
+  hsize_t ndims;
+  hid_t plist = H5Pcreate(H5P_DATASET_CREATE);
+  H5Pset_layout(plist, H5D_CHUNKED);
+
+  // FMATRIXF //
+  ndims = 6;
+  file_space = H5Screate_simple(ndims, fp.dims, fp.max_dims);
+  H5Pset_chunk(plist, ndims, fp.chunk_dims);
+  H5Dcreate(fp.file, "fmatrixf", H5T_NATIVE_DOUBLE, file_space, H5P_DEFAULT, plist, H5P_DEFAULT);
+  H5Dcreate(fp.file, "S",        H5T_NATIVE_DOUBLE, file_space, H5P_DEFAULT, plist, H5P_DEFAULT);
+  H5Dcreate(fp.file, "U",        H5T_NATIVE_DOUBLE, file_space, H5P_DEFAULT, plist, H5P_DEFAULT);
+  fp.dset_f = H5Dopen(fp.file, "fmatrixf", H5P_DEFAULT);
+  fp.dset_S = H5Dopen(fp.file, "S", H5P_DEFAULT);
+  fp.dset_U = H5Dopen(fp.file, "U", H5P_DEFAULT);
+
+  // RADIUS/TIME //
+  ndims = 1;
+  file_space = H5Screate_simple(ndims, fp.dims, fp.max_dims);
+  H5Pset_chunk(plist, ndims, fp.chunk_dims);
+  H5Dcreate(fp.file, "r(cm)", H5T_NATIVE_DOUBLE, file_space, H5P_DEFAULT, plist, H5P_DEFAULT);
+  H5Dcreate(fp.file, "dr_block(cm)", H5T_NATIVE_DOUBLE, file_space, H5P_DEFAULT, plist, H5P_DEFAULT);
+  H5Dcreate(fp.file, "dr_osc(cm)", H5T_NATIVE_DOUBLE, file_space, H5P_DEFAULT, plist, H5P_DEFAULT);
+  H5Dcreate(fp.file, "dr_int(cm)", H5T_NATIVE_DOUBLE, file_space, H5P_DEFAULT, plist, H5P_DEFAULT);
+  fp.dset_r        = H5Dopen(fp.file, "r(cm)", H5P_DEFAULT);
+  fp.dset_dr_osc   = H5Dopen(fp.file, "dr_osc(cm)", H5P_DEFAULT);
+  fp.dset_dr_int   = H5Dopen(fp.file, "dr_int(cm)", H5P_DEFAULT);
+  fp.dset_dr_block = H5Dopen(fp.file, "dr_block(cm)", H5P_DEFAULT);
+
+  // clear resources
+  H5Sclose(file_space);
+  H5Pclose(plist);
+  H5Fflush(fp.file,H5F_SCOPE_LOCAL);
+  
+  return fp;
+}
+
 
 #endif
