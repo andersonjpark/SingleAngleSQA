@@ -16,10 +16,6 @@ class State{
   array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> U0;
   array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> UWBW;
   
-  // other matrices...
-  array<array<array<MATRIX<complex<double>,NF,NF>,NF>,NE>,NM> C;
-  array<array<array<array<double,NF>,NF>,NE>,NM> A;
-  
   // potentials and potential derivatives
   array<MATRIX<complex<double>,NF,NF>,NM> VfSI;
 
@@ -63,7 +59,8 @@ class State{
 			const DISCONTINUOUS& temperature,
 			const DISCONTINUOUS& electronfraction,
 			const array<array<array<DISCONTINUOUS,NF>,NE>,NM>& P_unosc,
-			const array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& HfV){
+			const array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& HfV,
+			const State& s0){
     // fluid background
     rho = exp(lnrho(r));
     T = temperature(r);
@@ -97,7 +94,7 @@ class State{
 	kk[m][i] = k(Hf[m][i]);
 	dkk[m][i] = deltak(Hf[m][i]);
 	CC[m][i]  = CofactorMatrices(Hf[m][i],kk[m][i]);
-	AA[m][i] = MixingMatrixFactors(CC[m][i],C[m][i],A[m][i]);
+	AA[m][i] = MixingMatrixFactors(CC[m][i],s0.CC[m][i],s0.AA[m][i]);
 	UU[m][i] = U(dkk[m][i],CC[m][i],AA[m][i]);
 	BB[m][i] = B(Y[m][i][msw]);
 	UWBW[m][i] = UU[m][i] * W(Y[m][i][msw]) * BB[m][i] * W(Y[m][i][si]);

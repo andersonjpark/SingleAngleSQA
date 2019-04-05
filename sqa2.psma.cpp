@@ -126,7 +126,7 @@ int main(int argc, char *argv[]){
   const array<array<MATRIX<complex<double>,NF,NF>,NF>,NE> CV  = Evaluate_CV(kV, HfV);
   const array<array<array<double,NF>,NF>,NE> AV = Evaluate_AV(kV,HfV,UV);
   
-  State s(E);
+  State s(E), s0(E);
     
   // **************************************
   // quantities evaluated at inital point *
@@ -134,26 +134,27 @@ int main(int argc, char *argv[]){
     
   // MSW potential matrix
   s.r=rmin;
-  s.update_potential(lnrho,temperature,Ye,P_unosc,HfV);
+  s.update_potential(lnrho,temperature,Ye,P_unosc,HfV,s0);
     
   // mixing angles to MSW basis at initial point
   for(state m=matter; m<=antimatter; m++){
     for(int i=0;i<=NE-1;i++){
-      s.C[m][i]=CofactorMatrices(s.Hf[m][i],s.kk[m][i]);
+      s.CC[m][i]=CofactorMatrices(s.Hf[m][i],s.kk[m][i]);
 	
       for(int j=0;j<=NF-1;j++){
-	if(real(s.C[m][i][j][mu][e]*CV[i][j][mu][e]) < 0.)
-	  s.A[m][i][j][e]=-AV[i][j][e];
-	else s.A[m][i][j][e]=AV[i][j][e];
-	s.A[m][i][j][mu]=AV[i][j][mu];
+	if(real(s.CC[m][i][j][mu][e]*CV[i][j][mu][e]) < 0.)
+	  s.AA[m][i][j][e]=-AV[i][j][e];
+	else s.AA[m][i][j][e]=AV[i][j][e];
+	s.AA[m][i][j][mu]=AV[i][j][mu];
       }
-      s.U0[m][i]=U(s.dkk[m][i],s.C[m][i],s.A[m][i]);
+      s.U0[m][i]=U(s.dkk[m][i],s.CC[m][i],s.AA[m][i]);
     }
   }
 
   // yzhu14 density/potential matrices art rmin
   initialize(s,rmin,D_unosc);
-
+  s0 = s;
+  
   // ***************************************
   // quantities needed for the calculation *
   // ***************************************
@@ -189,7 +190,7 @@ int main(int argc, char *argv[]){
 	
   finish=output=false;
   counterout=1;
-  s.update_potential(lnrho,temperature,Ye,P_unosc,HfV);
+  s.update_potential(lnrho,temperature,Ye,P_unosc,HfV,s0);
   Outputvsr(fout,foutP,foutf,foutdangledr,s,P_unosc);
 	
   for(state m=matter; m<=antimatter; m++)
@@ -236,7 +237,7 @@ int main(int argc, char *argv[]){
 		for(int l=0;l<=k-1;l++)
 		  s.Y[m][i][x][j] += BB[k][l] * Ks[l][m][i][x][j];
 
-	s.update_potential(lnrho,temperature,Ye,P_unosc,HfV);
+	s.update_potential(lnrho,temperature,Ye,P_unosc,HfV,s0);
 	Ks[k] = K(dr,s);
       }
 	  
@@ -261,7 +262,7 @@ int main(int argc, char *argv[]){
 	  }
 	}
       }
-      s.update_potential(lnrho,temperature,Ye,P_unosc,HfV);
+      s.update_potential(lnrho,temperature,Ye,P_unosc,HfV,s0);
 	    
       // decide whether to accept step, if not adjust step size
       dr_this_step = dr;
@@ -324,7 +325,7 @@ int main(int argc, char *argv[]){
     else counterout++;
 	
     if(output==true || finish==true){
-      s.update_potential(lnrho,temperature,Ye,P_unosc,HfV);
+      s.update_potential(lnrho,temperature,Ye,P_unosc,HfV,s0);
       Outputvsr(fout,foutP,foutf,foutdangledr,s,P_unosc);
       output=false;
     }
@@ -338,7 +339,7 @@ int main(int argc, char *argv[]){
 
   } while(finish==false);
 
-  s.update_potential(lnrho,temperature,Ye,P_unosc,HfV);
+  s.update_potential(lnrho,temperature,Ye,P_unosc,HfV,s0);
   Outputvsr(fout,foutP,foutf,foutdangledr,s,P_unosc);
 
   cout<<"\nFinished\n\a"; cout.flush();
