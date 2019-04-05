@@ -4,7 +4,7 @@
 //===//
 // K //
 //===//
-array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr, const State& s){
+array<array<array<array<double,NY>,NS>,NE>,NM> K(const State& s){
 
   array<array<array<array<double,NY>,NS>,NE>,NM> K;
 
@@ -56,8 +56,6 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr, const State& s){
       K[m][i][msw][3] = 0.;
       K[m][i][msw][4] = (s.kk[m][i][0]+QQ[0])/M_2PI/cgs::constants::hbarc;
       K[m][i][msw][5] = (s.kk[m][i][1]+QQ[1])/M_2PI/cgs::constants::hbarc;
-      for(int j=0;j<NY;j++)
-	K[m][i][msw][j]*=dr;
 
       
       // *********************
@@ -70,8 +68,8 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr, const State& s){
 	* s.WW[m][i][si];
       Ha = Adjoint(UWBW)*s.VfSI[m]*UWBW;
 
-      K[m][i][si][4]=dr*real(Ha[0][0])/(M_2PI*cgs::constants::hbarc);
-      K[m][i][si][5]=dr*real(Ha[1][1])/(M_2PI*cgs::constants::hbarc);
+      K[m][i][si][4]=real(Ha[0][0])/(M_2PI*cgs::constants::hbarc);
+      K[m][i][si][5]=real(Ha[1][1])/(M_2PI*cgs::constants::hbarc);
     
       HB[0][0]=-I/cgs::constants::hbarc*( Ha[0][1]*s.BB[m][i][si][1][0] );
       HB[0][1]=-I/cgs::constants::hbarc*( Ha[0][1]*s.BB[m][i][si][1][1] );
@@ -88,10 +86,13 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(double dr, const State& s){
       for(int j=0;j<=2;j++){
 	K[m][i][si][j]=0.;
 	for(int k=j;k<=3;k++) K[m][i][si][j]+=JI[j][k]*dvdr[k];
-	K[m][i][si][j]*=dr;
       }
     
       K[m][i][si][3]=0.;
+
+      for(solution x=msw;x<=si;x++)
+	for(int j=0;j<=NY-1;j++)
+	  assert(K[m][i][x][j] == K[m][i][x][j]);
     }
   }
   

@@ -139,7 +139,7 @@ int main(int argc, char *argv[]){
   // Runge-Kutta quantities *
   // ************************
     
-  array<array<array<array<array<double,NY>,NS>,NE>,NM>,NRK> Ks;
+  array<array<array<array<array<double,NY>,NS>,NE>,NM>,NRK> dYdr;
     
     
   // *****************************************
@@ -190,10 +190,10 @@ int main(int argc, char *argv[]){
 	    for(solution x=msw;x<=si;x++)
 	      for(int j=0;j<=NY-1;j++)
 		for(int l=0;l<=k-1;l++)
-		  s.Y[m][i][x][j] += BB[k][l] * Ks[l][m][i][x][j];
+		  s.Y[m][i][x][j] += BB[k][l] * dYdr[l][m][i][x][j] * dr;
 
 	s.update_potential(lnrho,temperature,Ye,P_unosc,HfV,s0);
-	Ks[k] = K(dr,s);
+	dYdr[k] = K(s);
       }
 	  
       // increment all quantities and update C and A arrays
@@ -207,10 +207,8 @@ int main(int argc, char *argv[]){
 	      double Yerror = 0.;
 	      for(int k=0;k<=NRK-1;k++){
 		assert(CC[k] == CC[k]);
-		assert(Ks[k][m][i][x][j] == Ks[k][m][i][x][j]);
-		s.Y[m][i][x][j] += CC[k] * Ks[k][m][i][x][j];
-		Yerror += (CC[k]-DD[k]) * Ks[k][m][i][x][j];
-		assert(s.Y[m][i][x][j] == s.Y[m][i][x][j]);
+		s.Y[m][i][x][j] += CC[k] * dYdr[k][m][i][x][j] * dr;
+		Yerror += (CC[k]-DD[k]) * dYdr[k][m][i][x][j] * dr;
 	      }
 	      maxerror = max(maxerror, fabs(Yerror));
 	    }
