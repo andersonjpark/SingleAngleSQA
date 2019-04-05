@@ -176,7 +176,7 @@ int main(int argc, char *argv[]){
 
     // beginning of RK section
     s.assert_noNaN();
-    State sReset = s;
+    const State sReset = s;
     bool repeat = false;
     double maxerror = 0;
     do{ 
