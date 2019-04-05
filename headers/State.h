@@ -30,7 +30,6 @@ class State{
   array<array<array<MATRIX<complex<double>,NF,NF>,NF>,NE>,NM> CC; 
   array<array<array<array<double,NF>,NF>,NE>,NM> AA;
   array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> UU;
-  array<array<array<MATRIX<complex<double>,NF,NF>,NS>,NE>,NM> Sa;
   array<array<array<MATRIX<complex<double>,NF,NF>,NS>,NE>,NM> BB,WW;
   
   // other matrices
