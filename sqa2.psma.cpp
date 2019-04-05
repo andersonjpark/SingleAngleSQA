@@ -106,21 +106,15 @@ int main(int argc, char *argv[]){
   const array<array<MATRIX<complex<double>,NF,NF>,NF>,NE> CV  = Evaluate_CV(kV, HfV);
   const array<array<array<double,NF>,NF>,NE> AV = Evaluate_AV(kV,HfV,UV);
   
-  State s(E), s0(E);
-    
   // **************************************
   // quantities evaluated at inital point *
   // **************************************
-    
-  // MSW potential matrix
+
+  State s(E);
   s.r=rmin;
-  s.update_potential(lnrho,temperature,Ye,P_unosc,HfV,s0);
-    
-  // mixing angles to MSW basis at initial point
+  s.update_potential(lnrho,temperature,Ye,P_unosc,HfV,s);
   for(state m=matter; m<=antimatter; m++){
     for(int i=0;i<=NE-1;i++){
-      s.CC[m][i]=CofactorMatrices(s.Hf[m][i],s.kk[m][i]);
-	
       for(int j=0;j<=NF-1;j++){
 	if(real(s.CC[m][i][j][mu][e]*CV[i][j][mu][e]) < 0.)
 	  s.AA[m][i][j][e]=-AV[i][j][e];
@@ -130,10 +124,8 @@ int main(int argc, char *argv[]){
       s.UU[m][i]=U(s.dkk[m][i],s.CC[m][i],s.AA[m][i]);
     }
   }
-
-  // yzhu14 density/potential matrices art rmin
   initialize(s,rmin,D_unosc);
-  s0 = s;
+  const State s0 = s;
   
   // ***************************************
   // quantities needed for the calculation *
