@@ -86,7 +86,6 @@ int main(int argc, char *argv[]){
   fin.close();
     
   init_output(outputfilename, fout, foutP, foutf, foutdangledr);
-  FilePointers fp = setup_HDF5_file();
   //nulib_init(nulibfilename, 0);
 
   DISCONTINUOUS lnrho, Ye, temperature;
@@ -99,7 +98,7 @@ int main(int argc, char *argv[]){
   // set up global variables defined in parameters.h *
   // *************************************************
   // vectors of energies and vacuum eigenvalues
-  set_Ebins(E);
+  const array<double,NE> E = set_Ebins();
   const array<array<double,NF>,NE> kV = set_kV(E);
   const array<MATRIX<complex<double>,NF,NF>,NM> UV = Evaluate_UV();
   const array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> HfV = Evaluate_HfV(kV,UV);
@@ -133,7 +132,6 @@ int main(int argc, char *argv[]){
   double dr,drmin,dr_this_step;
     
   double increase=3.;
-  int counterout;
     
   // ************************
   // Runge-Kutta quantities *
@@ -152,9 +150,10 @@ int main(int argc, char *argv[]){
   // comment out if not following as a function of r *
   // *************************************************
 	
-  counterout=1;
+  int counterout=1;
   s.update_potential(lnrho,temperature,Ye,P_unosc,HfV,s0);
   //Outputvsr(fout,foutP,foutf,foutdangledr,s,P_unosc);
+  FilePointers fp = setup_HDF5_file(s.E);
   write_data_HDF5(fp, s);
 	
   // ***********************

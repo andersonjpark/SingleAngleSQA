@@ -374,7 +374,7 @@ array<array<array<double,NF>,NF>,NE>
 //===================//
 // Vacuum Potentials //
 //===================//
-array<array<double,NF>,NE> set_kV(const vector<double>& E){
+array<array<double,NF>,NE> set_kV(const array<double,NE>& E){
   assert(NF==2);
   array<array<double,NF>,NE> kV;
   for(int i=0;i<NE;i++){

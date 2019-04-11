@@ -39,7 +39,7 @@ array<double,(NE+2)*(2)>
 predictProbability(double totalNu,
 		   double totalANu,
 		   double Ve,
-		   const vector<double>& E,
+		   const array<double,NE>& E,
 		   const array<double,NE>& ebarPotentialSum,
 		   const array<double,NE>& ePotentialSum,
 		   const array<double,NE>& heavyPotentialSum){

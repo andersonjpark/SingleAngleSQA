@@ -24,7 +24,6 @@ const int NN=1;
 // number of energy bins, min and max energy
 const int NE = 16;
 double Emin, Emax;
-vector<double> E; 
 
 
 /* // vacuum Hamiltonian and mixing matrices */

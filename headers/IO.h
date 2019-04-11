@@ -124,25 +124,25 @@ void Outputvsr(ofstream &fout,
   foutP<<Pvalues[5]<<"\t";//Heavy,9
   foutP<<Pvalues[0]<<"\t"<<Pvalues[1]<<"\t"<<Pvalues[2]<<"\t";//Pe,Pebar,Pheavy;10,11,12
 
-  array<double,(NE+2)*2> predP=predictProbability(Pvalues[3],Pvalues[4],Ve(s.rho,s.Ye),E,ebarPotentialSum,ePotentialSum,heavyPotentialSum);
+  array<double,(NE+2)*2> predP=predictProbability(Pvalues[3],Pvalues[4],Ve(s.rho,s.Ye),s.E,ebarPotentialSum,ePotentialSum,heavyPotentialSum);
   foutP<<predP[0]<<"\t"<<predP[1+NE]<<"\t";//13,14
   for(int i=0;i<NE;i++) foutP<<predP[1+i]<<"\t"<<predP[(NE+1)+i+1]<<"\t";//15,16,...2*(NE-1)+15,
   foutP<<predP[(NE+1)*2]<<"\t"<<predP[(NE+1)*2+1]<<"\t";//2*(NE-1)+17,2*(NE-1)+18
   foutP<<endl;
   foutP.flush();
 
-  foutf << s.r << "\t";
-  for(int i=0; i<NE; i++)
-    for(state m=matter; m<=antimatter; m++)
-      for(flavour f1=e; f1<=mu; f1++)
-	for(flavour f2=e; f2<=mu; f2++) {
-	  foutf << real( s.fmatrixf[m][i][f1][f2] ) << "\t";
-	  foutf << imag( s.fmatrixf[m][i][f1][f2] ) << "\t";
-	}
+  /* foutf << s.r << "\t"; */
+  /* for(int i=0; i<NE; i++) */
+  /*   for(state m=matter; m<=antimatter; m++) */
+  /*     for(flavour f1=e; f1<=mu; f1++) */
+  /* 	for(flavour f2=e; f2<=mu; f2++) { */
+  /* 	  foutf << real( s.fmatrixf[m][i][f1][f2] ) << "\t"; */
+  /* 	  foutf << imag( s.fmatrixf[m][i][f1][f2] ) << "\t"; */
+  /* 	} */
   
 
-  foutf << endl;
-  foutf.flush();
+  /* foutf << endl; */
+  /* foutf.flush(); */
 
   foutdangledr << s.r << "\t";
   for(state m=matter; m<=antimatter; m++)
@@ -173,7 +173,7 @@ class FilePointers{
 //============//
 // setup_file //
 //============//
-FilePointers setup_HDF5_file(){
+FilePointers setup_HDF5_file(const array<double,NE>& E){
   FilePointers fp;
   
   fp.file = H5Fcreate("output.h5", H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
@@ -205,6 +205,14 @@ FilePointers setup_HDF5_file(){
   fp.dset_dr_osc   = H5Dopen(fp.file, "dr_osc(cm)", H5P_DEFAULT);
   fp.dset_dr_int   = H5Dopen(fp.file, "dr_int(cm)", H5P_DEFAULT);
   fp.dset_dr_block = H5Dopen(fp.file, "dr_block(cm)", H5P_DEFAULT);
+
+  // energy grid //
+  hid_t mem_space =   H5Screate_simple(ndims, &fp.dims[2], NULL);
+  file_space = H5Screate_simple(ndims, &fp.dims[2], &fp.dims[2]);
+  hid_t dset_Egrid = H5Dcreate(fp.file, "Egrid(erg)", H5T_NATIVE_DOUBLE, file_space, H5P_DEFAULT, plist, H5P_DEFAULT);
+  H5Dwrite(dset_Egrid, H5T_NATIVE_DOUBLE, mem_space, file_space, H5P_DEFAULT, &E[0]);
+  for(int i=0; i<NE; i++) cout << E[i] << " ";
+  cout << endl;
 
   // clear resources
   H5Sclose(file_space);

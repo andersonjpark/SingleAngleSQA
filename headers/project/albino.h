@@ -5,15 +5,16 @@
 //=======//
 // Ebins //
 //=======//
-double dE3(const unsigned i){
+double dE3(const array<double,NE>& E, const unsigned i){
   double dlogE = (log(E[NE-1]) - log(E[0])) / (NE-1.);
   double Elow = exp(log(E[0]) + (i-0.5)*dlogE);
   double Ehi  = exp(log(E[0]) + (i+0.5)*dlogE);
   return pow(Ehi,3) - pow(Elow,3);
 }
-void set_Ebins(vector<double>& E){
+array<double,NE> set_Ebins(){
+  array<double,NE> E;
+
   const double NEP=8;
-  E.resize(NE);
   cout << endl;
   cout<<"NE="<<NE << " NEP="<<NEP << endl;
   for(int i=0;i<NE;i++){
@@ -30,10 +31,12 @@ void set_Ebins(vector<double>& E){
     cout << exp(lEbottom + (ind+0.5)*dlE)/(1.e6*cgs::units::eV) << endl;
   }
   cout.flush();
+
+  return E;
 }
 template<typename T>
-T phaseVolDensity(const T density, const unsigned i){
-  double phaseSpaceVol = 4.*M_PI * dE3(i)/3. / pow(2.*M_PI*cgs::constants::hbarc,3);
+T phaseVolDensity(const array<double,NE>& E, const T density, const unsigned i){
+  double phaseSpaceVol = 4.*M_PI * dE3(E,i)/3. / pow(2.*M_PI*cgs::constants::hbarc,3);
   return density / phaseSpaceVol;
 }
 
@@ -170,8 +173,8 @@ void my_interact(array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& fmatrixf,
       blockbar = eas.blocking_term0(Phi0bar, fmatrixf[antimatter][i], DBackground[antimatter][j]);
       for(flavour f1=e; f1<=mu; f1++)
 	for(flavour f2=e; f2<=mu; f2++){
-	  dfdr   [f1][f2] += phaseVolDensity(DBackground[matter][j][f1][f2]*Phi0   [f1][f2] - block[f1][f2], i);
-	  dfbardr[f1][f2] += phaseVolDensity(DBackground[antimatter][j][f1][f2]*Phi0bar[f1][f2] - block[f1][f2], i);
+	  dfdr   [f1][f2] += phaseVolDensity(s.E, DBackground[matter][j][f1][f2]*Phi0   [f1][f2] - block[f1][f2], i);
+	  dfbardr[f1][f2] += phaseVolDensity(s.E, DBackground[antimatter][j][f1][f2]*Phi0bar[f1][f2] - block[f1][f2], i);
 	}
 
       // out-scattering from i to j. for blocking, get phase space vol from D[j] in j
@@ -185,8 +188,8 @@ void my_interact(array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& fmatrixf,
       blockbar = eas.blocking_term0(Phi0bar, fmatrixf[antimatter][i], DBackground[antimatter][j] );
       for(flavour f1=e; f1<=mu; f1++)
 	for(flavour f2=e; f2<=mu; f2++){
-	  dfdr   [f1][f2] += fmatrixf[    matter][i][f1][f2]*Phi0avg   [f1][f2] - phaseVolDensity(block   [f1][f2], j);
-	  dfbardr[f1][f2] += fmatrixf[antimatter][i][f1][f2]*Phi0avgbar[f1][f2] - phaseVolDensity(blockbar[f1][f2], j);
+	  dfdr   [f1][f2] += fmatrixf[    matter][i][f1][f2]*Phi0avg   [f1][f2] - phaseVolDensity(s.E, block   [f1][f2], j);
+	  dfbardr[f1][f2] += fmatrixf[antimatter][i][f1][f2]*Phi0avgbar[f1][f2] - phaseVolDensity(s.E, blockbar[f1][f2], j);
 	}
     }
     

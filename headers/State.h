@@ -12,6 +12,9 @@ class State{
   double rho, T, Ye;
   double drhodr, dYedr;
 
+  // energy grid
+  array<double,NE> E;
+  
   // distribution function in the direction of the trajectory
   // value at the last reset
   array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> fmatrixf;
@@ -36,7 +39,8 @@ class State{
   array<array<double,NM>,NE> dphi_dr_interact, dtheta_dr_interact;
   array<array<double,NM>,NE> dphi_dr_osc,      dtheta_dr_osc;
 
-  State(const vector<double>& E){
+  State(const array<double,NE>& E){
+    this->E = E;
     
     // set Scumulative to identity
     for(int m=0; m<NM; m++){
