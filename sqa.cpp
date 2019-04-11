@@ -61,6 +61,7 @@ using std::array;
 #include "headers/project/albino.h"
 #include "headers/interact.h"
 #include "headers/nulib_interface.h"
+#include "headers/evolve.h"
 
 //======//
 // MAIN //
@@ -125,22 +126,15 @@ int main(int argc, char *argv[]){
   // ***************************************
   // quantities needed for the calculation *
   // ***************************************
-  double dr,drmin,dr_this_step;
-    
   double increase=3.;
-    
-  // ************************
-  // Runge-Kutta quantities *
-  // ************************
-    
-  array<array<array<array<array<double,NY>,NS>,NE>,NM>,NRK> dYdr;
-    
     
   // *****************************************
   // initialize at beginning of every domain *
   // *****************************************
-  dr=1e-3*cgs::units::cm;
-  drmin=4.*s.r*numeric_limits<double>::epsilon();
+  double dr_block=1e-3*cgs::units::cm;
+  double dr_osc = dr_block;
+  double dr_int = dr_block;
+  dr_block = 1e5;
       
   // *************************************************
   // comment out if not following as a function of r *
@@ -156,108 +150,37 @@ int main(int argc, char *argv[]){
   // ***********************
   bool finish = false;
   do{ 
-    double intkm = int(s.r/1e5)*1e5;
-    if(s.r - intkm <= dr){
-      cout << s.r/1e5 << " " << dr << " " << s.rho << " " << s.T << " " << s.Ye << endl;
-      cout.flush();
-    }
-
-    bool output = false;
-    if(s.r+dr>rmax){
-      dr=rmax-s.r;
+    if(s.r+dr_block>rmax){
+      dr_block=rmax-s.r;
       finish=true;
-      output=true;
     }
+    double r_end = s.r + dr_block;
 
-    // beginning of RK section
-    s.assert_noNaN();
-    const State sReset = s;
-    bool repeat = false;
-    double maxerror = 0;
-    do{ 
-      repeat=false;
-      for(int k=0;k<=NRK-1;k++){
-	s = sReset;
-	s.r +=AA[k]*dr;
-
-	for(state m = matter; m <= antimatter; m++)
-	  for(int i=0;i<=NE-1;i++)
-	    for(solution x=msw;x<=si;x++)
-	      for(int j=0;j<=NY-1;j++)
-		for(int l=0;l<=k-1;l++)
-		  s.Y[m][i][x][j] += BB[k][l] * dYdr[l][m][i][x][j] * dr;
-
-	s.update_potential(lnrho,temperature,Ye,P_unosc,HfV,s0);
-	dYdr[k] = K(s);
-      }
-	  
-      // increment all quantities and update C and A arrays
-      s = sReset;
-      s.r= sReset.r+dr;
-      maxerror=0.;
-      for(state m=matter;m<=antimatter;m++){
-	for(int i=0;i<=NE-1;i++){
-	  for(solution x=msw;x<=si;x++){
-	    for(int j=0;j<=NY-1;j++){
-	      double Yerror = 0.;
-	      for(int k=0;k<=NRK-1;k++){
-		assert(CC[k] == CC[k]);
-		s.Y[m][i][x][j] += CC[k] * dYdr[k][m][i][x][j] * dr;
-		Yerror += (CC[k]-DD[k]) * dYdr[k][m][i][x][j] * dr;
-	      }
-	      maxerror = max(maxerror, fabs(Yerror));
-	    }
-	  }
-	}
-      }
-      s.update_potential(lnrho,temperature,Ye,P_unosc,HfV,s0);
-
-      // decide whether to accept step, if not adjust step size
-      dr_this_step = dr;
-      if(maxerror>accuracy){
-	dr *= 0.9 * pow(accuracy/maxerror, 1./(NRKOrder-1.));
-	if(dr > drmin) repeat=true;
-      }
-
-      // reset integration variables to those at beginning of step
-      if(repeat==true) s = sReset;
-      else s.counter++;
-      
-    }while(repeat==true); // end of RK section
-
+    evolve_oscillations(s, s0, r_end, dr_osc, lnrho, temperature, Ye, P_unosc, accuracy, increase, HfV);
+    //dr_this_step = dr;
+    
     // interact with the matter
-    if(do_interact)
-      interact(dr_this_step, s,D_unosc);
-    s.assert_noNaN();
+    // if(do_interact)
+    //   interact(dr_this_step, s,D_unosc);
+    // s.assert_noNaN();
     
-    // accumulate S and reset variables
-    s.accumulate_S(dr, sReset);
-    
-    // comment out if not following as a function of r
-    if(counterout==out_every){
+    // decide whether to write output
+    bool output = false;
+    if(counterout==out_every || finish){
       output=true;
       counterout=1;
     }
     else counterout++;
-	
-    if(output==true || finish==true){
+    
+    if(output){
       write_data_HDF5(fp, s);
       output=false;
     }
 
-    // adjust step size based on RK error
-    // could be moved up to RK section but better left here 
-    // in case adjustments are necessary based on new S matrices
-    dr = min(dr*pow(accuracy/maxerror,1./max(1,NRKOrder)),increase*dr);
-    drmin = 4.*s.r*numeric_limits<double>::epsilon();
-    dr = max(dr,drmin);
-
   } while(finish==false);
 
-  write_data_HDF5(fp, s);
-
+  
   cout<<"\nFinished\n\a"; cout.flush();
-
   return 0;
 }
 
