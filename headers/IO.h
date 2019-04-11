@@ -32,52 +32,6 @@ void load_input_data(string input_directory,
 
 }
 
-void init_output(string outputfilename,
-		 ofstream &fout,
-		 ofstream &foutP,
-		 ofstream &foutf,
-		 ofstream &foutdangledr){
-    foutdangledr.open((outputfilename+"/dangledr.dat").c_str());
-    foutdangledr.precision(12);
-    foutdangledr << "# 1:r ";
-    for(state m=matter; m<=antimatter; m++)
-      for(int i=0; i<NE; i++)
-	foutdangledr << 2+0*NE*2 + i + m*NE << ":OscThetaie"<<i<<"m"<<m<<"\t";
-    for(state m=matter; m<=antimatter; m++)
-      for(int i=0; i<NE; i++)
-	foutdangledr << 2+1*NE*2 + i + m*NE << ":OscPhiie"<<i<<"m"<<m<<"\t";
-    for(state m=matter; m<=antimatter; m++)
-      for(int i=0; i<NE; i++)
-	foutdangledr << 2+2*NE*2 + i + m*NE << ":InteractThetaie"<<i<<"m"<<m<<"\t";
-    for(state m=matter; m<=antimatter; m++)
-      for(int i=0; i<NE; i++)
-	foutdangledr << 2+3*NE*2 + i + m*NE << ":InteractPhiie"<<i<<"m"<<m<<"\t";
-    foutdangledr << endl;
-    foutdangledr.flush();
-
-}
-
-
-void Outputvsr(ofstream &foutdangledr,
-	       const State& s,
-	       const array<array<array<DISCONTINUOUS,NF>,NE>,NM>& P_unosc){
-  foutdangledr << s.r << "\t";
-  for(state m=matter; m<=antimatter; m++)
-    for(int i=0; i<NE; i++)
-      foutdangledr << s.dtheta_dr_osc[i][m] << "\t";
-  for(state m=matter; m<=antimatter; m++)
-    for(int i=0; i<NE; i++)
-      foutdangledr << s.dphi_dr_osc[i][m] << "\t";
-  for(state m=matter; m<=antimatter; m++)
-    for(int i=0; i<NE; i++)
-      foutdangledr << s.dtheta_dr_interact[i][m] << "\t";
-  for(state m=matter; m<=antimatter; m++)
-    for(int i=0; i<NE; i++)
-      foutdangledr << s.dphi_dr_interact[i][m] << "\t";
-  foutdangledr << endl;
-  foutdangledr.flush();
-}
-
 class FilePointers{
  public:
   hid_t file;

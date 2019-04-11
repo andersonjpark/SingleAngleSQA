@@ -54,7 +54,6 @@ using std::array;
 #include "headers/mixing_angles.h"
 #include "headers/adiabatic_basis.h"
 #include "headers/jacobians.h"
-#include "headers/MNR.h"
 #include "headers/misc.h"
 #include "headers/State.h"
 #include "headers/time_derivatives.h"
@@ -68,7 +67,6 @@ using std::array;
 //======//
 int main(int argc, char *argv[]){
   string inputfilename;
-  ofstream fout,foutP,foutf, foutdangledr;
     
   inputfilename=string(argv[1]);
   ifstream fin(inputfilename.c_str());
@@ -84,7 +82,6 @@ int main(int argc, char *argv[]){
   const int out_every = get_parameter<int>(fin, "out_every");
   fin.close();
     
-  init_output(outputfilename, fout, foutP, foutf, foutdangledr);
   //nulib_init(nulibfilename, 0);
 
   DISCONTINUOUS lnrho, Ye, temperature;
@@ -151,7 +148,6 @@ int main(int argc, char *argv[]){
 	
   int counterout=1;
   s.update_potential(lnrho,temperature,Ye,P_unosc,HfV,s0);
-  //Outputvsr(fout,foutP,foutf,foutdangledr,s,P_unosc);
   FilePointers fp = setup_HDF5_file(s.E);
   write_data_HDF5(fp, s);
 	
@@ -245,7 +241,6 @@ int main(int argc, char *argv[]){
     else counterout++;
 	
     if(output==true || finish==true){
-      //Outputvsr(fout,foutP,foutf,foutdangledr,s,P_unosc);
       write_data_HDF5(fp, s);
       output=false;
     }
@@ -259,7 +254,6 @@ int main(int argc, char *argv[]){
 
   } while(finish==false);
 
-  //Outputvsr(fout,foutP,foutf,foutdangledr,s,P_unosc);
   write_data_HDF5(fp, s);
 
   cout<<"\nFinished\n\a"; cout.flush();
