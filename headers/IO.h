@@ -165,19 +165,11 @@ void write_data_HDF5(FilePointers& fp, const State& s){
   // output to stdout
   double n=0, nbar=0;
   double coeff = 4.*M_PI / pow(cgs::constants::c,3);
-  /* for(int i=0; i<NE; i++){ */
-  /*   double dnu3 = s.eas.nu[i]*s.eas.nu[i]*s.eas.dnu[i]; */
-  /*   for(flavour f1=e; f1<=mu; f1++){ */
-  /*     n    += real(s.fmatrixf[    matter][i][f1][f1]) * dnu3 * coeff; */
-  /*     nbar += real(s.fmatrixf[antimatter][i][f1][f1]) * dnu3 * coeff; */
-  /*   } */
-  /* } */
   cout << s.counter << "\t";
   cout << s.r/1e5 << "\t";
   /* cout << s.dr_osc/cgs::constants::c << "\t"; */
   /* cout << s.dr_int/cgs::constants::c << "\t"; */
   /* cout << s.dr_block/cgs::constants::c << "\t"; */
-  /* cout << n << "\t" << nbar << "\t" << (n-nbar) << "\t"; */
   /* cout << impact << endl; */
   cout << endl;
   cout.flush();
@@ -204,7 +196,7 @@ void write_data_HDF5(FilePointers& fp, const State& s){
   H5Dset_extent(fp.dset_S, dims);
   file_space = H5Dget_space(fp.dset_S);
   H5Sselect_hyperslab(file_space, H5S_SELECT_SET, start, NULL, fp.chunk_dims, NULL);
-  H5Dwrite(fp.dset_S, H5T_NATIVE_DOUBLE, mem_space, file_space, H5P_DEFAULT, &s.Scumulative);
+  H5Dwrite(fp.dset_S, H5T_NATIVE_DOUBLE, mem_space, file_space, H5P_DEFAULT, &s.Sf);
 
   // U
   H5Dset_extent(fp.dset_U, dims);

@@ -23,36 +23,6 @@ const int NN=1;
 
 // number of energy bins, min and max energy
 const int NE = 16;
-double Emin, Emax;
-
-
-/* // vacuum Hamiltonian and mixing matrices */
-/* vector<vector<MATRIX<complex<double>,NF,NF> > > HfV(NM); */
-/* vector<MATRIX<complex<double>,NF,NF> > UV(NM); */
-
-/* // vacuum values of the off-diagonal elements of the cofactor matrices */
-/* vector<vector<MATRIX<complex<double>,NF,NF> > > CV; */
-
-/* // mixing matrix element prefactors */
-/* vector<vector<vector<double> > > AV; */
-
-/* // initial mixing matrices, needs to be global */
-/* vector<vector<MATRIX<complex<double>,NF,NF> > > U0(NM);  */
-
-// neutron star radius
-double Rnu;
-
-// time snapshot
-double t;
-
-// vectors of mean energies, luminosities, temperatures, pinch paramaters
-vector<vector<double> > meanE(NM,vector<double>(NF));
-vector<vector<double> > L(NM,vector<double>(NF));
-vector<vector<double> > pinch(NM,vector<double>(NF));
-
-// pointers to initial spectra functions in found flux.h
-vector<vector<double(*)(double)> > F0(NM,vector<double(*)(double)>(NF));
-//
 
 const double M_2PI = 2.*M_PI;
 const complex<double> I = 1i;
