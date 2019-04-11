@@ -3,6 +3,7 @@
 #include <string>
 #include "hdf5.h"
 #include "State.h"
+using namespace std;
 
 void load_input_data(string input_directory,
 		     DISCONTINUOUS& lnrho,
@@ -19,14 +20,14 @@ void load_input_data(string input_directory,
     
   // load and compute spectral data
   for(int i=0; i<NE; i++){
-    P_unosc[matter    ][i][e ].Open(input_directory+"/potential_s1_g"+patch::to_string(i+1)+"_.txt",'#');
-    P_unosc[antimatter][i][e ].Open(input_directory+"/potential_s2_g"+patch::to_string(i+1)+"_.txt",'#');
-    P_unosc[matter    ][i][mu].Open(input_directory+"/potential_s3_g"+patch::to_string(i+1)+"_.txt",'#');
-    P_unosc[antimatter][i][mu].Open(input_directory+"/potential_s3_g"+patch::to_string(i+1)+"_.txt",'#');
-    D_unosc[matter    ][i][e ].Open(input_directory+"/density_s1_g"+patch::to_string(i+1)+"_.txt",'#');
-    D_unosc[antimatter][i][e ].Open(input_directory+"/density_s2_g"+patch::to_string(i+1)+"_.txt",'#');
-    D_unosc[matter    ][i][mu].Open(input_directory+"/density_s3_g"+patch::to_string(i+1)+"_.txt",'#');
-    D_unosc[antimatter][i][mu].Open(input_directory+"/density_s3_g"+patch::to_string(i+1)+"_.txt",'#');
+    P_unosc[matter    ][i][e ].Open(input_directory+"/potential_s1_g"+to_string(i+1)+"_.txt",'#');
+    P_unosc[antimatter][i][e ].Open(input_directory+"/potential_s2_g"+to_string(i+1)+"_.txt",'#');
+    P_unosc[matter    ][i][mu].Open(input_directory+"/potential_s3_g"+to_string(i+1)+"_.txt",'#');
+    P_unosc[antimatter][i][mu].Open(input_directory+"/potential_s3_g"+to_string(i+1)+"_.txt",'#');
+    D_unosc[matter    ][i][e ].Open(input_directory+"/density_s1_g"+to_string(i+1)+"_.txt",'#');
+    D_unosc[antimatter][i][e ].Open(input_directory+"/density_s2_g"+to_string(i+1)+"_.txt",'#');
+    D_unosc[matter    ][i][mu].Open(input_directory+"/density_s3_g"+to_string(i+1)+"_.txt",'#');
+    D_unosc[antimatter][i][mu].Open(input_directory+"/density_s3_g"+to_string(i+1)+"_.txt",'#');
   }
 
 }
@@ -115,34 +116,6 @@ void Outputvsr(ofstream &fout,
   foutP<<s.r<<"\t"<<Ve(s.rho,s.Ye)<<"\t";//1,2
   foutP<<real(s.VfSI[    matter][e ][e ])<<"\t"<<real(s.VfSI[    matter][mu][mu])<<"\t";
   foutP<<real(s.VfSI[antimatter][e ][e ])<<"\t"<<real(s.VfSI[antimatter][mu][mu])<<"\t";//3,4,5,6
-  array<double,6> Pvalues = averageProbability(Pe,Pebar,Pheavy,ebarPotentialSum,ePotentialSum,heavyPotentialSum);
-  double totalNuFlux = Pvalues[3];
-  double totalANuFlux =Pvalues[4];
-  double totalHeavyFlux = Pvalues[5];
-  foutP<<totalNuFlux<<"\t";//Nu,7
-  foutP<<totalANuFlux<<"\t";//ANu,8
-  foutP<<Pvalues[5]<<"\t";//Heavy,9
-  foutP<<Pvalues[0]<<"\t"<<Pvalues[1]<<"\t"<<Pvalues[2]<<"\t";//Pe,Pebar,Pheavy;10,11,12
-
-  array<double,(NE+2)*2> predP=predictProbability(Pvalues[3],Pvalues[4],Ve(s.rho,s.Ye),s.E,ebarPotentialSum,ePotentialSum,heavyPotentialSum);
-  foutP<<predP[0]<<"\t"<<predP[1+NE]<<"\t";//13,14
-  for(int i=0;i<NE;i++) foutP<<predP[1+i]<<"\t"<<predP[(NE+1)+i+1]<<"\t";//15,16,...2*(NE-1)+15,
-  foutP<<predP[(NE+1)*2]<<"\t"<<predP[(NE+1)*2+1]<<"\t";//2*(NE-1)+17,2*(NE-1)+18
-  foutP<<endl;
-  foutP.flush();
-
-  /* foutf << s.r << "\t"; */
-  /* for(int i=0; i<NE; i++) */
-  /*   for(state m=matter; m<=antimatter; m++) */
-  /*     for(flavour f1=e; f1<=mu; f1++) */
-  /* 	for(flavour f2=e; f2<=mu; f2++) { */
-  /* 	  foutf << real( s.fmatrixf[m][i][f1][f2] ) << "\t"; */
-  /* 	  foutf << imag( s.fmatrixf[m][i][f1][f2] ) << "\t"; */
-  /* 	} */
-  
-
-  /* foutf << endl; */
-  /* foutf.flush(); */
 
   foutdangledr << s.r << "\t";
   for(state m=matter; m<=antimatter; m++)
@@ -164,7 +137,8 @@ void Outputvsr(ofstream &fout,
 class FilePointers{
  public:
   hid_t file;
-  hid_t dset_f, dset_S, dset_U, dset_r, dset_dr_osc, dset_dr_int, dset_dr_block;
+  hid_t dset_f, dset_S, dset_U, dset_r, dset_dr_osc, dset_dr_int, dset_dr_block,
+    dset_rho, dset_Ye, dset_T;
   const hsize_t       dims[6] = {0,             NM, NE, NF, NF, 2};
   const hsize_t   max_dims[6] = {H5S_UNLIMITED, NM, NE, NF, NF, 2};
   const hsize_t chunk_dims[6] = {1,             NM, NE, NF, NF, 2};
@@ -201,11 +175,18 @@ FilePointers setup_HDF5_file(const array<double,NE>& E){
   H5Dcreate(fp.file, "dr_block(cm)", H5T_NATIVE_DOUBLE, file_space, H5P_DEFAULT, plist, H5P_DEFAULT);
   H5Dcreate(fp.file, "dr_osc(cm)", H5T_NATIVE_DOUBLE, file_space, H5P_DEFAULT, plist, H5P_DEFAULT);
   H5Dcreate(fp.file, "dr_int(cm)", H5T_NATIVE_DOUBLE, file_space, H5P_DEFAULT, plist, H5P_DEFAULT);
+  H5Dcreate(fp.file, "rho(g|ccm)", H5T_NATIVE_DOUBLE, file_space, H5P_DEFAULT, plist, H5P_DEFAULT);
+  H5Dcreate(fp.file, "Ye", H5T_NATIVE_DOUBLE, file_space, H5P_DEFAULT, plist, H5P_DEFAULT);
+  H5Dcreate(fp.file, "T(MeV)", H5T_NATIVE_DOUBLE, file_space, H5P_DEFAULT, plist, H5P_DEFAULT);
   fp.dset_r        = H5Dopen(fp.file, "r(cm)", H5P_DEFAULT);
   fp.dset_dr_osc   = H5Dopen(fp.file, "dr_osc(cm)", H5P_DEFAULT);
   fp.dset_dr_int   = H5Dopen(fp.file, "dr_int(cm)", H5P_DEFAULT);
   fp.dset_dr_block = H5Dopen(fp.file, "dr_block(cm)", H5P_DEFAULT);
-
+  fp.dset_rho      = H5Dopen(fp.file, "rho(g|ccm)", H5P_DEFAULT);
+  fp.dset_Ye       = H5Dopen(fp.file, "Ye", H5P_DEFAULT);
+  fp.dset_T        = H5Dopen(fp.file, "T(MeV)", H5P_DEFAULT);
+  
+  
   // energy grid //
   hid_t mem_space =   H5Screate_simple(ndims, &fp.dims[2], NULL);
   file_space = H5Screate_simple(ndims, &fp.dims[2], &fp.dims[2]);
@@ -285,6 +266,24 @@ void write_data_HDF5(FilePointers& fp, const State& s){
   file_space = H5Dget_space(fp.dset_r);
   H5Sselect_hyperslab(file_space, H5S_SELECT_SET, start, NULL, fp.chunk_dims, NULL);
   H5Dwrite(fp.dset_r, H5T_NATIVE_DOUBLE, mem_space, file_space, H5P_DEFAULT, &s.r);
+
+  // rho
+  H5Dset_extent(fp.dset_rho, dims);
+  file_space = H5Dget_space(fp.dset_rho);
+  H5Sselect_hyperslab(file_space, H5S_SELECT_SET, start, NULL, fp.chunk_dims, NULL);
+  H5Dwrite(fp.dset_rho, H5T_NATIVE_DOUBLE, mem_space, file_space, H5P_DEFAULT, &s.rho);
+
+  // Ye
+  H5Dset_extent(fp.dset_Ye, dims);
+  file_space = H5Dget_space(fp.dset_Ye);
+  H5Sselect_hyperslab(file_space, H5S_SELECT_SET, start, NULL, fp.chunk_dims, NULL);
+  H5Dwrite(fp.dset_Ye, H5T_NATIVE_DOUBLE, mem_space, file_space, H5P_DEFAULT, &s.Ye);
+
+  // T
+  H5Dset_extent(fp.dset_T, dims);
+  file_space = H5Dget_space(fp.dset_T);
+  H5Sselect_hyperslab(file_space, H5S_SELECT_SET, start, NULL, fp.chunk_dims, NULL);
+  H5Dwrite(fp.dset_T, H5T_NATIVE_DOUBLE, mem_space, file_space, H5P_DEFAULT, &s.T);
 
   // free resources
   H5Sclose(file_space);
