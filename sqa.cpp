@@ -75,12 +75,12 @@ int main(int argc, char *argv[]){
   // load the nulib table
   const string nulibfilename = get_parameter<string>(fin,"nulibfilename");
   const string input_directory = get_parameter<string>(fin,"input_directory");
-  const string outputfilename = get_parameter<string>(fin, "outputfilename");
   const double rmin = get_parameter<double>(fin, "rmin"); // cm
   const double rmax = get_parameter<double>(fin, "rmax"); // cm
+  const double dr0 = get_parameter<double>(fin, "dr0"); // cm
+  const double dr_block_max = get_parameter<double>(fin, "dr_block_max"); // cm
   const double accuracy = get_parameter<double>(fin, "accuracy");
   const bool do_interact = get_parameter<bool>(fin, "do_interact");
-  const int out_every = get_parameter<int>(fin, "out_every");
   fin.close();
     
   //nulib_init(nulibfilename, 0);
@@ -131,16 +131,15 @@ int main(int argc, char *argv[]){
   // *****************************************
   // initialize at beginning of every domain *
   // *****************************************
-  double dr_block=1e-3*cgs::units::cm;
+  double dr_block=dr0;
   double dr_osc = dr_block;
   double dr_int = dr_block;
-  dr_block = 1e5;
+  dr_block = dr_block_max;
       
   // *************************************************
   // comment out if not following as a function of r *
   // *************************************************
 	
-  int counterout=1;
   s.update_potential(lnrho,temperature,Ye,P_unosc,HfV,s0);
   FilePointers fp = setup_HDF5_file(s.E);
   write_data_HDF5(fp, s);
@@ -163,20 +162,10 @@ int main(int argc, char *argv[]){
     // if(do_interact)
     //   interact(dr_this_step, s,D_unosc);
     // s.assert_noNaN();
-    
-    // decide whether to write output
-    bool output = false;
-    if(counterout==out_every || finish){
-      output=true;
-      counterout=1;
-    }
-    else counterout++;
-    
-    if(output){
-      write_data_HDF5(fp, s);
-      output=false;
-    }
 
+    // output data
+    write_data_HDF5(fp, s);
+    
   } while(finish==false);
 
   

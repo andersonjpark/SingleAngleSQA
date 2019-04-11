@@ -135,7 +135,6 @@ void write_data_HDF5(FilePointers& fp, const State& s){
   // output to stdout
   double n=0, nbar=0;
   double coeff = 4.*M_PI / pow(cgs::constants::c,3);
-  cout << s.counter << "\t";
   cout << s.r/1e5 << "\t";
   cout << s.rho << "\t";
   cout << s.Ye << "\t";

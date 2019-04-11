@@ -73,7 +73,6 @@ void evolve_oscillations(State& s,
 
       // reset integration variables to those at beginning of step
       if(repeat==true) s = sReset;
-      else s.counter++;
       
     }while(repeat==true); // end of RK section
 

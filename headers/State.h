@@ -7,7 +7,6 @@
 
 class State{
  public:
-  size_t counter;
   double r;
   double rho, T, Ye;
   double drhodr, dYedr;
