@@ -138,7 +138,7 @@ class FilePointers{
  public:
   hid_t file;
   hid_t dset_f, dset_S, dset_U, dset_r, dset_dr_osc, dset_dr_int, dset_dr_block,
-    dset_rho, dset_Ye, dset_T;
+    dset_rho, dset_Ye, dset_T, dset_VfSI;
   const hsize_t       dims[6] = {0,             NM, NE, NF, NF, 2};
   const hsize_t   max_dims[6] = {H5S_UNLIMITED, NM, NE, NF, NF, 2};
   const hsize_t chunk_dims[6] = {1,             NM, NE, NF, NF, 2};
@@ -163,9 +163,11 @@ FilePointers setup_HDF5_file(const array<double,NE>& E){
   H5Dcreate(fp.file, "fmatrixf", H5T_NATIVE_DOUBLE, file_space, H5P_DEFAULT, plist, H5P_DEFAULT);
   H5Dcreate(fp.file, "S",        H5T_NATIVE_DOUBLE, file_space, H5P_DEFAULT, plist, H5P_DEFAULT);
   H5Dcreate(fp.file, "U",        H5T_NATIVE_DOUBLE, file_space, H5P_DEFAULT, plist, H5P_DEFAULT);
+  H5Dcreate(fp.file, "VfSI(erg)",        H5T_NATIVE_DOUBLE, file_space, H5P_DEFAULT, plist, H5P_DEFAULT);
   fp.dset_f = H5Dopen(fp.file, "fmatrixf", H5P_DEFAULT);
   fp.dset_S = H5Dopen(fp.file, "S", H5P_DEFAULT);
   fp.dset_U = H5Dopen(fp.file, "U", H5P_DEFAULT);
+  fp.dset_VfSI = H5Dopen(fp.file, "VfSI(erg)", H5P_DEFAULT);
 
   // RADIUS/TIME //
   ndims = 1;
@@ -256,6 +258,12 @@ void write_data_HDF5(FilePointers& fp, const State& s){
   file_space = H5Dget_space(fp.dset_U);
   H5Sselect_hyperslab(file_space, H5S_SELECT_SET, start, NULL, fp.chunk_dims, NULL);
   H5Dwrite(fp.dset_U, H5T_NATIVE_DOUBLE, mem_space, file_space, H5P_DEFAULT, &s.UU);
+
+  // VfSI
+  H5Dset_extent(fp.dset_VfSI, dims);
+  file_space = H5Dget_space(fp.dset_VfSI);
+  H5Sselect_hyperslab(file_space, H5S_SELECT_SET, start, NULL, fp.chunk_dims, NULL);
+  H5Dwrite(fp.dset_VfSI, H5T_NATIVE_DOUBLE, mem_space, file_space, H5P_DEFAULT, &s.VfSI);
 
   // 1D stuff
   ndims = 1;
