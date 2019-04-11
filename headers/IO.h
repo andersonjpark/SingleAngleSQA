@@ -36,13 +36,16 @@ class FilePointers{
  public:
   hid_t file;
   hid_t dset_f, dset_S, dset_U, dset_r, dset_dr_osc, dset_dr_int, dset_dr_block,
-    dset_rho, dset_Ye, dset_T, dset_VfSI;
-  const hsize_t       dims[6] = {0,             NM, NE, NF, NF, 2};
-  const hsize_t   max_dims[6] = {H5S_UNLIMITED, NM, NE, NF, NF, 2};
-  const hsize_t chunk_dims[6] = {1,             NM, NE, NF, NF, 2};
-  const hsize_t     dims_V[5] = {0,             NM, NF, NF, 2};
-  const hsize_t max_dims_V[5] = {H5S_UNLIMITED, NM, NF, NF, 2};
-  const hsize_t chunk_dims_V[5] = {1,           NM, NF, NF, 2};
+    dset_rho, dset_Ye, dset_T, dset_VfSI, dset_dtdrO, dset_dtdrI, dset_dpdrO, dset_dpdrI;
+  const hsize_t       dims[6]   = {0,             NM, NE, NF, NF, 2};
+  const hsize_t   max_dims[6]   = {H5S_UNLIMITED, NM, NE, NF, NF, 2};
+  const hsize_t chunk_dims[6]   = {1,             NM, NE, NF, NF, 2};
+  const hsize_t     dims_V[5]   = {0,             NM, NF, NF, 2};
+  const hsize_t max_dims_V[5]   = {H5S_UNLIMITED, NM, NF, NF, 2};
+  const hsize_t chunk_dims_V[5] = {1,             NM, NF, NF, 2};
+  const hsize_t     dims3[3]    = {0,             NM, NE};
+  const hsize_t max_dims3[3]    = {H5S_UNLIMITED, NM, NE};
+  const hsize_t chunk_dims3[3]  = {1,             NM, NE};
 };
 
 //============//
@@ -74,7 +77,20 @@ FilePointers setup_HDF5_file(const array<double,NE>& E){
   H5Pset_chunk(plist, ndims, fp.chunk_dims_V);
   H5Dcreate(fp.file, "VfSI(erg)",H5T_NATIVE_DOUBLE, file_space, H5P_DEFAULT, plist, H5P_DEFAULT);
   fp.dset_VfSI = H5Dopen(fp.file, "VfSI(erg)", H5P_DEFAULT);
-  
+
+  // dangle_dr //
+  ndims = 3;
+  file_space = H5Screate_simple(ndims, fp.dims3, fp.max_dims3);
+  H5Pset_chunk(plist, ndims, fp.chunk_dims3);
+  H5Dcreate(fp.file, "dtheta_dr_osc(rad|cm)",H5T_NATIVE_DOUBLE, file_space, H5P_DEFAULT, plist, H5P_DEFAULT);
+  H5Dcreate(fp.file, "dtheta_dr_int(rad|cm)",H5T_NATIVE_DOUBLE, file_space, H5P_DEFAULT, plist, H5P_DEFAULT);
+  H5Dcreate(fp.file, "dphi_dr_osc(rad|cm)",H5T_NATIVE_DOUBLE, file_space, H5P_DEFAULT, plist, H5P_DEFAULT);
+  H5Dcreate(fp.file, "dphi_dr_int(rad|cm)",H5T_NATIVE_DOUBLE, file_space, H5P_DEFAULT, plist, H5P_DEFAULT);
+  fp.dset_dtdrO = H5Dopen(fp.file, "dtheta_dr_osc(rad|cm)", H5P_DEFAULT);
+  fp.dset_dtdrI = H5Dopen(fp.file, "dtheta_dr_int(rad|cm)", H5P_DEFAULT);
+  fp.dset_dpdrO = H5Dopen(fp.file, "dphi_dr_osc(rad|cm)", H5P_DEFAULT);
+  fp.dset_dpdrI = H5Dopen(fp.file, "dphi_dr_int(rad|cm)", H5P_DEFAULT);
+
   
   // RADIUS/TIME //
   ndims = 1;
@@ -169,6 +185,33 @@ void write_data_HDF5(FilePointers& fp, const State& s){
   H5Sselect_hyperslab(file_space, H5S_SELECT_SET, start, NULL, fp.chunk_dims_V, NULL);
   H5Dwrite(fp.dset_VfSI, H5T_NATIVE_DOUBLE, mem_space, file_space, H5P_DEFAULT, &s.VfSI);
 
+  // dangle_dr
+  ndims = 3;
+  mem_space = H5Screate_simple(ndims, fp.chunk_dims3, NULL);
+  file_space = H5Dget_space (fp.dset_dtdrO);
+  H5Sget_simple_extent_dims(file_space, dims, NULL);
+  dims[0]++;
+
+  H5Dset_extent(fp.dset_dtdrO, dims);
+  file_space = H5Dget_space (fp.dset_dtdrO);
+  H5Sselect_hyperslab(file_space, H5S_SELECT_SET, start, NULL, fp.chunk_dims3, NULL);
+  H5Dwrite(fp.dset_dtdrO, H5T_NATIVE_DOUBLE, mem_space, file_space, H5P_DEFAULT, &s.dtheta_dr_osc);
+  
+  H5Dset_extent(fp.dset_dtdrI, dims);
+  file_space = H5Dget_space (fp.dset_dtdrI);
+  H5Sselect_hyperslab(file_space, H5S_SELECT_SET, start, NULL, fp.chunk_dims3, NULL);
+  H5Dwrite(fp.dset_dtdrI, H5T_NATIVE_DOUBLE, mem_space, file_space, H5P_DEFAULT, &s.dtheta_dr_interact);
+  
+  H5Dset_extent(fp.dset_dpdrO, dims);
+  file_space = H5Dget_space (fp.dset_dpdrO);
+  H5Sselect_hyperslab(file_space, H5S_SELECT_SET, start, NULL, fp.chunk_dims3, NULL);
+  H5Dwrite(fp.dset_dpdrO, H5T_NATIVE_DOUBLE, mem_space, file_space, H5P_DEFAULT, &s.dphi_dr_osc);
+  
+  H5Dset_extent(fp.dset_dpdrI, dims);
+  file_space = H5Dget_space (fp.dset_dpdrI);
+  H5Sselect_hyperslab(file_space, H5S_SELECT_SET, start, NULL, fp.chunk_dims3, NULL);
+  H5Dwrite(fp.dset_dpdrI, H5T_NATIVE_DOUBLE, mem_space, file_space, H5P_DEFAULT, &s.dphi_dr_interact);
+  
   // 1D stuff
   ndims = 1;
   mem_space = H5Screate_simple(ndims, fp.chunk_dims, NULL);
