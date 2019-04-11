@@ -142,7 +142,7 @@ int main(int argc, char *argv[]){
 	
   s.update_potential(lnrho,temperature,Ye,P_unosc,HfV,s0);
   FilePointers fp = setup_HDF5_file(s.E);
-  write_data_HDF5(fp, s);
+  write_data_HDF5(fp, s, dr_osc, dr_int, dr_block);
 	
   // ***********************
   // start the loop over r *
@@ -164,7 +164,7 @@ int main(int argc, char *argv[]){
     // s.assert_noNaN();
 
     // output data
-    write_data_HDF5(fp, s);
+    write_data_HDF5(fp, s,dr_osc, dr_int, dr_block);
     
   } while(finish==false);
 
