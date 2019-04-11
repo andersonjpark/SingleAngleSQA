@@ -37,30 +37,6 @@ void init_output(string outputfilename,
 		 ofstream &foutP,
 		 ofstream &foutf,
 		 ofstream &foutdangledr){
-    foutP.open((outputfilename+"/2p.dat").c_str());
-    foutP.precision(12);
-    foutP.flush();
-    fout.open((outputfilename+"/out.dat").c_str());
-    fout.precision(12);
-    foutf.open((outputfilename+"/f.dat").c_str());
-    foutf.precision(12);
-    foutf << "# 1:r ";
-    fout << "# 1:r ";
-    for(int i=0; i<NE; i++)
-      for(state m=matter; m<=antimatter; m++)
-	for(flavour f1=e; f1<=mu; f1++)
-	  for(flavour f2=e; f2<=mu; f2++) {
-	    int istart = 2*( f2 + f1*2 + m*2*2 + i*2*2*2) + 2;
-	    foutf << istart   << ":ie"<<i<<"m"<<m<<"f"<<f1<<f2<<"R\t";
-	    foutf << istart+1 << ":ie"<<i<<"m"<<m<<"f"<<f1<<f2<<"I\t";
-	    fout  << istart   << ":ie"<<i<<"m"<<m<<"f"<<f1<<f2<<"R\t";
-	    fout  << istart+1 << ":ie"<<i<<"m"<<m<<"f"<<f1<<f2<<"I\t";
-    }
-    foutf << endl;
-    fout << endl;
-    fout.flush();
-    foutf.flush();
-    
     foutdangledr.open((outputfilename+"/dangledr.dat").c_str());
     foutdangledr.precision(12);
     foutdangledr << "# 1:r ";
@@ -82,41 +58,9 @@ void init_output(string outputfilename,
 }
 
 
-void Outputvsr(ofstream &fout,
-	       ofstream &foutP,
-	       ofstream &foutf,
-	       ofstream &foutdangledr,
+void Outputvsr(ofstream &foutdangledr,
 	       const State& s,
 	       const array<array<array<DISCONTINUOUS,NF>,NE>,NM>& P_unosc){
-
-  array<double,NE> ePotentialSum,ebarPotentialSum,heavyPotentialSum;
-  array<double,NE> Pe,Pebar,Pheavy;
-  for(int i=0;i<=NE-1;i++){
-    ePotentialSum[i]=P_unosc[matter][i][e](s.r);
-    ebarPotentialSum[i]=P_unosc[antimatter][i][e](s.r);
-    heavyPotentialSum[i]=P_unosc[matter][i][mu](s.r);
-    Pe    [i] = norm(s.Sf[matter][i][e ][e ]);
-    Pebar [i] = norm(s.Sf[antimatter][i][e ][e ]);
-    Pheavy[i] = norm(s.Sf[matter][i][mu][mu]);
-  }
-
-
-  fout << s.r << "\t";
-  for(int i=0; i<NE; i++)
-    for(state m=matter; m<=antimatter; m++){
-      for(flavour f1=e; f1<=mu; f1++)
-	for(flavour f2=e; f2<=mu; f2++) {
-	  fout << real(s.Sf[m][i][f1][f2] ) << "\t";
-	  fout << imag(s.Sf[m][i][f1][f2] ) << "\t";
-	}
-    }
-  fout << endl;
-  fout.flush();
-
-  foutP<<s.r<<"\t"<<Ve(s.rho,s.Ye)<<"\t";//1,2
-  foutP<<real(s.VfSI[    matter][e ][e ])<<"\t"<<real(s.VfSI[    matter][mu][mu])<<"\t";
-  foutP<<real(s.VfSI[antimatter][e ][e ])<<"\t"<<real(s.VfSI[antimatter][mu][mu])<<"\t";//3,4,5,6
-
   foutdangledr << s.r << "\t";
   for(state m=matter; m<=antimatter; m++)
     for(int i=0; i<NE; i++)
@@ -142,6 +86,9 @@ class FilePointers{
   const hsize_t       dims[6] = {0,             NM, NE, NF, NF, 2};
   const hsize_t   max_dims[6] = {H5S_UNLIMITED, NM, NE, NF, NF, 2};
   const hsize_t chunk_dims[6] = {1,             NM, NE, NF, NF, 2};
+  const hsize_t     dims_V[5] = {0,             NM, NF, NF, 2};
+  const hsize_t max_dims_V[5] = {H5S_UNLIMITED, NM, NF, NF, 2};
+  const hsize_t chunk_dims_V[5] = {1,           NM, NF, NF, 2};
 };
 
 //============//
@@ -163,12 +110,18 @@ FilePointers setup_HDF5_file(const array<double,NE>& E){
   H5Dcreate(fp.file, "fmatrixf", H5T_NATIVE_DOUBLE, file_space, H5P_DEFAULT, plist, H5P_DEFAULT);
   H5Dcreate(fp.file, "S",        H5T_NATIVE_DOUBLE, file_space, H5P_DEFAULT, plist, H5P_DEFAULT);
   H5Dcreate(fp.file, "U",        H5T_NATIVE_DOUBLE, file_space, H5P_DEFAULT, plist, H5P_DEFAULT);
-  H5Dcreate(fp.file, "VfSI(erg)",        H5T_NATIVE_DOUBLE, file_space, H5P_DEFAULT, plist, H5P_DEFAULT);
   fp.dset_f = H5Dopen(fp.file, "fmatrixf", H5P_DEFAULT);
   fp.dset_S = H5Dopen(fp.file, "S", H5P_DEFAULT);
   fp.dset_U = H5Dopen(fp.file, "U", H5P_DEFAULT);
-  fp.dset_VfSI = H5Dopen(fp.file, "VfSI(erg)", H5P_DEFAULT);
 
+  // VfSI //
+  ndims = 5;
+  file_space = H5Screate_simple(ndims, fp.dims_V, fp.max_dims_V);
+  H5Pset_chunk(plist, ndims, fp.chunk_dims_V);
+  H5Dcreate(fp.file, "VfSI(erg)",H5T_NATIVE_DOUBLE, file_space, H5P_DEFAULT, plist, H5P_DEFAULT);
+  fp.dset_VfSI = H5Dopen(fp.file, "VfSI(erg)", H5P_DEFAULT);
+  
+  
   // RADIUS/TIME //
   ndims = 1;
   file_space = H5Screate_simple(ndims, fp.dims, fp.max_dims);
@@ -260,9 +213,14 @@ void write_data_HDF5(FilePointers& fp, const State& s){
   H5Dwrite(fp.dset_U, H5T_NATIVE_DOUBLE, mem_space, file_space, H5P_DEFAULT, &s.UU);
 
   // VfSI
+  ndims = 5;
+  mem_space = H5Screate_simple(ndims, fp.chunk_dims_V, NULL);
+  file_space = H5Dget_space (fp.dset_VfSI);
+  H5Sget_simple_extent_dims(file_space, dims, NULL);
+  dims[0]++;
   H5Dset_extent(fp.dset_VfSI, dims);
-  file_space = H5Dget_space(fp.dset_VfSI);
-  H5Sselect_hyperslab(file_space, H5S_SELECT_SET, start, NULL, fp.chunk_dims, NULL);
+  file_space = H5Dget_space (fp.dset_VfSI);
+  H5Sselect_hyperslab(file_space, H5S_SELECT_SET, start, NULL, fp.chunk_dims_V, NULL);
   H5Dwrite(fp.dset_VfSI, H5T_NATIVE_DOUBLE, mem_space, file_space, H5P_DEFAULT, &s.VfSI);
 
   // 1D stuff
