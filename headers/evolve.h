@@ -16,7 +16,9 @@ void evolve_oscillations(State& s,
   array<array<array<array<array<double,NY>,NS>,NE>,NM>,NRK> dYdr;
 
   bool finish = false;
-  do{ 
+  double old_dr;
+  do{
+    old_dr = dr;
     if(s.r+dr>r_end){
       dr=r_end-s.r;
       finish=true;
@@ -82,7 +84,7 @@ void evolve_oscillations(State& s,
     double drmin = 4.*s.r*numeric_limits<double>::epsilon();
     dr = max(dr,drmin);
   } while(!finish);
-
+  dr = old_dr; // reset dr to last one so its not controlled by block size
   
   // accumulate S and reset variables
   // need sBeforeBlock because we tack on to the end of Scumulative
@@ -101,7 +103,8 @@ void evolve_interactions(State& s,
 			 const DISCONTINUOUS& Ye,
 			 const array<array<array<DISCONTINUOUS,NF>,NE>,NM>& D_unosc,
 			 const double accuracy,
-			 const double increase){
+			 const double increase,
+			 double& impact){
 
   // save old fmatrix
   array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> old_fmatrixf = s.fmatrixf;
@@ -111,7 +114,9 @@ void evolve_interactions(State& s,
 
   // let neutrinos interact
   bool finish = false;
-  do{ 
+  double old_dr;
+  do{
+    old_dr = dr;
     if(s.r+dr>r_end){
       dr=r_end-s.r;
       finish=true;
@@ -171,12 +176,22 @@ void evolve_interactions(State& s,
     double drmin = 4.*s.r*numeric_limits<double>::epsilon();
     dr = max(dr,drmin);
   } while(!finish);
+
+  // reset to last dr so its not determined by block size
+  dr = old_dr;
   
-  // loop through getting rotation matrices
+  // loop through getting rotation matrices and impact
   double hold[4];
   double hnew[4];
+  impact = 0;
   for(int i=0; i<NE; i++){
     for(state m=matter; m<=antimatter; m++){
+      // get the impact
+      MATRIX<complex<double>,NF,NF> df = s.fmatrixf[m][i] - old_fmatrixf[m][i];
+      for(flavour f1=e; f1<=mu; f1++)
+	for(flavour f2=e; f2<=mu; f2++)
+	  impact = max(impact, fabs(df[f1][f2]));
+	  
       pauli_decompose(old_fmatrixf[m][i], hold);
       pauli_decompose(  s.fmatrixf[m][i], hnew);
 

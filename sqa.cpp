@@ -81,6 +81,8 @@ int main(int argc, char *argv[]){
   const double accuracy = get_parameter<double>(fin, "accuracy");
   const bool do_oscillate = get_parameter<bool>(fin, "do_oscillate");
   const bool do_interact = get_parameter<bool>(fin, "do_interact");
+  const double target_impact = get_parameter<double>(fin, "target_impact");
+  const double increase = get_parameter<double>(fin, "increase");
   fin.close();
     
   //nulib_init(nulibfilename, 0);
@@ -122,19 +124,13 @@ int main(int argc, char *argv[]){
   }
   initialize(s,rmin,D_unosc);
   const State s0 = s;
-  
-  // ***************************************
-  // quantities needed for the calculation *
-  // ***************************************
-  double increase=3.;
     
   // *****************************************
   // initialize at beginning of every domain *
   // *****************************************
-  double dr_block=dr0;
-  double dr_osc = dr_block;
-  double dr_int = dr_block;
-  dr_block = dr_block_max;
+  double dr_block = 1e4;
+  double dr_osc   = dr0;
+  double dr_int   = dr0;
       
   // *************************************************
   // comment out if not following as a function of r *
@@ -158,19 +154,33 @@ int main(int argc, char *argv[]){
     State sBlockStart = s;
     
     // oscillate
-    if(do_oscillate)
+    if(do_oscillate){
+      s.assert_noNaN();
+      s.r = sBlockStart.r;
       evolve_oscillations(s, s0, sBlockStart, r_end, dr_osc, lnrho, temperature, Ye, P_unosc, accuracy, increase, HfV);
+    }
 
     // interact with the matter
+    double impact = 0;
     if(do_interact){
+      s.assert_noNaN();
       s.r = sBlockStart.r;
-      evolve_interactions(s, s0, sBlockStart, r_end, dr_int, lnrho, temperature, Ye, D_unosc, accuracy, increase);
+      evolve_interactions(s, s0, sBlockStart, r_end, dr_int, lnrho, temperature, Ye, D_unosc, accuracy, increase, impact);
     }
 
     // output data
-    s.assert_noNaN();
     write_data_HDF5(fp, s,dr_osc, dr_int, dr_block);
     
+    // timestepping
+    if(impact > target_impact)
+      cout << "WARNING: impact="<<impact<< endl;
+    double corrected_impact = impact / (s.r-sBlockStart.r) * dr_block;
+    if(corrected_impact<.1*target_impact)
+      dr_block *= min(increase, .1*target_impact/corrected_impact);
+    if(corrected_impact>.1*target_impact)
+      dr_block *= .1*target_impact/corrected_impact;
+    dr_block = min(dr_block, dr_block_max);
+
   } while(finish==false);
 
   
