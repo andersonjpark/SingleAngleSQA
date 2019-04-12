@@ -59,7 +59,6 @@ using std::array;
 #include "headers/time_derivatives.h"
 #include "headers/IO.h"
 #include "headers/project/albino.h"
-#include "headers/interact.h"
 #include "headers/nulib_interface.h"
 #include "headers/evolve.h"
 
@@ -80,6 +79,7 @@ int main(int argc, char *argv[]){
   const double dr0 = get_parameter<double>(fin, "dr0"); // cm
   const double dr_block_max = get_parameter<double>(fin, "dr_block_max"); // cm
   const double accuracy = get_parameter<double>(fin, "accuracy");
+  const bool do_oscillate = get_parameter<bool>(fin, "do_oscillate");
   const bool do_interact = get_parameter<bool>(fin, "do_interact");
   fin.close();
     
@@ -155,15 +155,20 @@ int main(int argc, char *argv[]){
     }
     double r_end = s.r + dr_block;
 
-    evolve_oscillations(s, s0, r_end, dr_osc, lnrho, temperature, Ye, P_unosc, accuracy, increase, HfV);
-    //dr_this_step = dr;
+    State sBlockStart = s;
     
+    // oscillate
+    if(do_oscillate)
+      evolve_oscillations(s, s0, sBlockStart, r_end, dr_osc, lnrho, temperature, Ye, P_unosc, accuracy, increase, HfV);
+
     // interact with the matter
-    // if(do_interact)
-    //   interact(dr_this_step, s,D_unosc);
-    // s.assert_noNaN();
+    if(do_interact){
+      s.r = sBlockStart.r;
+      evolve_interactions(s, s0, sBlockStart, r_end, dr_int, lnrho, temperature, Ye, D_unosc, accuracy, increase);
+    }
 
     // output data
+    s.assert_noNaN();
     write_data_HDF5(fp, s,dr_osc, dr_int, dr_block);
     
   } while(finish==false);
