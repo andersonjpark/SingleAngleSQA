@@ -47,6 +47,7 @@ T phaseVolDensity(const array<double,NE>& E, const T density, const unsigned i){
 //============//
 void initialize(State& s,
 		double r,
+		array<double,NE> E,
 		const array<array<array<DISCONTINUOUS,NF>,NE>,NM>& D_unosc){
   // T should be MeV
   cout << "Setting initial data." << endl;
@@ -63,7 +64,7 @@ void initialize(State& s,
     for(state m=matter; m<=antimatter; m++){
       s.fmatrixf[m][i] = MATRIX<complex<double>,NF,NF>();
       for(flavour f=e; f<=mu; f++)
-	s.fmatrixf[m][i][f][f] = D_unosc[m][i][f](s.r);
+	s.fmatrixf[m][i][f][f] = phaseVolDensity(E, D_unosc[m][i][f](s.r), i);
     }
     
     cout << "GROUP " << i << endl;

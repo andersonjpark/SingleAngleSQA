@@ -122,7 +122,7 @@ int main(int argc, char *argv[]){
       s.UU[m][i]=U(s.dkk[m][i],s.CC[m][i],s.AA[m][i]);
     }
   }
-  initialize(s,rmin,D_unosc);
+  initialize(s,rmin,E,D_unosc);
   const State s0 = s;
     
   // *****************************************
@@ -155,7 +155,7 @@ int main(int argc, char *argv[]){
     
     // oscillate
     if(do_oscillate){
-      s.assert_noNaN();
+      s.assert_noNaN(accuracy);
       s.r = sBlockStart.r;
       evolve_oscillations(s, s0, sBlockStart, r_end, dr_osc, lnrho, temperature, Ye, P_unosc, accuracy, increase, HfV);
     }
@@ -163,7 +163,7 @@ int main(int argc, char *argv[]){
     // interact with the matter
     double impact = 0;
     if(do_interact){
-      s.assert_noNaN();
+      s.assert_noNaN(accuracy);
       s.r = sBlockStart.r;
       evolve_interactions(s, s0, sBlockStart, r_end, dr_int, lnrho, temperature, Ye, D_unosc, accuracy, increase, impact);
     }

@@ -147,13 +147,23 @@ class State{
     }
   }
 
-  void assert_noNaN(){
+  void assert_noNaN(double accuracy){
     for(state m=matter; m<=antimatter; m++){
       for(int i=0; i<NE; i++){
-
-	for(flavour f1=e; f1<=mu; f1++)
+	
+	for(flavour f1=e; f1<=mu; f1++){
+	  assert(real(fmatrixf[m][i][f1][f1]) <= 1.);
+	  assert(real(fmatrixf[m][i][f1][f1]) >= 0.);
+	  assert(abs(imag(fmatrixf[m][i][f1][f1])) < accuracy);
 	  for(flavour f2=e; f2<=mu; f2++)
 	    assert(fmatrixf[m][i][f1][f2] == fmatrixf[m][i][f1][f2]);
+	}
+
+	double isospin[4];
+	pauli_decompose(fmatrixf[m][i], isospin);
+	double fperp2 = isospin[0]*isospin[0] + isospin[1]*isospin[1];
+	assert(fabs(isospin[0]) <= isospin[3]);
+	assert(fperp2 <= pow(min(isospin[3], 1.-isospin[3]),2) - isospin[2]*isospin[2]);
 
 	for(solution x=msw;x<=si;x++)
 	    for(int j=0;j<=NY-1;j++)

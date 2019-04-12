@@ -89,7 +89,6 @@ void evolve_oscillations(State& s,
   // accumulate S and reset variables
   // need sBeforeBlock because we tack on to the end of Scumulative
   s.accumulate_S(dr, sBlockStart);
-  s.assert_noNaN();
 }
 
 
