@@ -124,6 +124,9 @@ FilePointers setup_HDF5_file(const array<double,NE>& E){
   H5Sclose(file_space);
   H5Pclose(plist);
   H5Fflush(fp.file,H5F_SCOPE_LOCAL);
+
+  // preliminary stdout
+  cout << "r(cm) \t rho(g/ccm) \t Ye \t T(MeV) \t dr_osc(cm) \t dr_int(cm) \t dr_block(cm)" << endl;
   
   return fp;
 }
