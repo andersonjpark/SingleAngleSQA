@@ -144,12 +144,12 @@ int main(int argc, char *argv[]){
   // start the loop over r *
   // ***********************
   bool finish = false;
-  do{ 
-    if(s.r+dr_block>rmax){
-      dr_block=rmax-s.r;
+  do{
+    double r_end = s.r + dr_block * min(5., exponential_random());
+    if(r_end>rmax){
+      r_end = rmax;
       finish=true;
     }
-    double r_end = s.r + dr_block;
 
     State sBlockStart = s;
     

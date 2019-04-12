@@ -54,4 +54,14 @@ static const double* BB[]={ b0,b1,b2,b3,b4,b5 };
 static const double CC[]={ 37./378.,0.,250./621.,125./594.,0.,512./1771. };
 static const double DD[]={ 2825./27648.,0.,18575./48384.,13525./55296.,277./14336.,1./4. };
 
+// random number generation
+#include <random>
+double uniform(){
+  return (float)rand() / (float)RAND_MAX;
+}
+double exponential_random(){
+  return -log(uniform());
+}
+
+
 #endif
