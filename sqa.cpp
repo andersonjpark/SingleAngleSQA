@@ -128,7 +128,7 @@ int main(int argc, char *argv[]){
   // *****************************************
   // initialize at beginning of every domain *
   // *****************************************
-  double dr_block = 1e4;
+  double dr_block = dr0;
   double dr_osc   = dr0;
   double dr_int   = dr0;
       
