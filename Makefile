@@ -8,7 +8,7 @@ LIBRARY = ${NULIB_LOC}/src/nulib.a -L${HDF5_LOC}/lib -lhdf5 -lhdf5_fortran -lhdf
 
 COMP = g++ -fopenmp -g -std=gnu++11 -O2
 
-sqa.o: sqa.cpp
+sqa.o: src/sqa.cpp
 	rm -f sqa.x sqa.tar.gz
 	tar --exclude=*.txt --exclude=*.lum --exclude=*.cyl -cvzf sqa.tar.gz ./*
-	${COMP} sqa.cpp -o sqa.x ${INCLUDE} ${LIBRARY}
+	${COMP} src/sqa.cpp -o sqa.x ${INCLUDE} ${LIBRARY}

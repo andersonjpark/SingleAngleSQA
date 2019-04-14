@@ -1,8 +1,8 @@
 #ifndef ALBINO_H
 #define ALBINO_H
 
-#include "../nulib_interface.h"
-#include "../isospin.h"
+#include "nulib_interface.h"
+#include "isospin.h"
 
 //=======//
 // Ebins //
@@ -47,7 +47,7 @@ T phaseVolDensity(const array<double,NE>& E, const T density, const unsigned i){
 //============//
 void initialize(State& s,
 		double r,
-		array<double,NE> E,
+		const array<double,NE>& E,
 		const array<array<array<DISCONTINUOUS,NF>,NE>,NM>& D_unosc){
   // T should be MeV
   cout << "Setting initial data." << endl;

@@ -42,25 +42,25 @@ using std::vector;
 using std::array;
 #include<hdf5.h>
 
-#include "headers/DISCONTINUOUS.h"
 
 
 // headers
-#include "headers/MATRIX.h"
-#include "headers/parameters.h"
-#include "headers/potentials.h"
-#include "headers/flavour_basis.h"
-#include "headers/eigenvalues.h"
-#include "headers/mixing_angles.h"
-#include "headers/adiabatic_basis.h"
-#include "headers/jacobians.h"
-#include "headers/misc.h"
-#include "headers/State.h"
-#include "headers/time_derivatives.h"
-#include "headers/IO.h"
-#include "headers/project/albino.h"
-#include "headers/nulib_interface.h"
-#include "headers/evolve.h"
+#include "DISCONTINUOUS.h"
+#include "MATRIX.h"
+#include "parameters.h"
+#include "potentials.h"
+#include "flavour_basis.h"
+#include "eigenvalues.h"
+#include "mixing_angles.h"
+#include "adiabatic_basis.h"
+#include "jacobians.h"
+#include "misc.h"
+#include "State.h"
+#include "time_derivatives.h"
+#include "IO.h"
+#include "albino.h"
+#include "nulib_interface.h"
+#include "evolve.h"
 
 //======//
 // MAIN //
