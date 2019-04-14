@@ -180,8 +180,6 @@ void evolve_interactions(State& s,
   dr = old_dr;
   
   // loop through getting rotation matrices and impact
-  double hold[4];
-  double hnew[4];
   impact = 0;
   for(int i=0; i<NE; i++){
     for(state m=matter; m<=antimatter; m++){
@@ -191,8 +189,8 @@ void evolve_interactions(State& s,
 	for(flavour f2=e; f2<=mu; f2++)
 	  impact = max(impact, fabs(df[f1][f2]));
 	  
-      pauli_decompose(old_fmatrixf[m][i], hold);
-      pauli_decompose(  s.fmatrixf[m][i], hnew);
+      array<double,4> hold = pauli_decompose(old_fmatrixf[m][i]);
+      array<double,4> hnew = pauli_decompose(  s.fmatrixf[m][i]);
 
       // get the theta and phi contribution
       double oldmag2   = hold[0]*hold[0] + hold[1]*hold[1] + hold[2]*hold[2];
@@ -217,12 +215,11 @@ void evolve_interactions(State& s,
 
       // get the rotation operator in the flavor basis
       double alpha = asin(sinalpha);
-      complex<double> Rcoeff[4];
+      array<complex<double>,4> Rcoeff;
       for(int i=0; i<3; i++) Rcoeff[i] = -I * sin(alpha/2.) * lrot[i];
       Rcoeff[3] = cos(alpha/2.);
       
-      MATRIX<complex<double>,NF,NF> R;
-      pauli_reconstruct(Rcoeff, R);
+      MATRIX<complex<double>,NF,NF> R = pauli_reconstruct(Rcoeff);
 
       // apply to Scumulative
       s.Scumulative[m][i] = Adjoint(s.UU[m][i]) * R * s.UU[m][i] * s.Scumulative[m][i];

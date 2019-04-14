@@ -133,9 +133,8 @@ class State{
 	Y[m][i] = YIdentity;
 
 	// get rate of change of fmatrix from oscillation
-	double hold[4], hnew[4];
-	pauli_decompose(old_fmatrixf[m][i], hold);
-	pauli_decompose(    fmatrixf[m][i], hnew);
+	array<double,4> hold = pauli_decompose(old_fmatrixf[m][i]);
+	array<double,4> hnew = pauli_decompose(    fmatrixf[m][i]);
 	double oldmag   = sqrt(hold[0]*hold[0] + hold[1]*hold[1] + hold[2]*hold[2]);
 	double newmag   = sqrt(hnew[0]*hnew[0] + hnew[1]*hnew[1] + hnew[2]*hnew[2]);
 	double costheta = (hold[0]*hnew[0] + hold[1]*hnew[1] + hold[2]*hnew[2]) / (newmag*oldmag);
@@ -159,8 +158,7 @@ class State{
 	    assert(fmatrixf[m][i][f1][f2] == fmatrixf[m][i][f1][f2]);
 	}
 
-	double isospin[4];
-	pauli_decompose(fmatrixf[m][i], isospin);
+	array<double,4> isospin = pauli_decompose(fmatrixf[m][i]);
 	double fperp2 = isospin[0]*isospin[0] + isospin[1]*isospin[1];
 	assert(fabs(isospin[0]) <= isospin[3]);
 	assert(fperp2 <= pow(min(isospin[3], 1.-isospin[3]),2) - isospin[2]*isospin[2]);
