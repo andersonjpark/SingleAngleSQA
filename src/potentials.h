@@ -1,8 +1,26 @@
-double Ve(double rho, double Ye);
-double dVedr(double rho, double drhodr, double Ye, double dYedr);
+#ifndef POTENTIALS_H
+#define POTENTIALS_H
 
-double Vmu(double rho, double Ye);
-double dVmudr(double rho, double drhodr, double Ye, double dYedr);
+//===================//
+// Vacuum Potentials //
+//===================//
+double deltaV(const double E){ // erg
+  return abs(dm21)*cgs::constants::c4 / (2.*E);
+}
 
-// **************************************************************************
+//================================================//
+// flavor basis matter potentials and derivatives //
+//================================================//
+double Ve(double rho, double Ye){
+  return (M_SQRT2*cgs::constants::GF/cgs::constants::Mp)*rho*Ye;
+}
+double dVedr(double rho, double drhodr, double Ye, double dYedr){
+  return (M_SQRT2*cgs::constants::GF/cgs::constants::Mp) * (drhodr*Ye + rho*dYedr );
+}
+double Vmu(double rho, double Ye){ return 0.;}
+double dVmudr(double rho, double drhodr, double Ye, double dYedr){ return 0.;}
 
+
+
+
+#endif

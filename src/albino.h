@@ -7,12 +7,6 @@
 //=======//
 // Ebins //
 //=======//
-double dE3(const array<double,NE>& E, const unsigned i){
-  double dlogE = (log(E[NE-1]) - log(E[0])) / (NE-1.);
-  double Elow = exp(log(E[0]) + (i-0.5)*dlogE);
-  double Ehi  = exp(log(E[0]) + (i+0.5)*dlogE);
-  return pow(Ehi,3) - pow(Elow,3);
-}
 array<double,NE> set_Ebins(){
   array<double,NE> E;
 
@@ -39,8 +33,13 @@ array<double,NE> set_Ebins(){
 
 array<double,NE> phaseVol(const array<double,NE>& E){
   array<double,NE> Vphase;
-  for(int i=0; i<NE; i++)
-    Vphase[i] = 4.*M_PI * dE3(E,i)/3. / pow(2.*M_PI*cgs::constants::hbarc,3);
+  for(int i=0; i<NE; i++){
+    double dlogE = (log(E[NE-1]) - log(E[0])) / (NE-1.);
+    double Elow = exp(log(E[0]) + (i-0.5)*dlogE);
+    double Ehi  = exp(log(E[0]) + (i+0.5)*dlogE);
+    double dE3 =  pow(Ehi,3) - pow(Elow,3);
+    Vphase[i] = 4.*M_PI * dE3/3. / pow(2.*M_PI*cgs::constants::hbarc,3);
+  }
   return Vphase;
 }
 
@@ -68,41 +67,14 @@ void initialize(State& s,
     }
     
     cout << "GROUP " << i << endl;
+    cout << "\tf = {" << real(s.fmatrixf[matter][i][e][e]) << ", " << real(s.fmatrixf[antimatter][i][e][e]) << ", " << real(s.fmatrixf[matter][i][mu][mu]) <<"}" << endl;
     /* cout << "\teas.emis = {" << eas.emis(0,i) << ", " << eas.emis(1,i) << ", " << eas.emis(2,i) << "}" << endl; */
     /* cout << "\teas.abs = {" << eas.abs(0,i) << ", " << eas.abs(1,i) << ", " << eas.abs(2,i) << "}" << endl; */
     /* cout << "\tBB = {" << eas.emis(0,i)/eas.abs(0,i) << ", " << eas.emis(1,i)/eas.abs(1,i) << ", " << eas.emis(2,i)/eas.abs(2,i) << "}" << endl; */
     /* cout << "\teas.scat = {" << eas.scat(0,i) << ", " << eas.scat(1,i) << ", " << eas.scat(2,i) << "}" << endl; */
   }
-  
-  for(state m=matter; m<=antimatter; m++)
-    for(int i=0; i<NE; i++)
-      for(flavour f1=e; f1<=mu; f1++)
-	for(flavour f2=e; f2<=mu; f2++)
-	  assert(s.fmatrixf[m][i][f1][f2] == s.fmatrixf[m][i][f1][f2]);
 }
 
-
-//===================//
-// Vacuum Potentials //
-//===================//
-double deltaV(const double E){ // erg
-  return abs(dm21)*cgs::constants::c4 / (2.*E);
-}
-
-//===================//
-// Matter Potentials //
-//===================//
-double Ve(double rho, double Ye){
-  return (M_SQRT2*cgs::constants::GF/cgs::constants::Mp)*rho*Ye;
-}
-
-double dVedr(double rho, double drhodr, double Ye, double dYedr){
-  return (M_SQRT2*cgs::constants::GF/cgs::constants::Mp) * (drhodr*Ye + rho*dYedr );
-}
-
-double Vmu(double rho, double Ye){ return 0.;}
-
-double dVmudr(double rho, double drhodr, double Ye, double dYedr){ return 0.;}
 
 
 array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>
