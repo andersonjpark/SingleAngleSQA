@@ -98,6 +98,7 @@ int main(int argc, char *argv[]){
   // *************************************************
   // vectors of energies and vacuum eigenvalues
   const array<double,NE> E = set_Ebins();
+  const array<double,NE> Vphase = phaseVol(E);
   const array<array<double,NF>,NE> kV = set_kV(E);
   const array<MATRIX<complex<double>,NF,NF>,NM> UV = Evaluate_UV();
   const array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> HfV = Evaluate_HfV(kV,UV);
@@ -108,7 +109,7 @@ int main(int argc, char *argv[]){
   // quantities evaluated at inital point *
   // **************************************
 
-  State s(E);
+  State s(E,Vphase);
   s.r=rmin;
   s.update_potential(lnrho,temperature,Ye,P_unosc,HfV,s);
   for(state m=matter; m<=antimatter; m++){
@@ -122,7 +123,7 @@ int main(int argc, char *argv[]){
       s.UU[m][i]=U(s.dkk[m][i],s.CC[m][i],s.AA[m][i]);
     }
   }
-  initialize(s,rmin,E,D_unosc);
+  initialize(s,rmin,D_unosc);
   const State s0 = s;
     
   // *****************************************

@@ -12,7 +12,7 @@ class State{
   double drhodr, dYedr;
 
   // energy grid
-  array<double,NE> E;
+  array<double,NE> E, Vphase;
   
   // distribution function in the direction of the trajectory
   // value at the last reset
@@ -38,8 +38,9 @@ class State{
   array<array<double,NM>,NE> dphi_dr_interact, dtheta_dr_interact;
   array<array<double,NM>,NE> dphi_dr_osc,      dtheta_dr_osc;
 
-  State(const array<double,NE>& E){
+  State(const array<double,NE>& E, const array<double,NE>& Vphase){
     this->E = E;
+    this->Vphase = Vphase;
     
     // set Scumulative to identity
     for(int m=0; m<NM; m++){

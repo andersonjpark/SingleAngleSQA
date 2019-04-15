@@ -36,10 +36,12 @@ array<double,NE> set_Ebins(){
 
   return E;
 }
-template<typename T>
-T phaseVolDensity(const array<double,NE>& E, const T density, const unsigned i){
-  double phaseSpaceVol = 4.*M_PI * dE3(E,i)/3. / pow(2.*M_PI*cgs::constants::hbarc,3);
-  return density / phaseSpaceVol;
+
+array<double,NE> phaseVol(const array<double,NE>& E){
+  array<double,NE> Vphase;
+  for(int i=0; i<NE; i++)
+    Vphase[i] = 4.*M_PI * dE3(E,i)/3. / pow(2.*M_PI*cgs::constants::hbarc,3);
+  return Vphase;
 }
 
 //============//
@@ -47,7 +49,6 @@ T phaseVolDensity(const array<double,NE>& E, const T density, const unsigned i){
 //============//
 void initialize(State& s,
 		double r,
-		const array<double,NE>& E,
 		const array<array<array<DISCONTINUOUS,NF>,NE>,NM>& D_unosc){
   // T should be MeV
   cout << "Setting initial data." << endl;
@@ -64,7 +65,7 @@ void initialize(State& s,
     for(state m=matter; m<=antimatter; m++){
       s.fmatrixf[m][i] = MATRIX<complex<double>,NF,NF>();
       for(flavour f=e; f<=mu; f++)
-	s.fmatrixf[m][i][f][f] = phaseVolDensity(E, D_unosc[m][i][f](s.r), i);
+	s.fmatrixf[m][i][f][f] = D_unosc[m][i][f](s.r) / s.Vphase[i];
     }
     
     cout << "GROUP " << i << endl;
@@ -172,7 +173,7 @@ array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>
 	block    = eas.blocking_term0(Phi0, s.fmatrixf[m][i], DBackground[m][j]);
 	for(flavour f1=e; f1<=mu; f1++)
 	  for(flavour f2=e; f2<=mu; f2++)
-	    dfdr[m][i][f1][f2] += phaseVolDensity(s.E, DBackground[m][j][f1][f2]*Phi0[f1][f2] - block[f1][f2], i);
+	    dfdr[m][i][f1][f2] += (DBackground[m][j][f1][f2]*Phi0[f1][f2] - block[f1][f2]) / s.Vphase[i];
 
 	// out-scattering from i to j. for blocking, get phase space vol from D[j] in j
 	Phi0avg      = eas.avg_matrix(  eas.Phi0(0,i,j), eas.Phi0(2,i,j));
@@ -181,7 +182,7 @@ array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>
 	block    = eas.blocking_term0(Phi0, s.fmatrixf[m][i], DBackground[m][j] );
 	for(flavour f1=e; f1<=mu; f1++)
 	  for(flavour f2=e; f2<=mu; f2++)
-	    dfdr[m][i][f1][f2] += s.fmatrixf[m][i][f1][f2]*Phi0avg[f1][f2] - phaseVolDensity(s.E, block[f1][f2], j);
+	    dfdr[m][i][f1][f2] += s.fmatrixf[m][i][f1][f2]*Phi0avg[f1][f2] - block[f1][f2]/s.Vphase[j];
 
 	// Make sure dfdr is Hermitian
 	dfdr[m][i][mu][e ] = conj(dfdr[m][i][e][mu]);
