@@ -51,7 +51,7 @@ class FilePointers{
 //============//
 // setup_file //
 //============//
-FilePointers setup_HDF5_file(const array<double,NE>& E){
+FilePointers setup_HDF5_file(const array<double,NE>& E, const array<double,NE>& Vphase){
   FilePointers fp;
   
   fp.file = H5Fcreate("output.h5", H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
@@ -117,8 +117,8 @@ FilePointers setup_HDF5_file(const array<double,NE>& E){
   file_space = H5Screate_simple(ndims, &fp.dims[2], &fp.dims[2]);
   hid_t dset_Egrid = H5Dcreate(fp.file, "Egrid(erg)", H5T_NATIVE_DOUBLE, file_space, H5P_DEFAULT, plist, H5P_DEFAULT);
   H5Dwrite(dset_Egrid, H5T_NATIVE_DOUBLE, mem_space, file_space, H5P_DEFAULT, &E[0]);
-  for(int i=0; i<NE; i++) cout << E[i] << " ";
-  cout << endl;
+  dset_Egrid = H5Dcreate(fp.file, "Vphase(1|ccm)", H5T_NATIVE_DOUBLE, file_space, H5P_DEFAULT, plist, H5P_DEFAULT);
+  H5Dwrite(dset_Egrid, H5T_NATIVE_DOUBLE, mem_space, file_space, H5P_DEFAULT, &Vphase[0]);
 
   // clear resources
   H5Sclose(file_space);
