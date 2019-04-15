@@ -19,7 +19,6 @@ class DISCONTINUOUS{
     assert(xin >= x[0]);
     assert(xin <= x[x.size()-1]);
     size_t index = std::upper_bound(x.begin(), x.end(), xin) - x.begin()-1;
-    assert(index>=0);
     assert(index<x.size()-1);
     return index;
   }

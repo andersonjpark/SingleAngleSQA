@@ -136,8 +136,6 @@ FilePointers setup_HDF5_file(const array<double,NE>& E){
 //============//
 void write_data_HDF5(FilePointers& fp, const State& s, double dr_osc, double dr_int, double dr_block){
   // output to stdout
-  double n=0, nbar=0;
-  double coeff = 4.*M_PI / pow(cgs::constants::c,3);
   cout << s.r/1e5 << "\t";
   cout << s.rho << "\t";
   cout << s.Ye << "\t";

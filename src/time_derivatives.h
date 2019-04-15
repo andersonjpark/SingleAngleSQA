@@ -45,7 +45,7 @@ array<array<array<array<double,NY>,NS>,NE>,NM> K(const State& s){
       MATRIX<double,3,4> JI = JInverse(s.Y[m][i][msw]);
       
       array<double,NF> dkkdr = dkdr(s.UU[m][i],dVfMSWdr[m]);
-      array<MATRIX<complex<double>,NF,NF>,NF> dCCdr = CofactorMatricesDerivatives(s.Hf[m][i],dVfMSWdr[m],dkkdr);
+      array<MATRIX<complex<double>,NF,NF>,NF> dCCdr = CofactorMatricesDerivatives(dVfMSWdr[m],dkkdr);
       array<double,NF> QQ =  Q(s.UU[m][i],s.dkk[m][i],s.CC[m][i],dCCdr);
 
       for(int j=0;j<=2;j++){

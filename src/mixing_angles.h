@@ -291,8 +291,7 @@ array<MATRIX<complex<double>,NF,NF>,NF>
 // CofactorMatricesDerivatives //
 //=============================//
 array<MATRIX<complex<double>,NF,NF>,NF>
-  CofactorMatricesDerivatives(const MATRIX<complex<double>,NF,NF>& H,
-			      const MATRIX<complex<double>,NF,NF>& dHdr,
+  CofactorMatricesDerivatives(const MATRIX<complex<double>,NF,NF>& dHdr,
 			      const array<double,NF> dkdr){
   
   array<MATRIX<complex<double>,NF,NF>,NF> dCCdr;

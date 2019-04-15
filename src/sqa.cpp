@@ -123,7 +123,7 @@ int main(int argc, char *argv[]){
       s.UU[m][i]=U(s.dkk[m][i],s.CC[m][i],s.AA[m][i]);
     }
   }
-  initialize(s,rmin,D_unosc);
+  initialize(s,D_unosc);
   const State s0 = s;
     
   // *****************************************
@@ -166,7 +166,7 @@ int main(int argc, char *argv[]){
     if(do_interact){
       s.assert_noNaN(accuracy);
       s.r = sBlockStart.r;
-      evolve_interactions(s, s0, sBlockStart, r_end, dr_int, lnrho, temperature, Ye, D_unosc, accuracy, increase, impact);
+      evolve_interactions(s, sBlockStart, r_end, dr_int, lnrho, temperature, Ye, D_unosc, accuracy, increase, impact);
     }
 
     // output data

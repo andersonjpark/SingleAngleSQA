@@ -48,7 +48,6 @@ array<double,NE> phaseVol(const array<double,NE>& E){
 // Initialize //
 //============//
 void initialize(State& s,
-		double r,
 		const array<array<array<DISCONTINUOUS,NF>,NE>,NM>& D_unosc){
   // T should be MeV
   cout << "Setting initial data." << endl;
@@ -141,12 +140,10 @@ array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>
       // get nulib species indices
       const int se = (m==matter ? 0 : 1);
       const int sx = (m==matter ? 2 : 3);
-      const state mbar = (m==matter ? antimatter : matter);
+      //const state mbar = (m==matter ? antimatter : matter);
       
       // intermediate variables
       complex<double> unblock_in, unblock_out;
-      double kappa_e, kappa_mu, kappa_avg;
-      double Phi0e, Phi0x, Phi0_avg, Phi0_tilde, Phi0_emu;
       MATRIX<complex<double>,NF,NF> block, Pi_plus, Pi_minus;
       MATRIX<double,NF,NF> Phi0, Phi0avg,  Phi0tilde;      
 
@@ -155,7 +152,7 @@ array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>
       dfdr[m][i][mu][mu] += eas.emis(sx,i);
       
       // absorption kappa_abs is <kappa> for absorption
-      MATRIX<double,NF,NF> kappa_abs = eas.avg_matrix(eas.abs(se,i), eas.abs(sx,i));
+      Phi0avg = eas.avg_matrix(eas.abs(se,i), eas.abs(sx,i));
       for(flavour f1=e; f1<=mu; f1++)
 	for(flavour f2=e; f2<=mu; f2++)
 	  dfdr[m][i][f1][f2] -= Phi0avg[f1][f2] * s.fmatrixf[m][i][f1][f2];

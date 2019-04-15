@@ -135,7 +135,6 @@ class EAS{
 
   double emis(int is,int ig){ // 1/cm
     double Emid = __nulibtable_MOD_nulibtable_energies[ig]*MeV_to_ergs; // erg
-    double dE = __nulibtable_MOD_nulibtable_ewidths[ig]*MeV_to_ergs; // erg
     double dE3 = pow(__nulibtable_MOD_nulibtable_etop[ig],3) - pow(__nulibtable_MOD_nulibtable_ebottom[ig],3);
     dE3 *= pow(MeV_to_ergs,3);
     double tmp = hplanck*hplanck*hplanck * clight*clight /  (Emid*dE3/3.);//Emid*Emid * dE); // 

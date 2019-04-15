@@ -6,7 +6,7 @@ INCLUDE = -I${HDF5_LOC}/include
 
 LIBRARY = ${NULIB_LOC}/src/nulib.a -L${HDF5_LOC}/lib -lhdf5 -lhdf5_fortran -lhdf5_cpp -lgfortran
 
-COMP = g++ -fopenmp -g -std=gnu++11 -O2
+COMP = g++ -fopenmp -g -std=gnu++11 -O2 -Wall
 
 sqa.o: src/sqa.cpp
 	rm -f sqa.x sqa.tar.gz
