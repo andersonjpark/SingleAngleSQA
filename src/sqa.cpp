@@ -138,7 +138,7 @@ int main(int argc, char *argv[]){
   // *************************************************
 	
   s.update_potential(lnrho,temperature,Ye,P_unosc,HfV,s0);
-  FilePointers fp = setup_HDF5_file(s.E);
+  FilePointers fp = setup_HDF5_file(s.E, s.Vphase);
   write_data_HDF5(fp, s, dr_osc, dr_int, dr_block);
 	
   // ***********************
