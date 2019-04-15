@@ -115,7 +115,6 @@ class State{
   }
 
   void accumulate_S(double dr, const State& sReset){
-    array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> old_fmatrixf = fmatrixf;
     #pragma omp parallel for collapse(2)
     for(int m=matter;m<=antimatter;m++){
       for(int i=0;i<=NE-1;i++){
@@ -134,8 +133,8 @@ class State{
 	Y[m][i] = YIdentity;
 
 	// get rate of change of fmatrix from oscillation
-	array<double,4> hold = pauli_decompose(old_fmatrixf[m][i]);
-	array<double,4> hnew = pauli_decompose(    fmatrixf[m][i]);
+	array<double,4> hold = pauli_decompose(sReset.fmatrixf[m][i]);
+	array<double,4> hnew = pauli_decompose(       fmatrixf[m][i]);
 	double oldmag   = sqrt(hold[0]*hold[0] + hold[1]*hold[1] + hold[2]*hold[2]);
 	double newmag   = sqrt(hnew[0]*hnew[0] + hnew[1]*hnew[1] + hnew[2]*hnew[2]);
 	double costheta = (hold[0]*hnew[0] + hold[1]*hnew[1] + hold[2]*hnew[2]) / (newmag*oldmag);
