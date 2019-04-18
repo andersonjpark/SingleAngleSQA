@@ -7,6 +7,7 @@
 
 class State{
  public:
+  double dt_dtau;
   double r;
   double rho, T, Ye;
   double drhodr, dYedr;
@@ -59,6 +60,7 @@ class State{
   void update_potential(const DISCONTINUOUS& lnrho,
 			const DISCONTINUOUS& temperature,
 			const DISCONTINUOUS& electronfraction,
+			const DISCONTINUOUS& pu_pn, // dt_dtau = p^a u_a / p^a n_a
 			const array<array<array<DISCONTINUOUS,NF>,NE>,NM>& P_unosc,
 			const array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& HfV,
 			const State& s0){
@@ -68,6 +70,7 @@ class State{
     Ye = electronfraction(r);
     drhodr=rho*lnrho.Derivative(r);
     dYedr=electronfraction.Derivative(r);
+    dt_dtau = pu_pn(r);
 
     // Matter Potential
     array<MATRIX<complex<double>,NF,NF>,NM> VfMSW;

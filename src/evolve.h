@@ -9,6 +9,7 @@ void evolve_oscillations(State& s,
 			 const DISCONTINUOUS& lnrho,
 			 const DISCONTINUOUS& temperature,
 			 const DISCONTINUOUS& Ye,
+			 const DISCONTINUOUS& dt_dtau,
 			 const array<array<array<DISCONTINUOUS,NF>,NE>,NM>& P_unosc,
 			 const double accuracy,
 			 const double increase,
@@ -41,7 +42,7 @@ void evolve_oscillations(State& s,
 		for(int l=0;l<=k-1;l++)
 		  s.Y[m][i][x][j] += BB[k][l] * dYdr[l][m][i][x][j] * dr;
 
-	s.update_potential(lnrho,temperature,Ye,P_unosc,HfV,s0);
+	s.update_potential(lnrho,temperature,Ye,dt_dtau,P_unosc,HfV,s0);
 	dYdr[k] = K(s);
       }
 	  
@@ -64,7 +65,7 @@ void evolve_oscillations(State& s,
 	  }
 	}
       }
-      s.update_potential(lnrho,temperature,Ye,P_unosc,HfV,s0);
+      s.update_potential(lnrho,temperature,Ye,dt_dtau,P_unosc,HfV,s0);
 
       // decide whether to accept step, if not adjust step size
       if(maxerror>accuracy){
@@ -99,6 +100,7 @@ void evolve_interactions(State& s,
 			 const DISCONTINUOUS& lnrho,
 			 const DISCONTINUOUS& temperature,
 			 const DISCONTINUOUS& Ye,
+			 const DISCONTINUOUS& dt_dtau,
 			 const array<array<array<DISCONTINUOUS,NF>,NE>,NM>& D_unosc,
 			 const double accuracy,
 			 const double increase,

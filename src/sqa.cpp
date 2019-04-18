@@ -111,7 +111,7 @@ int main(int argc, char *argv[]){
 
   State s(E,Vphase);
   s.r=rmin;
-  s.update_potential(lnrho,temperature,Ye,P_unosc,HfV,s);
+  s.update_potential(lnrho,temperature,Ye,dt_dtau,P_unosc,HfV,s);
   for(state m=matter; m<=antimatter; m++){
     for(int i=0;i<=NE-1;i++){
       for(int j=0;j<=NF-1;j++){
@@ -137,7 +137,7 @@ int main(int argc, char *argv[]){
   // comment out if not following as a function of r *
   // *************************************************
 	
-  s.update_potential(lnrho,temperature,Ye,P_unosc,HfV,s0);
+  s.update_potential(lnrho,temperature,Ye,dt_dtau,P_unosc,HfV,s0);
   FilePointers fp = setup_HDF5_file(s.E, s.Vphase);
   write_data_HDF5(fp, s, dr_osc, dr_int, dr_block);
 	
@@ -158,7 +158,7 @@ int main(int argc, char *argv[]){
     if(do_oscillate){
       s.assert_noNaN(accuracy);
       s.r = sBlockStart.r;
-      evolve_oscillations(s, s0, sBlockStart, r_end, dr_osc, lnrho, temperature, Ye, P_unosc, accuracy, increase, HfV);
+      evolve_oscillations(s, s0, sBlockStart, r_end, dr_osc, lnrho, temperature, Ye, dt_dtau, P_unosc, accuracy, increase, HfV);
     }
 
     // interact with the matter
@@ -166,7 +166,7 @@ int main(int argc, char *argv[]){
     if(do_interact){
       s.assert_noNaN(accuracy);
       s.r = sBlockStart.r;
-      evolve_interactions(s, sBlockStart, r_end, dr_int, lnrho, temperature, Ye, D_unosc, accuracy, increase, impact);
+      evolve_interactions(s, sBlockStart, r_end, dr_int, lnrho, temperature, Ye, dt_dtau, D_unosc, accuracy, increase, impact);
     }
 
     // output data
