@@ -58,7 +58,6 @@ using std::array;
 #include "State.h"
 #include "time_derivatives.h"
 #include "IO.h"
-#include "albino.h"
 #include "nulib_interface.h"
 #include "evolve.h"
 #include "profile.h"
@@ -91,11 +90,32 @@ int main(int argc, char *argv[]){
   assert(rmin >= profile.lnrho.XMin());
   assert(rmin <= profile.lnrho.XMax());
 
+  //=======//
+  // Ebins //
+  //=======//
+  array<double,NE> E, Etop;
+  const double NEP=8;
+  cout << endl;
+  cout<<"NE="<<NE << " NEP="<<NEP << endl;
+  for(int i=0;i<NE;i++){
+    unsigned ind = i;
+    if(NE==1||NE==2||NE==4) ind = i*NEP/NE+NEP/NE/2;
+    
+    double lEmax = log(37.48 * 1e6*cgs::units::eV) ; //erg
+    double lEbottom = log(2. * 1e6*cgs::units::eV) ; //erg
+    double dlE = (lEmax-lEbottom)/(NE-1);
+    E[i] =  exp(lEbottom + ind*dlE);
+    Etop[i] = exp(lEbottom + (ind+0.5)*dlE);
+    
+    cout << E[i]/(1.e6*cgs::units::eV) << " ";
+    cout << Etop[i]/(1.e6*cgs::units::eV) << endl;
+  }
+  cout.flush();
+  
   // *************************************************
   // set up global variables defined in parameters.h *
   // *************************************************
   // vectors of energies and vacuum eigenvalues
-  const array<double,NE> E = set_Ebins();
   const array<array<double,NF>,NE> kV = set_kV(E);
   const array<MATRIX<complex<double>,NF,NF>,NM> UV = Evaluate_UV();
   const array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> HfV = Evaluate_HfV(kV,UV);
@@ -106,7 +126,7 @@ int main(int argc, char *argv[]){
   // quantities evaluated at inital point *
   // **************************************
 
-  State s(E);
+  State s(E,Etop);
   s.r=rmin;
   s.update_potential(profile,HfV,s);
   for(state m=matter; m<=antimatter; m++){
@@ -134,7 +154,7 @@ int main(int argc, char *argv[]){
   // comment out if not following as a function of r *
   // *************************************************
   s.update_potential(profile,HfV,s0);
-  FilePointers fp = setup_HDF5_file(s.E, s.Vphase);
+  FilePointers fp = setup_HDF5_file(s0.E, s0.Etop);
   write_data_HDF5(fp, s, dr_osc, dr_int, dr_block);
 	
   // ***********************

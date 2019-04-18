@@ -13,7 +13,7 @@ class State{
   double rho, T, Ye;
 
   // energy grid
-  array<double,NE> E, Vphase;
+  array<double,NE> E, Etop;
   
   // distribution function in the direction of the trajectory
   // value at the last reset
@@ -39,8 +39,9 @@ class State{
   array<array<double,NM>,NE> dphi_dr_interact, dtheta_dr_interact;
   array<array<double,NM>,NE> dphi_dr_osc,      dtheta_dr_osc;
 
-  State(const array<double,NE>& E){
-    this->E = E;
+  State(const array<double,NE>& E, const array<double,NE>& Etop){
+    this->E    = E;
+    this->Etop = Etop;
     
     // set Scumulative to identity
     for(int m=0; m<NM; m++){
@@ -53,18 +54,21 @@ class State{
 	Y[m][ig] = YIdentity;
       }
     }
-
-    // set Vphase
-    for(int i=0; i<NE; i++){
-      double dlogE = (log(E[NE-1]) - log(E[0])) / (NE-1.);
-      double Elow = exp(log(E[0]) + (i-0.5)*dlogE);
-      double Ehi  = exp(log(E[0]) + (i+0.5)*dlogE);
-      double dE3 =  pow(Ehi,3) - pow(Elow,3);
-      Vphase[i] = 4.*M_PI * dE3/3. / pow(2.*M_PI*cgs::constants::hbarc,3);
-    }
   }
 
-
+  double Vphase(double Elow, double Ehi) const{
+    assert(Ehi>Elow);
+    assert(Elow>=0);
+    double dE3 = pow(Ehi,3) - pow(Elow,3);
+    double result = 4.*M_PI * dE3/3. / pow(2.*M_PI*cgs::constants::hbarc,3);
+    return result;
+  }
+  
+  double Vphase(int i) const{
+    double Ebottom = (i>0 ? Etop[i-1] : 0);
+    return Vphase(Ebottom, Etop[i]);
+  }
+  
   void update_potential(const Profile& profile,
 			const array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& HfV,
 			const State& s0){
@@ -75,7 +79,7 @@ class State{
     Ecom_Elab = profile.Ecom_Elab(r);
 
     // Matter Potential
-    double matter_potential = M_SQRT2*cgs::constants::GF/cgs::constants::Mp*rho*Ye*Ecom_Elab;
+    double matter_potential=M_SQRT2*cgs::constants::GF/cgs::constants::Mp*rho*Ye*Ecom_Elab;
     VfMSW[matter][e ][e ] = matter_potential;
     VfMSW[matter][mu][mu] = 0;
     VfMSW[matter][e ][mu] = 0;
@@ -204,7 +208,7 @@ class State{
       for(state m=matter; m<=antimatter; m++){
 	fmatrixf[m][i] = MATRIX<complex<double>,NF,NF>();
 	for(flavour f=e; f<=mu; f++)
-	  fmatrixf[m][i][f][f] = D_unosc[m][i][f](r) / Vphase[i];
+	  fmatrixf[m][i][f][f] = D_unosc[m][i][f](r) / Vphase(i);
       }
     
       cout << "GROUP " << i << endl;

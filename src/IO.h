@@ -25,7 +25,7 @@ class FilePointers{
 //============//
 // setup_file //
 //============//
-FilePointers setup_HDF5_file(const array<double,NE>& E, const array<double,NE>& Vphase){
+FilePointers setup_HDF5_file(const array<double,NE>& E, const array<double,NE>& Etop){
   FilePointers fp;
   
   fp.file = H5Fcreate("output.h5", H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
@@ -89,10 +89,10 @@ FilePointers setup_HDF5_file(const array<double,NE>& E, const array<double,NE>& 
   // energy grid //
   hid_t mem_space =   H5Screate_simple(ndims, &fp.dims[2], NULL);
   file_space = H5Screate_simple(ndims, &fp.dims[2], &fp.dims[2]);
-  hid_t dset_Egrid = H5Dcreate(fp.file, "Egrid(erg)", H5T_NATIVE_DOUBLE, file_space, H5P_DEFAULT, plist, H5P_DEFAULT);
-  H5Dwrite(dset_Egrid, H5T_NATIVE_DOUBLE, mem_space, file_space, H5P_DEFAULT, &E[0]);
-  dset_Egrid = H5Dcreate(fp.file, "Vphase(1|ccm)", H5T_NATIVE_DOUBLE, file_space, H5P_DEFAULT, plist, H5P_DEFAULT);
-  H5Dwrite(dset_Egrid, H5T_NATIVE_DOUBLE, mem_space, file_space, H5P_DEFAULT, &Vphase[0]);
+  hid_t dset_E0 = H5Dcreate(fp.file, "E0(erg)", H5T_NATIVE_DOUBLE, file_space, H5P_DEFAULT, plist, H5P_DEFAULT);
+  H5Dwrite(dset_E0, H5T_NATIVE_DOUBLE, mem_space, file_space, H5P_DEFAULT, &E[0]);
+  hid_t dset_Etop0 = H5Dcreate(fp.file, "Etop0(erg)", H5T_NATIVE_DOUBLE, file_space, H5P_DEFAULT, plist, H5P_DEFAULT);
+  H5Dwrite(dset_Etop0, H5T_NATIVE_DOUBLE, mem_space, file_space, H5P_DEFAULT, &Etop[0]);
 
   // clear resources
   H5Sclose(file_space);
