@@ -74,10 +74,13 @@ class State{
     if(Ehi>=Elow) return 0;
     else return Vphase(Elow, Ehi);
   }
+
+  double Ebottom(int i) const{
+    return (i>0 ? Etop[i-1] : 0);
+  }
   
   double Vphase(int i) const{
-    double Ebottom = (i>0 ? Etop[i-1] : 0);
-    return Vphase(Ebottom, Etop[i]);
+    return Vphase(Ebottom(i), Etop[i]);
   }
 
   void update_background(const Profile& profile, const State& s0){
