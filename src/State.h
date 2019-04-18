@@ -29,19 +29,12 @@ class State{
   // Intermediate quantities used in calculating potentials and K
   array<array<array<double,NF>,NE>,NM> kk;
   array<array<array<double,NF-1>,NE>,NM> dkk;
+  array<MATRIX<complex<double>,NF,NF>,NM> VfSI;
   array<array<array<array<double,NF>,NF>,NE>,NM> AA;
-  array<MATRIX<complex<double>,NF,NF>,NM> VfSI, VfMatter, dVfMatterdr;
   array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> Sf, SThisStep, VfMSW, dVfMSWdr, UU;
   array<array<array<MATRIX<complex<double>,NF,NF>,NF>,NE>,NM> CC; 
   array<array<array<MATRIX<complex<double>,NF,NF>,NS>,NE>,NM> BB,WW;
 
-  // vacuum stuff
-  array<array<double,NF>,NE> kV;
-  array<MATRIX<complex<double>,NF,NF>,NM> UV;
-  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> VfVac;
-  array<array<MATRIX<complex<double>,NF,NF>,NF>,NE> CV;
-  array<array<array<double,NF>,NF>,NE> AV;
-  
   // other matrices
   array<array<double,NM>,NE> dphi_dr_interact, dtheta_dr_interact;
   array<array<double,NM>,NE> dphi_dr_osc,      dtheta_dr_osc;
@@ -105,16 +98,15 @@ class State{
     update_background(profile, s0);
 
     // vacuum potential
-    kV = set_kV(E);
-    UV = Evaluate_UV();
-    VfVac = Evaluate_VfVac(kV,UV);
-    CV  = Evaluate_CV(kV, VfVac);
-    AV = Evaluate_AV(kV,VfVac,UV);
+    array<array<double,NF>,NE> kV = set_kV(E);
+    array<MATRIX<complex<double>,NF,NF>,NM> UV = Evaluate_UV();
+    array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> VfVac = Evaluate_VfVac(kV,UV);
 
     // derivative of vacuum potential (which is proportional to 1/E)
     double VfVac_derivative_fac = -profile.Elab_Elab0.Derivative(r) / Elab_Elab0;
 
     // Matter Potential
+    array<MATRIX<complex<double>,NF,NF>,NM> VfMatter, dVfMatterdr;
     double matter_potential=M_SQRT2*cgs::constants::GF/cgs::constants::Mp*rho*Ye*Ecom_Elab;
     VfMatter[matter][e ][e ] = matter_potential;
     VfMatter[matter][mu][mu] = 0;
@@ -232,6 +224,11 @@ class State{
   // Initialize //
   //============//
   void initialize(const array<array<array<DISCONTINUOUS,NF>,NE>,NM>& D_unosc){
+    array<array<double,NF>,NE> kV = set_kV(E);
+    array<MATRIX<complex<double>,NF,NF>,NM> UV = Evaluate_UV();
+    array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> VfVac = Evaluate_VfVac(kV,UV);
+    array<array<MATRIX<complex<double>,NF,NF>,NF>,NE> CV = Evaluate_CV(kV, VfVac);
+    array<array<array<double,NF>,NF>,NE> AV = Evaluate_AV(kV,VfVac,UV);
     for(state m=matter; m<=antimatter; m++){
       for(int i=0;i<=NE-1;i++){
 	for(int j=0;j<=NF-1;j++){
