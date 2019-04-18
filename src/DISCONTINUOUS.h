@@ -38,6 +38,11 @@ class DISCONTINUOUS{
     return result;
   }
 
+  void SetData(const vector<double>& x, const vector<double>& data){
+    this->x = x;
+    this->data = data;
+  }
+  
   void Open(string filename){
     ifstream fin(filename.c_str());
     double xin, d; 
