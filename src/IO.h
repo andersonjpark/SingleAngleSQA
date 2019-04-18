@@ -9,6 +9,7 @@ void load_input_data(string inputfile,
 		     DISCONTINUOUS& lnrho,
 		     DISCONTINUOUS& Ye,
 		     DISCONTINUOUS& temperature,
+		     DISCONTINUOUS& dt_dtau,
 		     array<array<array<DISCONTINUOUS,NF>,NE>,NM>& P_unosc,
 		     array<array<array<DISCONTINUOUS,NF>,NE>,NM>& D_unosc){
   H5::H5File file(inputfile, H5F_ACC_RDONLY );
@@ -26,6 +27,8 @@ void load_input_data(string inputfile,
   
   // load rho and Ye data
   file.openDataSet("ct(cm)"    ).read(&x[0],    H5::PredType::NATIVE_DOUBLE);
+  file.openDataSet("dt_dtau"   ).read(&data[0], H5::PredType::NATIVE_DOUBLE);
+  dt_dtau.SetData(x, data);
   file.openDataSet("Ye"        ).read(&data[0], H5::PredType::NATIVE_DOUBLE);
   Ye.SetData(x, data);
   file.openDataSet("T(MeV)"    ).read(&data[0], H5::PredType::NATIVE_DOUBLE);

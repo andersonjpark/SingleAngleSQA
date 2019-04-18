@@ -87,9 +87,9 @@ int main(int argc, char *argv[]){
     
   //nulib_init(nulibfilename, 0);
 
-  DISCONTINUOUS lnrho, Ye, temperature;
+  DISCONTINUOUS lnrho, Ye, temperature, dt_dtau;
   array<array<array<DISCONTINUOUS,NF>,NE>,NM> P_unosc, D_unosc;
-  load_input_data(input_directory, lnrho, Ye, temperature, P_unosc, D_unosc);
+  load_input_data(input_directory, lnrho, Ye, temperature, dt_dtau, P_unosc, D_unosc);
   assert(rmin >= lnrho.XMin());
   assert(rmin <= lnrho.XMax());
 
