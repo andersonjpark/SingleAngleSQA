@@ -56,12 +56,23 @@ class State{
     }
   }
 
-  double Vphase(double Elow, double Ehi) const{
+  static double Vphase(double Elow, double Ehi){
     assert(Ehi>Elow);
     assert(Elow>=0);
     double dE3 = pow(Ehi,3) - pow(Elow,3);
     double result = 4.*M_PI * dE3/3. / pow(2.*M_PI*cgs::constants::hbarc,3);
     return result;
+  }
+
+  static double Vphase_overlap(double Elow1, double Ehi1, double Elow2, double Ehi2){
+    assert(Elow1<Ehi1);
+    assert(Elow2<Ehi2);
+    assert(Elow1>=0);
+    assert(Elow2>=0);
+    double Elow = max(Elow1,Elow2);
+    double Ehi  = min(Ehi1, Ehi2);
+    if(Ehi>=Elow) return 0;
+    else return Vphase(Elow, Ehi);
   }
   
   double Vphase(int i) const{
