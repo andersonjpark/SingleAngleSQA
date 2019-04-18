@@ -116,11 +116,6 @@ int main(int argc, char *argv[]){
   // set up global variables defined in parameters.h *
   // *************************************************
   // vectors of energies and vacuum eigenvalues
-  const array<array<double,NF>,NE> kV = set_kV(E);
-  const array<MATRIX<complex<double>,NF,NF>,NM> UV = Evaluate_UV();
-  const array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> HfV = Evaluate_HfV(kV,UV);
-  const array<array<MATRIX<complex<double>,NF,NF>,NF>,NE> CV  = Evaluate_CV(kV, HfV);
-  const array<array<array<double,NF>,NF>,NE> AV = Evaluate_AV(kV,HfV,UV);
   
   // **************************************
   // quantities evaluated at inital point *
@@ -128,18 +123,7 @@ int main(int argc, char *argv[]){
 
   State s(E,Etop);
   s.r=rmin;
-  s.update_potential(profile,HfV,s);
-  for(state m=matter; m<=antimatter; m++){
-    for(int i=0;i<=NE-1;i++){
-      for(int j=0;j<=NF-1;j++){
-	if(real(s.CC[m][i][j][mu][e]*CV[i][j][mu][e]) < 0.)
-	  s.AA[m][i][j][e]=-AV[i][j][e];
-	else s.AA[m][i][j][e]=AV[i][j][e];
-	s.AA[m][i][j][mu]=AV[i][j][mu];
-      }
-      s.UU[m][i]=U(s.dkk[m][i],s.CC[m][i],s.AA[m][i]);
-    }
-  }
+  s.update_potential(profile,s);
   s.initialize(profile.Dens_unosc);
   const State s0 = s;
     
@@ -153,7 +137,7 @@ int main(int argc, char *argv[]){
   // *************************************************
   // comment out if not following as a function of r *
   // *************************************************
-  s.update_potential(profile,HfV,s0);
+  s.update_potential(profile,s0);
   FilePointers fp = setup_HDF5_file(s0.E, s0.Etop);
   write_data_HDF5(fp, s, dr_osc, dr_int, dr_block);
 	
@@ -174,7 +158,7 @@ int main(int argc, char *argv[]){
     if(do_oscillate){
       s.assert_noNaN(accuracy);
       s.r = sBlockStart.r;
-      evolve_oscillations(s, s0, sBlockStart, r_end, dr_osc, profile, accuracy, increase, HfV);
+      evolve_oscillations(s, s0, sBlockStart, r_end, dr_osc, profile, accuracy, increase);
     }
 
     // interact with the matter

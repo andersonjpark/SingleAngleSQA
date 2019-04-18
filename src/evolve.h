@@ -8,8 +8,7 @@ void evolve_oscillations(State& s,
 			 double& dr,
 			 const Profile& profile,
 			 const double accuracy,
-			 const double increase,
-			 const array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& HfV){
+			 const double increase){
   array<array<array<array<array<double,NY>,NS>,NE>,NM>,NRK> dYdr;
 
   bool finish = false;
@@ -38,7 +37,7 @@ void evolve_oscillations(State& s,
 		for(int l=0;l<=k-1;l++)
 		  s.Y[m][i][x][j] += BB[k][l] * dYdr[l][m][i][x][j] * dr;
 
-	s.update_potential(profile,HfV,s0);
+	s.update_potential(profile,s0);
 	dYdr[k] = Koscillate(s);
       }
 	  
@@ -61,7 +60,7 @@ void evolve_oscillations(State& s,
 	  }
 	}
       }
-      s.update_potential(profile,HfV,s0);
+      s.update_potential(profile,s0);
 
       // decide whether to accept step, if not adjust step size
       if(maxerror>accuracy){

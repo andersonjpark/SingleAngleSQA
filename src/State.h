@@ -8,7 +8,7 @@
 
 class State{
  public:
-  double Ecom_Elab;
+  double Ecom_Elab, Elab_Elab0;
   double r;
   double rho, T, Ye;
 
@@ -35,6 +35,13 @@ class State{
   array<array<array<MATRIX<complex<double>,NF,NF>,NF>,NE>,NM> CC; 
   array<array<array<MATRIX<complex<double>,NF,NF>,NS>,NE>,NM> BB,WW;
 
+  // vacuum stuff
+  array<array<double,NF>,NE> kV;
+  array<MATRIX<complex<double>,NF,NF>,NM> UV;
+  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> HfV;
+  array<array<MATRIX<complex<double>,NF,NF>,NF>,NE> CV;
+  array<array<array<double,NF>,NF>,NE> AV;
+  
   // other matrices
   array<array<double,NM>,NE> dphi_dr_interact, dtheta_dr_interact;
   array<array<double,NM>,NE> dphi_dr_osc,      dtheta_dr_osc;
@@ -79,15 +86,30 @@ class State{
     double Ebottom = (i>0 ? Etop[i-1] : 0);
     return Vphase(Ebottom, Etop[i]);
   }
-  
-  void update_potential(const Profile& profile,
-			const array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& HfV,
-			const State& s0){
-    // fluid background
+
+  void update_background(const Profile& profile, const State& s0){
     rho = exp(profile.lnrho(r));
     T = profile.temperature(r);
     Ye = profile.Ye(r);
     Ecom_Elab = profile.Ecom_Elab(r);
+    Elab_Elab0 = profile.Elab_Elab0(r);
+
+    for(int i=0; i<NE; i++){
+      E[i]    = s0.E[i]    * Elab_Elab0;
+      Etop[i] = s0.Etop[i] * Elab_Elab0;
+    }
+  }
+  
+  void update_potential(const Profile& profile, const State& s0){
+    // fluid background
+    update_background(profile, s0);
+
+    // vacuum potential
+    kV = set_kV(E);
+    UV = Evaluate_UV();
+    HfV = Evaluate_HfV(kV,UV);
+    CV  = Evaluate_CV(kV, HfV);
+    AV = Evaluate_AV(kV,HfV,UV);
 
     // Matter Potential
     double matter_potential=M_SQRT2*cgs::constants::GF/cgs::constants::Mp*rho*Ye*Ecom_Elab;
@@ -204,6 +226,31 @@ class State{
   // Initialize //
   //============//
   void initialize(const array<array<array<DISCONTINUOUS,NF>,NE>,NM>& D_unosc){
+    for(state m=matter; m<=antimatter; m++){
+      for(int i=0;i<=NE-1;i++){
+	for(int j=0;j<=NF-1;j++){
+	  if(real(CC[m][i][j][mu][e]*CV[i][j][mu][e]) < 0.)
+	    AA[m][i][j][e]=-AV[i][j][e];
+	  else AA[m][i][j][e]=AV[i][j][e];
+	  AA[m][i][j][mu]=AV[i][j][mu];
+	}
+	UU[m][i]=U(dkk[m][i],CC[m][i],AA[m][i]);
+      }
+    }
+
+    // determine eigenvalue ordering
+    if(kV[0][1]>kV[0][0])
+      cout<<"\n\nNormal hierarchy" << endl;
+    else{
+      if(kV[0][1]<kV[0][0])
+	cout<<"\n\nInverted hierarchy" << endl;
+      else{
+	cout<<endl<<endl<<"Neither normal or Inverted"<<endl;
+	abort();
+      }
+    }
+  
+
     // T should be MeV
     cout << "Setting initial data." << endl;
     cout << "rho = " << rho << " g/ccm" << endl;
