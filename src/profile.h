@@ -14,7 +14,7 @@ class Profile{
   array<array<array<DISCONTINUOUS,NF>,NE>,NM> Flux_unosc;
   array<array<array<DISCONTINUOUS,NF>,NE>,NM> Pres_unosc;
 
-  Profile(string inputfile){
+  Profile(string inputfile, double rmin){
     H5::H5File file(inputfile, H5F_ACC_RDONLY );
 
     // get the dimenions of the dataset
@@ -42,6 +42,13 @@ class Profile{
     lnrho.SetData(x, data);
     lnrho = lnrho.copy_logy();
     
+    // normalize the lab-frame neutrino energy relative to the start of the calculation
+    assert(rmin >= lnrho.XMin());
+    assert(rmin <= lnrho.XMax());
+    double startval = Elab_Elab0(rmin);
+    for(size_t i=0; i<Elab_Elab0.data.size(); i++)
+      Elab_Elab0.data[i] /= startval;
+
     // load and compute spectral data
     double Ndens[ns][ng][nr];
     double Fdens[ns][ng][nr];

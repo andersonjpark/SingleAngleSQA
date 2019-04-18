@@ -86,9 +86,7 @@ int main(int argc, char *argv[]){
   fin.close();
     
   //nulib_init(nulibfilename, 0);
-  Profile profile(input_directory);
-  assert(rmin >= profile.lnrho.XMin());
-  assert(rmin <= profile.lnrho.XMax());
+  Profile profile(input_directory, rmin);
 
   //=======//
   // Ebins //

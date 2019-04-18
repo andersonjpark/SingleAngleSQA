@@ -5,10 +5,10 @@
 #include <algorithm>
 
 class DISCONTINUOUS{
- protected:
-  vector<double> x, data;
 
  public:
+  vector<double> x, data;
+
   void resize(size_t nx){
     x.resize(nx);
     data.resize(nx);
