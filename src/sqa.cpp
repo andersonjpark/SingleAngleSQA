@@ -121,7 +121,7 @@ int main(int argc, char *argv[]){
       s.UU[m][i]=U(s.dkk[m][i],s.CC[m][i],s.AA[m][i]);
     }
   }
-  initialize(s,profile.Dens_unosc);
+  s.initialize(profile.Dens_unosc);
   const State s0 = s;
     
   // *****************************************

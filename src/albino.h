@@ -43,39 +43,6 @@ array<double,NE> phaseVol(const array<double,NE>& E){
   return Vphase;
 }
 
-//============//
-// Initialize //
-//============//
-void initialize(State& s,
-		const array<array<array<DISCONTINUOUS,NF>,NE>,NM>& D_unosc){
-  // T should be MeV
-  cout << "Setting initial data." << endl;
-  cout << "rho = " << s.rho << " g/ccm" << endl;
-  cout << "T = " << s.T << " MeV" << endl;
-  cout << "Ye = " << s.Ye << endl;
-  s.Ye = max(s.Ye,__nulibtable_MOD_nulibtable_ye_min);
-  /* nulibtable_range_species_range_energy_(&s.rho, &s.T, &s.Ye, &eas.eas.front(), */
-  /* 					 &__nulibtable_MOD_nulibtable_number_species, */
-  /* 					 &__nulibtable_MOD_nulibtable_number_groups, */
-  /* 					 &__nulibtable_MOD_nulibtable_number_easvariables); */
-  
-  for(int i=0; i<NE; i++){
-    for(state m=matter; m<=antimatter; m++){
-      s.fmatrixf[m][i] = MATRIX<complex<double>,NF,NF>();
-      for(flavour f=e; f<=mu; f++)
-	s.fmatrixf[m][i][f][f] = D_unosc[m][i][f](s.r) / s.Vphase[i];
-    }
-    
-    cout << "GROUP " << i << endl;
-    cout << "\tf = {" << real(s.fmatrixf[matter][i][e][e]) << ", " << real(s.fmatrixf[antimatter][i][e][e]) << ", " << real(s.fmatrixf[matter][i][mu][mu]) <<"}" << endl;
-    /* cout << "\teas.emis = {" << eas.emis(0,i) << ", " << eas.emis(1,i) << ", " << eas.emis(2,i) << "}" << endl; */
-    /* cout << "\teas.abs = {" << eas.abs(0,i) << ", " << eas.abs(1,i) << ", " << eas.abs(2,i) << "}" << endl; */
-    /* cout << "\tBB = {" << eas.emis(0,i)/eas.abs(0,i) << ", " << eas.emis(1,i)/eas.abs(1,i) << ", " << eas.emis(2,i)/eas.abs(2,i) << "}" << endl; */
-    /* cout << "\teas.scat = {" << eas.scat(0,i) << ", " << eas.scat(1,i) << ", " << eas.scat(2,i) << "}" << endl; */
-  }
-}
-
-
 
 array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>
   Kinteract(const State& s, const array<array<array<DISCONTINUOUS,NF>,NE>,NM>& D_unosc){
