@@ -31,19 +31,6 @@ array<double,NE> set_Ebins(){
   return E;
 }
 
-array<double,NE> phaseVol(const array<double,NE>& E){
-  array<double,NE> Vphase;
-  for(int i=0; i<NE; i++){
-    double dlogE = (log(E[NE-1]) - log(E[0])) / (NE-1.);
-    double Elow = exp(log(E[0]) + (i-0.5)*dlogE);
-    double Ehi  = exp(log(E[0]) + (i+0.5)*dlogE);
-    double dE3 =  pow(Ehi,3) - pow(Elow,3);
-    Vphase[i] = 4.*M_PI * dE3/3. / pow(2.*M_PI*cgs::constants::hbarc,3);
-  }
-  return Vphase;
-}
-
-
 array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>
   Kinteract(const State& s, const array<array<array<DISCONTINUOUS,NF>,NE>,NM>& D_unosc){
 

@@ -96,7 +96,6 @@ int main(int argc, char *argv[]){
   // *************************************************
   // vectors of energies and vacuum eigenvalues
   const array<double,NE> E = set_Ebins();
-  const array<double,NE> Vphase = phaseVol(E);
   const array<array<double,NF>,NE> kV = set_kV(E);
   const array<MATRIX<complex<double>,NF,NF>,NM> UV = Evaluate_UV();
   const array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> HfV = Evaluate_HfV(kV,UV);
@@ -107,7 +106,7 @@ int main(int argc, char *argv[]){
   // quantities evaluated at inital point *
   // **************************************
 
-  State s(E,Vphase);
+  State s(E);
   s.r=rmin;
   s.update_potential(profile,HfV,s);
   for(state m=matter; m<=antimatter; m++){
