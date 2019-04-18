@@ -5,60 +5,6 @@
 #include "State.h"
 using namespace std;
 
-void load_input_data(string inputfile,
-		     DISCONTINUOUS& lnrho,
-		     DISCONTINUOUS& Ye,
-		     DISCONTINUOUS& temperature,
-		     DISCONTINUOUS& dt_dtau,
-		     array<array<array<DISCONTINUOUS,NF>,NE>,NM>& P_unosc,
-		     array<array<array<DISCONTINUOUS,NF>,NE>,NM>& D_unosc){
-  H5::H5File file(inputfile, H5F_ACC_RDONLY );
-
-  // get the dimenions of the dataset
-  hsize_t dims[3];
-  int ndims = file.openDataSet("Ndens(1|ccm)").getSpace().getSimpleExtentDims(dims);
-  assert(ndims == 3);
-  const hsize_t ns = dims[0];
-  const hsize_t ng = dims[1];
-  const hsize_t nr = dims[2];
-  assert(ng==NE);
-  assert(ns==2*NF);
-  vector<double> x(nr), data(nr);
-  
-  // load rho and Ye data
-  file.openDataSet("ct(cm)"    ).read(&x[0],    H5::PredType::NATIVE_DOUBLE);
-  file.openDataSet("dt_dtau"   ).read(&data[0], H5::PredType::NATIVE_DOUBLE);
-  dt_dtau.SetData(x, data);
-  file.openDataSet("Ye"        ).read(&data[0], H5::PredType::NATIVE_DOUBLE);
-  Ye.SetData(x, data);
-  file.openDataSet("T(MeV)"    ).read(&data[0], H5::PredType::NATIVE_DOUBLE);
-  temperature.SetData(x, data);
-  file.openDataSet("rho(g|ccm)").read(&data[0], H5::PredType::NATIVE_DOUBLE);
-  lnrho.SetData(x, data);
-  lnrho = lnrho.copy_logy();
-    
-  // load and compute spectral data
-  double Ndens[ns][ng][nr];
-  double flux_factor[ns][ng][nr];
-  double eddington_factor[ns][ng][nr];
-  double pot_coeff = sqrt(2)*cgs::constants::GF;
-  file.openDataSet("Ndens(1|ccm)"    ).read(Ndens,           H5::PredType::NATIVE_DOUBLE);
-  file.openDataSet("flux_factor"     ).read(flux_factor,     H5::PredType::NATIVE_DOUBLE);
-  file.openDataSet("eddington_factor").read(eddington_factor,H5::PredType::NATIVE_DOUBLE);
-  for(int m=matter; m<=antimatter; m++){
-    for(int i=0; i<NE; i++){
-      for(int f=e; f<=mu; f++){
-	int s = m + 2*f; // species index. 0-e 1-ebar 2-x 3-xbar
-	
-	for(size_t ir=0; ir<nr; ir++) data[ir] = Ndens[s][i][ir];
-	D_unosc[m][i][f].SetData(x,data);
-	for(size_t ir=0; ir<nr; ir++) data[ir] *= (1.-flux_factor[s][i][ir]) * pot_coeff;
-	P_unosc[m][i][f].SetData(x,data);
-      }
-    }
-  }
-
-}
 
 class FilePointers{
  public:

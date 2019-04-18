@@ -61,6 +61,7 @@ using std::array;
 #include "albino.h"
 #include "nulib_interface.h"
 #include "evolve.h"
+#include "profile.h"
 
 //======//
 // MAIN //
@@ -86,12 +87,9 @@ int main(int argc, char *argv[]){
   fin.close();
     
   //nulib_init(nulibfilename, 0);
-
-  DISCONTINUOUS lnrho, Ye, temperature, dt_dtau;
-  array<array<array<DISCONTINUOUS,NF>,NE>,NM> P_unosc, D_unosc;
-  load_input_data(input_directory, lnrho, Ye, temperature, dt_dtau, P_unosc, D_unosc);
-  assert(rmin >= lnrho.XMin());
-  assert(rmin <= lnrho.XMax());
+  Profile profile(input_directory);
+  assert(rmin >= profile.lnrho.XMin());
+  assert(rmin <= profile.lnrho.XMax());
 
   // *************************************************
   // set up global variables defined in parameters.h *
@@ -111,7 +109,7 @@ int main(int argc, char *argv[]){
 
   State s(E,Vphase);
   s.r=rmin;
-  s.update_potential(lnrho,temperature,Ye,dt_dtau,P_unosc,HfV,s);
+  s.update_potential(profile,HfV,s);
   for(state m=matter; m<=antimatter; m++){
     for(int i=0;i<=NE-1;i++){
       for(int j=0;j<=NF-1;j++){
@@ -123,7 +121,7 @@ int main(int argc, char *argv[]){
       s.UU[m][i]=U(s.dkk[m][i],s.CC[m][i],s.AA[m][i]);
     }
   }
-  initialize(s,D_unosc);
+  initialize(s,profile.Dens_unosc);
   const State s0 = s;
     
   // *****************************************
@@ -136,8 +134,7 @@ int main(int argc, char *argv[]){
   // *************************************************
   // comment out if not following as a function of r *
   // *************************************************
-	
-  s.update_potential(lnrho,temperature,Ye,dt_dtau,P_unosc,HfV,s0);
+  s.update_potential(profile,HfV,s0);
   FilePointers fp = setup_HDF5_file(s.E, s.Vphase);
   write_data_HDF5(fp, s, dr_osc, dr_int, dr_block);
 	
@@ -158,7 +155,7 @@ int main(int argc, char *argv[]){
     if(do_oscillate){
       s.assert_noNaN(accuracy);
       s.r = sBlockStart.r;
-      evolve_oscillations(s, s0, sBlockStart, r_end, dr_osc, lnrho, temperature, Ye, dt_dtau, P_unosc, accuracy, increase, HfV);
+      evolve_oscillations(s, s0, sBlockStart, r_end, dr_osc, profile, accuracy, increase, HfV);
     }
 
     // interact with the matter
@@ -166,7 +163,7 @@ int main(int argc, char *argv[]){
     if(do_interact){
       s.assert_noNaN(accuracy);
       s.r = sBlockStart.r;
-      evolve_interactions(s, sBlockStart, r_end, dr_int, lnrho, temperature, Ye, dt_dtau, D_unosc, accuracy, increase, impact);
+      evolve_interactions(s, sBlockStart, r_end, dr_int, profile, accuracy, increase, impact);
     }
 
     // output data

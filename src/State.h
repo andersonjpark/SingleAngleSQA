@@ -4,6 +4,7 @@
 #include "misc.h"
 #include "mixing_angles.h"
 #include "isospin.h"
+#include "profile.h"
 
 class State{
  public:
@@ -57,20 +58,16 @@ class State{
   }
 
 
-  void update_potential(const DISCONTINUOUS& lnrho,
-			const DISCONTINUOUS& temperature,
-			const DISCONTINUOUS& electronfraction,
-			const DISCONTINUOUS& pu_pn, // dt_dtau = p^a u_a / p^a n_a
-			const array<array<array<DISCONTINUOUS,NF>,NE>,NM>& P_unosc,
+  void update_potential(const Profile& profile,
 			const array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& HfV,
 			const State& s0){
     // fluid background
-    rho = exp(lnrho(r));
-    T = temperature(r);
-    Ye = electronfraction(r);
-    drhodr=rho*lnrho.Derivative(r);
-    dYedr=electronfraction.Derivative(r);
-    dt_dtau = pu_pn(r);
+    rho = exp(profile.lnrho(r));
+    drhodr=rho*profile.lnrho.Derivative(r);
+    T = profile.temperature(r);
+    Ye = profile.Ye(r);
+    dYedr=profile.Ye.Derivative(r);
+    dt_dtau = profile.dt_dtau(r);
 
     // Matter Potential
     array<MATRIX<complex<double>,NF,NF>,NM> VfMSW;
@@ -88,10 +85,14 @@ class State{
       for(int i=0;i<=NE-1;i++){
 	// decompose unoscillated potential
 	MATRIX<complex<double>,NF,NF> pmatrixf0;
-	pmatrixf0[e ][e ] = complex<double>(P_unosc[m][i][e](r),0);
+	pmatrixf0[e ][e ] = sqrt(2.)*cgs::constants::GF
+	  * complex<double>(profile.Dens_unosc[m][i][e](r) - 
+			    profile.Flux_unosc[m][i][e](r),0);
 	pmatrixf0[mu][e ] = complex<double>(0,0);
 	pmatrixf0[e ][mu] = complex<double>(0,0);
-	pmatrixf0[mu][mu] = complex<double>(P_unosc[m][i][mu](r),0);
+	pmatrixf0[mu][mu] = sqrt(2.)*cgs::constants::GF
+	  * complex<double>(profile.Dens_unosc[m][i][mu](r) -
+			    profile.Flux_unosc[m][i][mu](r),0);
 
 	// stuff that used to be in K()
 	Hf[m][i] = HfV[m][i]+VfMSW[m];

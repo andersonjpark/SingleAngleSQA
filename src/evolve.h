@@ -6,11 +6,7 @@ void evolve_oscillations(State& s,
 			 const State& sBlockStart,
 			 const double r_end,
 			 double& dr,
-			 const DISCONTINUOUS& lnrho,
-			 const DISCONTINUOUS& temperature,
-			 const DISCONTINUOUS& Ye,
-			 const DISCONTINUOUS& dt_dtau,
-			 const array<array<array<DISCONTINUOUS,NF>,NE>,NM>& P_unosc,
+			 const Profile& profile,
 			 const double accuracy,
 			 const double increase,
 			 const array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& HfV){
@@ -42,7 +38,7 @@ void evolve_oscillations(State& s,
 		for(int l=0;l<=k-1;l++)
 		  s.Y[m][i][x][j] += BB[k][l] * dYdr[l][m][i][x][j] * dr;
 
-	s.update_potential(lnrho,temperature,Ye,dt_dtau,P_unosc,HfV,s0);
+	s.update_potential(profile,HfV,s0);
 	dYdr[k] = K(s);
       }
 	  
@@ -65,7 +61,7 @@ void evolve_oscillations(State& s,
 	  }
 	}
       }
-      s.update_potential(lnrho,temperature,Ye,dt_dtau,P_unosc,HfV,s0);
+      s.update_potential(profile,HfV,s0);
 
       // decide whether to accept step, if not adjust step size
       if(maxerror>accuracy){
@@ -97,11 +93,7 @@ void evolve_interactions(State& s,
 			 const State& sBlockStart,
 			 const double r_end,
 			 double& dr,
-			 const DISCONTINUOUS& lnrho,
-			 const DISCONTINUOUS& temperature,
-			 const DISCONTINUOUS& Ye,
-			 const DISCONTINUOUS& dt_dtau,
-			 const array<array<array<DISCONTINUOUS,NF>,NE>,NM>& D_unosc,
+			 const Profile& profile,
 			 const double accuracy,
 			 const double increase,
 			 double& impact){
@@ -138,7 +130,7 @@ void evolve_interactions(State& s,
 	      s.fmatrixf[m][i] += dfdr[l][m][i] * BB[k][l] * dr;
 
 	// NEED TO UPDATE BACKGROUND INFO
-	dfdr[k] = Kinteract(s,D_unosc);
+	dfdr[k] = Kinteract(s,profile.Dens_unosc);
       }
 	  
       // increment all quantities and update C and A arrays
