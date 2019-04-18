@@ -11,7 +11,6 @@ class State{
   double dt_dtau;
   double r;
   double rho, T, Ye;
-  double drhodr, dYedr;
 
   // energy grid
   array<double,NE> E, Vphase;
@@ -31,11 +30,11 @@ class State{
   array<array<array<double,NF>,NE>,NM> kk;
   array<array<array<double,NF-1>,NE>,NM> dkk;
   array<array<array<array<double,NF>,NF>,NE>,NM> AA;
-  array<MATRIX<complex<double>,NF,NF>,NM> VfSI;
+  array<MATRIX<complex<double>,NF,NF>,NM> VfSI, VfMSW, dVfMSWdr;
   array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> Sf, SThisStep, Hf, UU;
   array<array<array<MATRIX<complex<double>,NF,NF>,NF>,NE>,NM> CC; 
   array<array<array<MATRIX<complex<double>,NF,NF>,NS>,NE>,NM> BB,WW;
-  
+
   // other matrices
   array<array<double,NM>,NE> dphi_dr_interact, dtheta_dr_interact;
   array<array<double,NM>,NE> dphi_dr_osc,      dtheta_dr_osc;
@@ -71,20 +70,26 @@ class State{
 			const State& s0){
     // fluid background
     rho = exp(profile.lnrho(r));
-    drhodr=rho*profile.lnrho.Derivative(r);
     T = profile.temperature(r);
     Ye = profile.Ye(r);
-    dYedr=profile.Ye.Derivative(r);
     dt_dtau = profile.dt_dtau(r);
 
     // Matter Potential
-    array<MATRIX<complex<double>,NF,NF>,NM> VfMSW;
-    VfMSW[matter][e][e]=Ve(rho,Ye);
-    VfMSW[matter][mu][mu]=Vmu(rho,Ye);
-    VfMSW[matter][e][mu] = 0;
-    VfMSW[matter][mu][e] = 0;
+    double matter_potential = M_SQRT2*cgs::constants::GF/cgs::constants::Mp*rho*Ye*dt_dtau;
+    VfMSW[matter][e ][e ] = matter_potential;
+    VfMSW[matter][mu][mu] = 0;
+    VfMSW[matter][e ][mu] = 0;
+    VfMSW[matter][mu][e ] = 0;
     VfMSW[antimatter]=-Conjugate(VfMSW[matter]);
-    
+
+    double dlogrhodr=profile.lnrho.Derivative(r);
+    double dYedr=profile.Ye.Derivative(r);
+    dVfMSWdr[matter][e ][e ] = matter_potential * (dlogrhodr + dYedr/Ye);
+    dVfMSWdr[matter][mu][mu] = 0;
+    dVfMSWdr[matter][e ][mu] = 0;
+    dVfMSWdr[matter][mu][e ] = 0;
+    dVfMSWdr[antimatter]=-Conjugate(dVfMSWdr[matter]);
+  
     // SI potential
     VfSI[matter] = MATRIX<complex<double>,NF,NF>();
     VfSI[antimatter] = MATRIX<complex<double>,NF,NF>();
