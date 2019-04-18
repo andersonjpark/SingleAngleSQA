@@ -134,10 +134,7 @@ int main(int argc, char *argv[]){
   double dr_osc   = dr0;
   double dr_int   = dr0;
       
-  // *************************************************
-  // comment out if not following as a function of r *
-  // *************************************************
-  s.update_potential(profile,s0);
+  // set up files
   FilePointers fp = setup_HDF5_file(s0.E, s0.Etop);
   write_data_HDF5(fp, s, dr_osc, dr_int, dr_block);
 	
