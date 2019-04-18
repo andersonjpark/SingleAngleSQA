@@ -8,7 +8,7 @@ class Profile{
   DISCONTINUOUS lnrho;
   DISCONTINUOUS Ye;
   DISCONTINUOUS temperature;
-  DISCONTINUOUS dt_dtau;
+  DISCONTINUOUS Ecom_Elab;
   array<array<array<DISCONTINUOUS,NF>,NE>,NM> Dens_unosc;
   array<array<array<DISCONTINUOUS,NF>,NE>,NM> Flux_unosc;
   array<array<array<DISCONTINUOUS,NF>,NE>,NM> Pres_unosc;
@@ -29,8 +29,8 @@ class Profile{
   
     // load rho and Ye data
     file.openDataSet("ct(cm)"    ).read(&x[0],    H5::PredType::NATIVE_DOUBLE);
-    file.openDataSet("dt_dtau"   ).read(&data[0], H5::PredType::NATIVE_DOUBLE);
-    dt_dtau.SetData(x, data);
+    file.openDataSet("Ecom_Elab" ).read(&data[0], H5::PredType::NATIVE_DOUBLE);
+    Ecom_Elab.SetData(x, data);
     file.openDataSet("Ye"        ).read(&data[0], H5::PredType::NATIVE_DOUBLE);
     Ye.SetData(x, data);
     file.openDataSet("T(MeV)"    ).read(&data[0], H5::PredType::NATIVE_DOUBLE);

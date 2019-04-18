@@ -8,7 +8,7 @@
 
 class State{
  public:
-  double dt_dtau;
+  double Ecom_Elab;
   double r;
   double rho, T, Ye;
 
@@ -72,10 +72,10 @@ class State{
     rho = exp(profile.lnrho(r));
     T = profile.temperature(r);
     Ye = profile.Ye(r);
-    dt_dtau = profile.dt_dtau(r);
+    Ecom_Elab = profile.Ecom_Elab(r);
 
     // Matter Potential
-    double matter_potential = M_SQRT2*cgs::constants::GF/cgs::constants::Mp*rho*Ye*dt_dtau;
+    double matter_potential = M_SQRT2*cgs::constants::GF/cgs::constants::Mp*rho*Ye*Ecom_Elab;
     VfMSW[matter][e ][e ] = matter_potential;
     VfMSW[matter][mu][mu] = 0;
     VfMSW[matter][e ][mu] = 0;
