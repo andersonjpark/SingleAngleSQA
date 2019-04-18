@@ -30,8 +30,8 @@ class State{
   array<array<array<double,NF>,NE>,NM> kk;
   array<array<array<double,NF-1>,NE>,NM> dkk;
   array<array<array<array<double,NF>,NF>,NE>,NM> AA;
-  array<MATRIX<complex<double>,NF,NF>,NM> VfSI, VfMSW, dVfMSWdr;
-  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> Sf, SThisStep, Hf, UU;
+  array<MATRIX<complex<double>,NF,NF>,NM> VfSI, VfMatter, dVfMatterdr;
+  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> Sf, SThisStep, VfMSW, dVfMSWdr, UU;
   array<array<array<MATRIX<complex<double>,NF,NF>,NF>,NE>,NM> CC; 
   array<array<array<MATRIX<complex<double>,NF,NF>,NS>,NE>,NM> BB,WW;
 
@@ -111,18 +111,22 @@ class State{
     CV  = Evaluate_CV(kV, HfV);
     AV = Evaluate_AV(kV,HfV,UV);
 
+    // derivative of vacuum potential (which is proportional to 1/E)
+    double HfV_derivative_fac = -profile.Elab_Elab0.Derivative(r) / Elab_Elab0;
+
     // Matter Potential
     double matter_potential=M_SQRT2*cgs::constants::GF/cgs::constants::Mp*rho*Ye*Ecom_Elab;
-    VfMSW[matter][e ][e ] = matter_potential;
-    VfMSW[matter][mu][mu] = 0;
-    VfMSW[matter][e ][mu] = 0;
-    VfMSW[matter][mu][e ] = 0;
-    VfMSW[antimatter]=-Conjugate(VfMSW[matter]);
+    VfMatter[matter][e ][e ] = matter_potential;
+    VfMatter[matter][mu][mu] = 0;
+    VfMatter[matter][e ][mu] = 0;
+    VfMatter[matter][mu][e ] = 0;
+    VfMatter[antimatter]=-Conjugate(VfMatter[matter]);
 
+    // derivative of matter potential
     double dlogrhodr=profile.lnrho.Derivative(r);
     double dYedr=profile.Ye.Derivative(r);
-    dVfMSWdr[matter] = VfMSW[matter] * (dlogrhodr + dYedr/Ye);
-    dVfMSWdr[antimatter]=-Conjugate(dVfMSWdr[matter]);
+    dVfMatterdr[matter] = VfMatter[matter] * (dlogrhodr + dYedr/Ye);
+    dVfMatterdr[antimatter]=-Conjugate(dVfMatterdr[matter]);
   
     // SI potential
     VfSI[matter] = MATRIX<complex<double>,NF,NF>();
@@ -142,10 +146,12 @@ class State{
 			    profile.Flux_unosc[m][i][mu](r),0);
 
 	// stuff that used to be in K()
-	Hf[m][i] = HfV[m][i]+VfMSW[m];
-	kk[m][i] = k(Hf[m][i]);
-	dkk[m][i] = deltak(Hf[m][i]);
-	CC[m][i]  = CofactorMatrices(Hf[m][i],kk[m][i]);
+	MATRIX<complex<double>,NF,NF> dHfVdr = HfV[m][i] * HfV_derivative_fac;
+	VfMSW[m][i] = HfV[m][i]+VfMatter[m];
+	dVfMSWdr[m][i] = dVfMatterdr[m] + dHfVdr;
+	kk[m][i] = k(VfMSW[m][i]);
+	dkk[m][i] = deltak(VfMSW[m][i]);
+	CC[m][i]  = CofactorMatrices(VfMSW[m][i],kk[m][i]);
 	AA[m][i] = MixingMatrixFactors(CC[m][i],s0.CC[m][i],s0.AA[m][i]);
 	UU[m][i] = U(dkk[m][i],CC[m][i],AA[m][i]);
 	BB[m][i][msw] = B(Y[m][i][msw]);
