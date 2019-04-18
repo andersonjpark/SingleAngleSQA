@@ -84,10 +84,7 @@ class State{
 
     double dlogrhodr=profile.lnrho.Derivative(r);
     double dYedr=profile.Ye.Derivative(r);
-    dVfMSWdr[matter][e ][e ] = matter_potential * (dlogrhodr + dYedr/Ye);
-    dVfMSWdr[matter][mu][mu] = 0;
-    dVfMSWdr[matter][e ][mu] = 0;
-    dVfMSWdr[matter][mu][e ] = 0;
+    dVfMSWdr[matter] = VfMSW[matter] * (dlogrhodr + dYedr/Ye);
     dVfMSWdr[antimatter]=-Conjugate(dVfMSWdr[matter]);
   
     // SI potential
