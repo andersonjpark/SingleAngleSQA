@@ -326,13 +326,13 @@ array<MATRIX<complex<double>,NF,NF>,NM> Evaluate_UV(void){
 //=============//
 array<array<MATRIX<complex<double>,NF,NF>,NF>,NE>
   Evaluate_CV(const array<array<double,NF>,NE>& kV,
-	      const array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& HfV){
+	      const array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& VfVac){
 
   array<array<MATRIX<complex<double>,NF,NF>,NF>,NE> CV;
   
   for(int i=0;i<=NE-1;i++){
-    CV[i][0][e][mu]=C<e,mu>(HfV[matter][i],kV[i][0]); CV[i][1][e][mu]=C<e,mu>(HfV[matter][i],kV[i][1]);
-    CV[i][0][mu][e]=C<mu,e>(HfV[matter][i],kV[i][0]); CV[i][1][mu][e]=C<mu,e>(HfV[matter][i],kV[i][1]);
+    CV[i][0][e][mu]=C<e,mu>(VfVac[matter][i],kV[i][0]); CV[i][1][e][mu]=C<e,mu>(VfVac[matter][i],kV[i][1]);
+    CV[i][0][mu][e]=C<mu,e>(VfVac[matter][i],kV[i][0]); CV[i][1][mu][e]=C<mu,e>(VfVac[matter][i],kV[i][1]);
   }
 
   return CV;
@@ -343,7 +343,7 @@ array<array<MATRIX<complex<double>,NF,NF>,NF>,NE>
 //=============//
 array<array<array<double,NF>,NF>,NE>
   Evaluate_AV(const array<array<double,NF>,NE>& kV,
-	      const array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& HfV,
+	      const array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>& VfVac,
 	      const array<MATRIX<complex<double>,NF,NF>,NM>& UV){
   
   array<array<array<double,NF>,NF>,NE> AV;
@@ -354,16 +354,16 @@ array<array<array<double,NF>,NF>,NE>
       if(j==0) Delta=(kV[i][1]-kV[i][0]);
       if(j==1) Delta=(kV[i][0]-kV[i][1]);
       
-      double re2=Delta*real(C<e,e>(HfV[matter][i],kV[i][j]));
-      double rmu2=Delta*real(C<mu,mu>(HfV[matter][i],kV[i][j]));
+      double re2=Delta*real(C<e,e>(VfVac[matter][i],kV[i][j]));
+      double rmu2=Delta*real(C<mu,mu>(VfVac[matter][i],kV[i][j]));
       
       if(norm(UV[matter][e][j])>norm(UV[matter][mu][j]) ){
-	AV[i][j][e ]=real( UV[matter][e][j] * sqrt(re2 ) / C<e ,e>(HfV[matter][i],kV[i][j]) );
-	AV[i][j][mu]=real( UV[matter][e][j] * sqrt(rmu2) / C<mu,e>(HfV[matter][i],kV[i][j]) );
+	AV[i][j][e ]=real( UV[matter][e][j] * sqrt(re2 ) / C<e ,e>(VfVac[matter][i],kV[i][j]) );
+	AV[i][j][mu]=real( UV[matter][e][j] * sqrt(rmu2) / C<mu,e>(VfVac[matter][i],kV[i][j]) );
       }
       if(norm(UV[matter][mu][j])>norm(UV[matter][e][j]) ){
-	AV[i][j][e ]=real( UV[matter][mu][j]*sqrt(re2 ) / C<e ,mu>(HfV[matter][i],kV[i][j]) );
-	AV[i][j][mu]=real( UV[matter][mu][j]*sqrt(rmu2) / C<mu,mu>(HfV[matter][i],kV[i][j]) );
+	AV[i][j][e ]=real( UV[matter][mu][j]*sqrt(re2 ) / C<e ,mu>(VfVac[matter][i],kV[i][j]) );
+	AV[i][j][mu]=real( UV[matter][mu][j]*sqrt(rmu2) / C<mu,mu>(VfVac[matter][i],kV[i][j]) );
       }
     }
   }

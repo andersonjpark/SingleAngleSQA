@@ -38,7 +38,7 @@ class State{
   // vacuum stuff
   array<array<double,NF>,NE> kV;
   array<MATRIX<complex<double>,NF,NF>,NM> UV;
-  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> HfV;
+  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> VfVac;
   array<array<MATRIX<complex<double>,NF,NF>,NF>,NE> CV;
   array<array<array<double,NF>,NF>,NE> AV;
   
@@ -107,12 +107,12 @@ class State{
     // vacuum potential
     kV = set_kV(E);
     UV = Evaluate_UV();
-    HfV = Evaluate_HfV(kV,UV);
-    CV  = Evaluate_CV(kV, HfV);
-    AV = Evaluate_AV(kV,HfV,UV);
+    VfVac = Evaluate_VfVac(kV,UV);
+    CV  = Evaluate_CV(kV, VfVac);
+    AV = Evaluate_AV(kV,VfVac,UV);
 
     // derivative of vacuum potential (which is proportional to 1/E)
-    double HfV_derivative_fac = -profile.Elab_Elab0.Derivative(r) / Elab_Elab0;
+    double VfVac_derivative_fac = -profile.Elab_Elab0.Derivative(r) / Elab_Elab0;
 
     // Matter Potential
     double matter_potential=M_SQRT2*cgs::constants::GF/cgs::constants::Mp*rho*Ye*Ecom_Elab;
@@ -146,9 +146,9 @@ class State{
 			    profile.Flux_unosc[m][i][mu](r),0);
 
 	// stuff that used to be in K()
-	MATRIX<complex<double>,NF,NF> dHfVdr = HfV[m][i] * HfV_derivative_fac;
-	VfMSW[m][i] = HfV[m][i]+VfMatter[m];
-	dVfMSWdr[m][i] = dVfMatterdr[m] + dHfVdr;
+	MATRIX<complex<double>,NF,NF> dVfVacdr = VfVac[m][i] * VfVac_derivative_fac;
+	VfMSW[m][i] = VfVac[m][i]+VfMatter[m];
+	dVfMSWdr[m][i] = dVfMatterdr[m] + dVfVacdr;
 	kk[m][i] = k(VfMSW[m][i]);
 	dkk[m][i] = deltak(VfMSW[m][i]);
 	CC[m][i]  = CofactorMatrices(VfMSW[m][i],kk[m][i]);
