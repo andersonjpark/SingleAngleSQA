@@ -9,6 +9,7 @@ class Profile{
   DISCONTINUOUS Ye;
   DISCONTINUOUS temperature;
   DISCONTINUOUS Ecom_Elab;
+  DISCONTINUOUS Elab_Elab0;
   array<array<array<DISCONTINUOUS,NF>,NE>,NM> Dens_unosc;
   array<array<array<DISCONTINUOUS,NF>,NE>,NM> Flux_unosc;
   array<array<array<DISCONTINUOUS,NF>,NE>,NM> Pres_unosc;
@@ -31,6 +32,8 @@ class Profile{
     file.openDataSet("ct(cm)"    ).read(&x[0],    H5::PredType::NATIVE_DOUBLE);
     file.openDataSet("Ecom_Elab" ).read(&data[0], H5::PredType::NATIVE_DOUBLE);
     Ecom_Elab.SetData(x, data);
+    file.openDataSet("Elab_Elab0").read(&data[0], H5::PredType::NATIVE_DOUBLE);
+    Elab_Elab0.SetData(x, data);
     file.openDataSet("Ye"        ).read(&data[0], H5::PredType::NATIVE_DOUBLE);
     Ye.SetData(x, data);
     file.openDataSet("T(MeV)"    ).read(&data[0], H5::PredType::NATIVE_DOUBLE);
