@@ -1,7 +1,6 @@
 #ifndef ALBINO_H
 #define ALBINO_H
 
-#include "nulib_interface.h"
 #include "isospin.h"
 
 //=======//
@@ -29,90 +28,6 @@ array<double,NE> set_Ebins(){
   cout.flush();
 
   return E;
-}
-
-array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>
-  Kinteract(const State& s, const array<array<array<DISCONTINUOUS,NF>,NE>,NM>& D_unosc){
-
-  // set up the array to be returned
-  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> dfdr;
-
-  // don't do anything if too sparse
-  if(log10(s.rho) <= __nulibtable_MOD_nulibtable_logrho_min)
-    return dfdr;
-
-  // T should be MeV
-  nulibtable_range_species_range_energy_(&s.rho, &s.T, &s.Ye, &eas.eas.front(),
-  					 &__nulibtable_MOD_nulibtable_number_species,
-  					 &__nulibtable_MOD_nulibtable_number_groups,
-  					 &__nulibtable_MOD_nulibtable_number_easvariables);
-
-  // get oscillated background density
-  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> DBackground;
-  for(state m=matter; m<=antimatter; m++){
-    for(int ig=0; ig<NE; ig++){
-      for(flavour f=e; f<=mu; f++)
-	DBackground[m][ig][f][f] = D_unosc[m][ig][f](s.r);
-      DBackground[m][ig] = s.Sf[m][ig] * DBackground[m][ig] * Adjoint(s.Sf[m][ig]);
-    }
-  }
-
-#pragma omp parallel for collapse(2)
-  for(int m=matter; m<=antimatter; m++){
-    for(int i=0; i<NE; i++){
-
-      // get nulib species indices
-      const int se = (m==matter ? 0 : 1);
-      const int sx = (m==matter ? 2 : 3);
-      //const state mbar = (m==matter ? antimatter : matter);
-      
-      // intermediate variables
-      complex<double> unblock_in, unblock_out;
-      MATRIX<complex<double>,NF,NF> block, Pi_plus, Pi_minus;
-      MATRIX<double,NF,NF> Phi0, Phi0avg,  Phi0tilde;      
-
-      // emission
-      dfdr[m][i][e ][e ] += eas.emis(se,i);
-      dfdr[m][i][mu][mu] += eas.emis(sx,i);
-      
-      // absorption kappa_abs is <kappa> for absorption
-      Phi0avg = eas.avg_matrix(eas.abs(se,i), eas.abs(sx,i));
-      for(flavour f1=e; f1<=mu; f1++)
-	for(flavour f2=e; f2<=mu; f2++)
-	  dfdr[m][i][f1][f2] -= Phi0avg[f1][f2] * s.fmatrixf[m][i][f1][f2];
-    
-      // scattering and pair annihilation
-      // no factor of 1/2 in front of Phi0 because
-      // integrated over outgoing theta, assumed isotropic
-      for(int j=0; j<NE; j++){
-
-	// in-scattering from j to i. D*Phi0 give density scattered
-	// divide by phase space vol in i to get f
-	Phi0avg      = eas.avg_matrix(  eas.Phi0(0,j,i), eas.Phi0(2,j,i));
-	Phi0tilde    = eas.tilde_matrix(eas.Phi0(0,j,i), eas.Phi0(2,j,i));
-	Phi0     = Phi0avg    - Phi0tilde;
-	block    = eas.blocking_term0(Phi0, s.fmatrixf[m][i], DBackground[m][j]);
-	for(flavour f1=e; f1<=mu; f1++)
-	  for(flavour f2=e; f2<=mu; f2++)
-	    dfdr[m][i][f1][f2] += (DBackground[m][j][f1][f2]*Phi0[f1][f2] - block[f1][f2]) / s.Vphase[i];
-
-	// out-scattering from i to j. for blocking, get phase space vol from D[j] in j
-	Phi0avg      = eas.avg_matrix(  eas.Phi0(0,i,j), eas.Phi0(2,i,j));
-	Phi0tilde    = eas.tilde_matrix(eas.Phi0(0,i,j), eas.Phi0(2,i,j));
-	Phi0    = Phi0avg    - Phi0tilde;
-	block    = eas.blocking_term0(Phi0, s.fmatrixf[m][i], DBackground[m][j] );
-	for(flavour f1=e; f1<=mu; f1++)
-	  for(flavour f2=e; f2<=mu; f2++)
-	    dfdr[m][i][f1][f2] += s.fmatrixf[m][i][f1][f2]*Phi0avg[f1][f2] - block[f1][f2]/s.Vphase[j];
-
-	// Make sure dfdr is Hermitian
-	dfdr[m][i][mu][e ] = conj(dfdr[m][i][e][mu]);
-	
-      } // other group
-    } // group
-  } // state
-  
-  return dfdr;
 }
 
 

@@ -39,7 +39,7 @@ void evolve_oscillations(State& s,
 		  s.Y[m][i][x][j] += BB[k][l] * dYdr[l][m][i][x][j] * dr;
 
 	s.update_potential(profile,HfV,s0);
-	dYdr[k] = K(s);
+	dYdr[k] = Koscillate(s);
       }
 	  
       // increment all quantities and update C and A arrays
