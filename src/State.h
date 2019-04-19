@@ -75,12 +75,25 @@ class State{
     else return Vphase(Elow, Ehi);
   }
 
-  double Ebottom(int i) const{
+  static double Vphase_overlap_comoving(int i0, array<double,NE>& Etop0, int ilab, array<double,NE>& Etop_lab, double Ecom_Elab){
+    // compute top and bottom energies in the comoving frame
+    double Etop_fromLab = Etop_lab[ilab] * Ecom_Elab;
+    double Ebottom_fromLab = Ebottom(ilab, Etop_lab) * Ecom_Elab;
+
+    // grab the top and bottom energies from E0
+    double Etop_fromCom = Etop0[i0];
+    double Ebottom_fromCom = Ebottom(i0, Etop_lab);
+
+    // get the phase space overlap
+    return Vphase_overlap(Ebottom_fromLab, Etop_fromLab, Ebottom_fromCom, Etop_fromCom);
+  }
+
+  static double Ebottom(int i, const array<double,NE>& Etop){
     return (i>0 ? Etop[i-1] : 0);
   }
   
-  double Vphase(int i) const{
-    return Vphase(Ebottom(i), Etop[i]);
+  static double Vphase(int i, const array<double,NE>& Etop){
+    return Vphase(Ebottom(i,Etop), Etop[i]);
   }
 
   void update_background(const Profile& profile, const State& s0){
@@ -126,17 +139,17 @@ class State{
     // SI potential
     VfSI[matter] = MATRIX<complex<double>,NF,NF>();
     VfSI[antimatter] = MATRIX<complex<double>,NF,NF>();
+    array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> pmatrixf0;
     #pragma omp parallel for collapse(2)
     for(int m=matter; m<=antimatter; m++){
       for(int i=0;i<=NE-1;i++){
 	// decompose unoscillated potential
-	MATRIX<complex<double>,NF,NF> pmatrixf0;
-	pmatrixf0[e ][e ] = sqrt(2.)*cgs::constants::GF
+	pmatrixf0[m][i][e ][e ] = sqrt(2.)*cgs::constants::GF
 	  * complex<double>(profile.Dens_unosc[m][i][e](r) - 
 			    profile.Flux_unosc[m][i][e](r),0);
-	pmatrixf0[mu][e ] = complex<double>(0,0);
-	pmatrixf0[e ][mu] = complex<double>(0,0);
-	pmatrixf0[mu][mu] = sqrt(2.)*cgs::constants::GF
+	pmatrixf0[m][i][mu][e ] = complex<double>(0,0);
+	pmatrixf0[m][i][e ][mu] = complex<double>(0,0);
+	pmatrixf0[m][i][mu][mu] = sqrt(2.)*cgs::constants::GF
 	  * complex<double>(profile.Dens_unosc[m][i][mu](r) -
 			    profile.Flux_unosc[m][i][mu](r),0);
 
@@ -155,11 +168,14 @@ class State{
 	WW[m][i][si ] = W(Y[m][i][si ]);
 	SThisStep[m][i] = WW[m][i][msw] * BB[m][i][msw] * WW[m][i][si] * BB[m][i][si];
 	Sf[m][i] = UU[m][i] * SThisStep[m][i] * Scumulative[m][i] * Adjoint(s0.UU[m][i]);
+      }
+    }
 
+    for(int m=matter; m<=antimatter; m++){
+      for(int i=0;i<=NE-1;i++){
 	// contribution to the self-interaction potential from this energy
-	MATRIX<complex<double>,NF,NF> VfSIE = Sf[m][i] * pmatrixf0 * Adjoint(Sf[m][i]);
+	MATRIX<complex<double>,NF,NF> VfSIE = Sf[m][i] * pmatrixf0[m][i] * Adjoint(Sf[m][i]);
 	if(m==antimatter) VfSIE = -Conjugate(VfSIE);
-        #pragma omp critical
 	VfSI[matter] += VfSIE;
       }
     }
@@ -272,7 +288,7 @@ class State{
       for(state m=matter; m<=antimatter; m++){
 	fmatrixf[m][i] = MATRIX<complex<double>,NF,NF>();
 	for(flavour f=e; f<=mu; f++)
-	  fmatrixf[m][i][f][f] = D_unosc[m][i][f](r) / Vphase(i);
+	  fmatrixf[m][i][f][f] = D_unosc[m][i][f](r) / Vphase(i,Etop);
       }
     
       cout << "GROUP " << i << endl;

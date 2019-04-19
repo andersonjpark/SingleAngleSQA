@@ -160,7 +160,7 @@ array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>
 	block    = eas.blocking_term0(Phi0, s.fmatrixf[m][i], DBackground[m][j]);
 	for(flavour f1=e; f1<=mu; f1++)
 	  for(flavour f2=e; f2<=mu; f2++)
-	    dfdr[m][i][f1][f2] += (DBackground[m][j][f1][f2]*Phi0[f1][f2] - block[f1][f2]) / s.Vphase(i);
+	    dfdr[m][i][f1][f2] += (DBackground[m][j][f1][f2]*Phi0[f1][f2] - block[f1][f2]) / s.Vphase(i,s.Etop);
 
 	// out-scattering from i to j. for blocking, get phase space vol from D[j] in j
 	Phi0avg      = eas.avg_matrix(  eas.Phi0(0,i,j), eas.Phi0(2,i,j));
@@ -169,7 +169,7 @@ array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>
 	block    = eas.blocking_term0(Phi0, s.fmatrixf[m][i], DBackground[m][j] );
 	for(flavour f1=e; f1<=mu; f1++)
 	  for(flavour f2=e; f2<=mu; f2++)
-	    dfdr[m][i][f1][f2] += s.fmatrixf[m][i][f1][f2]*Phi0avg[f1][f2] - block[f1][f2]/s.Vphase(j);
+	    dfdr[m][i][f1][f2] += s.fmatrixf[m][i][f1][f2]*Phi0avg[f1][f2] - block[f1][f2]/s.Vphase(j,s.Etop);
 
 	// Make sure dfdr is Hermitian
 	dfdr[m][i][mu][e ] = conj(dfdr[m][i][e][mu]);
