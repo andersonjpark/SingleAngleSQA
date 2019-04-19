@@ -71,11 +71,18 @@ class State{
     assert(Elow2>=0);
     double Elow = max(Elow1,Elow2);
     double Ehi  = min(Ehi1, Ehi2);
-    if(Ehi>=Elow) return 0;
+    if(Ehi<=Elow) return 0;
     else return Vphase(Elow, Ehi);
   }
 
-  static double Vphase_overlap_comoving(int i0, array<double,NE>& Etop0, int ilab, array<double,NE>& Etop_lab, double Ecom_Elab){
+  static double Vphase_overlap_comoving(int i0, const array<double,NE>& Etop0,
+					int ilab, const array<double,NE>& Etop_lab,
+					double Ecom_Elab){
+    assert(i0>=0);
+    assert(i0<NE);
+    assert(ilab>=0);
+    assert(ilab<NE);
+
     // compute top and bottom energies in the comoving frame
     double Etop_fromLab = Etop_lab[ilab] * Ecom_Elab;
     double Ebottom_fromLab = Ebottom(ilab, Etop_lab) * Ecom_Elab;
@@ -85,14 +92,22 @@ class State{
     double Ebottom_fromCom = Ebottom(i0, Etop_lab);
 
     // get the phase space overlap
-    return Vphase_overlap(Ebottom_fromLab, Etop_fromLab, Ebottom_fromCom, Etop_fromCom);
+    double V_overlap = Vphase_overlap(Ebottom_fromLab, Etop_fromLab, Ebottom_fromCom, Etop_fromCom);
+    assert(V_overlap <= Vphase(i0,Etop0));
+    return V_overlap;
   }
 
   static double Ebottom(int i, const array<double,NE>& Etop){
-    return (i>0 ? Etop[i-1] : 0);
+    assert(i>=0);
+    assert(i<NE);
+    double result = (i>0 ? Etop[i-1] : 0);
+    assert(result < Etop[i]);
+    return result;
   }
   
   static double Vphase(int i, const array<double,NE>& Etop){
+    assert(i>=0);
+    assert(i<NE);
     return Vphase(Ebottom(i,Etop), Etop[i]);
   }
 
@@ -143,15 +158,6 @@ class State{
     #pragma omp parallel for collapse(2)
     for(int m=matter; m<=antimatter; m++){
       for(int i=0;i<=NE-1;i++){
-	// decompose unoscillated potential
-	pmatrixf0[m][i][e ][e ] = sqrt(2.)*cgs::constants::GF
-	  * complex<double>(profile.Dens_unosc[m][i][e](r) - 
-			    profile.Flux_unosc[m][i][e](r),0);
-	pmatrixf0[m][i][mu][e ] = complex<double>(0,0);
-	pmatrixf0[m][i][e ][mu] = complex<double>(0,0);
-	pmatrixf0[m][i][mu][mu] = sqrt(2.)*cgs::constants::GF
-	  * complex<double>(profile.Dens_unosc[m][i][mu](r) -
-			    profile.Flux_unosc[m][i][mu](r),0);
 
 	// stuff that used to be in K()
 	MATRIX<complex<double>,NF,NF> dVfVacdr = VfVac[m][i] * VfVac_derivative_fac;
@@ -168,17 +174,53 @@ class State{
 	WW[m][i][si ] = W(Y[m][i][si ]);
 	SThisStep[m][i] = WW[m][i][msw] * BB[m][i][msw] * WW[m][i][si] * BB[m][i][si];
 	Sf[m][i] = UU[m][i] * SThisStep[m][i] * Scumulative[m][i] * Adjoint(s0.UU[m][i]);
+
+	// decompose unoscillated potential
+	// remains in comoving frame for the time being
+	pmatrixf0[m][i][e ][e ] = sqrt(2.)*cgs::constants::GF
+	  * complex<double>(profile.Dens_unosc[m][i][e](r) - 
+			    profile.Flux_unosc[m][i][e](r),0);
+	pmatrixf0[m][i][mu][e ] = complex<double>(0,0);
+	pmatrixf0[m][i][e ][mu] = complex<double>(0,0);
+	pmatrixf0[m][i][mu][mu] = sqrt(2.)*cgs::constants::GF
+	  * complex<double>(profile.Dens_unosc[m][i][mu](r) -
+			    profile.Flux_unosc[m][i][mu](r),0);
       }
     }
 
+    // calculate the self-interaction potential
+    #pragma omp parallel for collapse(2)
     for(int m=matter; m<=antimatter; m++){
-      for(int i=0;i<=NE-1;i++){
-	// contribution to the self-interaction potential from this energy
-	MATRIX<complex<double>,NF,NF> VfSIE = Sf[m][i] * pmatrixf0[m][i] * Adjoint(Sf[m][i]);
-	if(m==antimatter) VfSIE = -Conjugate(VfSIE);
-	VfSI[matter] += VfSIE;
+      for(int i0=0; i0<NE; i0++){
+
+	MATRIX<complex<double>,NF,NF> VfSIE;
+	double V0 = Vphase(i0, s0.Etop);
+	double total_overlap_fraction = 0; // should end up being 1
+	for(int ilab=0; ilab<NE; ilab++){
+
+	  // calculate fraction of bin i0 that overlaps with bin ilab
+	  double V_overlap = Vphase_overlap_comoving(i0, s0.Etop, ilab, Etop, Ecom_Elab);
+	  double overlap_fraction = V_overlap / V0;
+	  total_overlap_fraction += overlap_fraction;
+	  
+	  // calculate contribution to the potential due to this overlapping
+	  // segment of bin i0, oscillating it with Sf from bin ilab
+	  VfSIE += Sf[m][ilab]
+	    * (pmatrixf0[m][i0]*overlap_fraction)
+	    * Adjoint(Sf[m][ilab]);
+	}
+	assert(fabs(total_overlap_fraction-1.)<1e-6);
+
+	// accumulate the contribution from bin i0 onto the com-frame potential
+        #pragma omp critical
+	VfSI[matter] += (m==matter ? VfSIE : -Conjugate(VfSIE));
       }
     }
+
+    // convert comoving-frame potential to lab-frame potential
+    VfSI[matter] *= Ecom_Elab;
+    
+    // set antimatter potential
     VfSI[antimatter]=-Conjugate(VfSI[matter]);
   }
 
