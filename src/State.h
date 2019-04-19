@@ -154,7 +154,6 @@ class State{
     // SI potential
     VfSI[matter] = MATRIX<complex<double>,NF,NF>();
     VfSI[antimatter] = MATRIX<complex<double>,NF,NF>();
-    array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> pmatrixf0;
     #pragma omp parallel for collapse(2)
     for(int m=matter; m<=antimatter; m++){
       for(int i=0;i<=NE-1;i++){
@@ -175,16 +174,6 @@ class State{
 	SThisStep[m][i] = WW[m][i][msw] * BB[m][i][msw] * WW[m][i][si] * BB[m][i][si];
 	Sf[m][i] = UU[m][i] * SThisStep[m][i] * Scumulative[m][i] * Adjoint(s0.UU[m][i]);
 
-	// decompose unoscillated potential
-	// remains in comoving frame for the time being
-	pmatrixf0[m][i][e ][e ] = sqrt(2.)*cgs::constants::GF
-	  * complex<double>(profile.Dens_unosc[m][i][e](r) - 
-			    profile.Flux_unosc[m][i][e](r),0);
-	pmatrixf0[m][i][mu][e ] = complex<double>(0,0);
-	pmatrixf0[m][i][e ][mu] = complex<double>(0,0);
-	pmatrixf0[m][i][mu][mu] = sqrt(2.)*cgs::constants::GF
-	  * complex<double>(profile.Dens_unosc[m][i][mu](r) -
-			    profile.Flux_unosc[m][i][mu](r),0);
       }
     }
 
@@ -192,6 +181,18 @@ class State{
     #pragma omp parallel for collapse(2)
     for(int m=matter; m<=antimatter; m++){
       for(int i0=0; i0<NE; i0++){
+
+	// decompose unoscillated potential
+	// remains in comoving frame for the time being
+	MATRIX<complex<double>,NF,NF> pmatrixf0;
+	pmatrixf0[e ][e ] = sqrt(2.)*cgs::constants::GF
+	  * complex<double>(profile.Dens_unosc[m][i0][e](r) - 
+			    profile.Flux_unosc[m][i0][e](r),0);
+	pmatrixf0[mu][e ] = complex<double>(0,0);
+	pmatrixf0[e ][mu] = complex<double>(0,0);
+	pmatrixf0[mu][mu] = sqrt(2.)*cgs::constants::GF
+	  * complex<double>(profile.Dens_unosc[m][i0][mu](r) -
+			    profile.Flux_unosc[m][i0][mu](r),0);
 
 	MATRIX<complex<double>,NF,NF> VfSIE;
 	double V0 = Vphase(i0, s0.Etop);
@@ -206,7 +207,7 @@ class State{
 	  // calculate contribution to the potential due to this overlapping
 	  // segment of bin i0, oscillating it with Sf from bin ilab
 	  VfSIE += Sf[m][ilab]
-	    * (pmatrixf0[m][i0]*overlap_fraction)
+	    * (pmatrixf0 * overlap_fraction)
 	    * Adjoint(Sf[m][ilab]);
 	}
 	assert(fabs(total_overlap_fraction-1.)<1e-6);
