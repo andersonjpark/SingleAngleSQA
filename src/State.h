@@ -233,13 +233,13 @@ class State{
   //====================//
   // OSCILLATED MOMENTS //
   //====================//
-  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> oscillated_moments(const array<array<array<DISCONTINUOUS,NF>,NE>,NM>& D_unosc) const{
-    
+  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> oscillated_moments(const Profile& profile) const{
+
     array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> DBackground;
     for(state m=matter; m<=antimatter; m++){
       for(int ig=0; ig<NE; ig++){
 	for(flavour f=e; f<=mu; f++)
-	  DBackground[m][ig][f][f] = D_unosc[m][ig][f](r);
+	  DBackground[m][ig][f][f] = profile.Dens_unosc[m][ig][f](r);
 	DBackground[m][ig] = Sf[m][ig] * DBackground[m][ig] * Adjoint(Sf[m][ig]);
       }
     }

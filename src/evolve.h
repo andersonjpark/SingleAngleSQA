@@ -129,7 +129,7 @@ void evolve_interactions(State& s,
 	      s.fmatrixf[m][i] += dfdr[l][m][i] * BB[k][l] * dr;
 
 	// NEED TO UPDATE BACKGROUND INFO
-	dfdr[k] = Kinteract(s,profile.Dens_unosc);
+	dfdr[k] = Kinteract(s,profile);
       }
 	  
       // increment all quantities and update C and A arrays
