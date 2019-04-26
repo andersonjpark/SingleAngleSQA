@@ -114,14 +114,7 @@ array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>
   					 &__nulibtable_MOD_nulibtable_number_easvariables);
 
   // get oscillated background density
-  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> DBackground;
-  for(state m=matter; m<=antimatter; m++){
-    for(int ig=0; ig<NE; ig++){
-      for(flavour f=e; f<=mu; f++)
-	DBackground[m][ig][f][f] = D_unosc[m][ig][f](s.r);
-      DBackground[m][ig] = s.Sf[m][ig] * DBackground[m][ig] * Adjoint(s.Sf[m][ig]);
-    }
-  }
+  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> DBackground = s.oscillated_moments(D_unosc);
 
 #pragma omp parallel for collapse(2)
   for(int m=matter; m<=antimatter; m++){
