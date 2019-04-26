@@ -89,6 +89,7 @@ void evolve_oscillations(State& s,
 
 
 void evolve_interactions(State& s,
+			 const State& s0,
 			 const State& sBlockStart,
 			 const double r_end,
 			 double& dr,
@@ -129,7 +130,7 @@ void evolve_interactions(State& s,
 	      s.fmatrixf[m][i] += dfdr[l][m][i] * BB[k][l] * dr;
 
 	// NEED TO UPDATE BACKGROUND INFO
-	dfdr[k] = Kinteract(s,profile);
+	dfdr[k] = Kinteract(s,s0,profile);
       }
 	  
       // increment all quantities and update C and A arrays

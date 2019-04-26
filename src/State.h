@@ -233,14 +233,31 @@ class State{
   //====================//
   // OSCILLATED MOMENTS //
   //====================//
-  array<array<array<MATRIX<complex<double>,NF,NF>,NMOMENTS>,NE>,NM> oscillated_moments(const Profile& profile) const{
+  array<array<array<MATRIX<complex<double>,NF,NF>,NMOMENTS>,NE>,NM> oscillated_moments(const Profile& profile, const State& s0) const{
 
     array<array<array<MATRIX<complex<double>,NF,NF>,NMOMENTS>,NE>,NM> MBackground;
-    for(state m=matter; m<=antimatter; m++){
+
+    #pragma omp parallel for collapse(2)
+    for(int m=matter; m<=antimatter; m++){
       for(int ig=0; ig<NE; ig++){
-	for(flavour f=e; f<=mu; f++)
-	  MBackground[m][ig][0][f][f] = profile.Dens_unosc[m][ig][f](r);
-	MBackground[m][ig][0] = Sf[m][ig] * MBackground[m][ig][0] * Adjoint(Sf[m][ig]);
+
+	// fill in the un-oscillated diagonals
+	double Vp = Vphase(ig, Etop);
+	for(int ig0=0; ig0<NE; ig0++){
+	  double V_overlap = Vphase_overlap_comoving(ig0, s0.Etop, ig, Etop, Ecom_Elab);
+	  if(V_overlap>0){
+	    for(flavour f=e; f<=mu; f++){
+	      double overlap_fraction = V_overlap / Vp;
+	      MBackground[m][ig][0][f][f] += profile.Dens_unosc[m][ig0][f](r) * overlap_fraction;
+	      MBackground[m][ig][1][f][f] += profile.Flux_unosc[m][ig0][f](r) * overlap_fraction;
+	      MBackground[m][ig][2][f][f] += profile.Pres_unosc[m][ig0][f](r) * overlap_fraction;
+	    }
+	  }
+	}
+
+	// oscillate the moments
+	for(int mom=0; mom<NMOMENTS; mom++)
+	  MBackground[m][ig][mom] = Sf[m][ig]*MBackground[m][ig][mom]*Adjoint(Sf[m][ig]);
       }
     }
     return MBackground;

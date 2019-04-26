@@ -98,7 +98,7 @@ array<array<array<array<double,NY>,NS>,NE>,NM> Koscillate(const State& s){
 // Kinteract //
 //===========//
 array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>
-  Kinteract(const State& s, const Profile& profile){
+  Kinteract(const State& s, const State& s0, const Profile& profile){
 
   // set up the array to be returned
   array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> dfdr;
@@ -114,7 +114,7 @@ array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>
   					 &__nulibtable_MOD_nulibtable_number_easvariables);
 
   // get oscillated background density
-  array<array<array<MATRIX<complex<double>,NF,NF>,NMOMENTS>,NE>,NM> MBackground = s.oscillated_moments(profile);
+  array<array<array<MATRIX<complex<double>,NF,NF>,NMOMENTS>,NE>,NM> MBackground = s.oscillated_moments(profile, s0);
 
 #pragma omp parallel for collapse(2)
   for(int m=matter; m<=antimatter; m++){
