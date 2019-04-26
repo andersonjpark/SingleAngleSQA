@@ -233,17 +233,17 @@ class State{
   //====================//
   // OSCILLATED MOMENTS //
   //====================//
-  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> oscillated_moments(const Profile& profile) const{
+  array<array<array<MATRIX<complex<double>,NF,NF>,NMOMENTS>,NE>,NM> oscillated_moments(const Profile& profile) const{
 
-    array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> DBackground;
+    array<array<array<MATRIX<complex<double>,NF,NF>,NMOMENTS>,NE>,NM> MBackground;
     for(state m=matter; m<=antimatter; m++){
       for(int ig=0; ig<NE; ig++){
 	for(flavour f=e; f<=mu; f++)
-	  DBackground[m][ig][f][f] = profile.Dens_unosc[m][ig][f](r);
-	DBackground[m][ig] = Sf[m][ig] * DBackground[m][ig] * Adjoint(Sf[m][ig]);
+	  MBackground[m][ig][0][f][f] = profile.Dens_unosc[m][ig][f](r);
+	MBackground[m][ig][0] = Sf[m][ig] * MBackground[m][ig][0] * Adjoint(Sf[m][ig]);
       }
     }
-    return DBackground;
+    return MBackground;
   }
   
   void accumulate_S(double dr, const State& sReset){

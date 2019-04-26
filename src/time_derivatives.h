@@ -114,7 +114,7 @@ array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>
   					 &__nulibtable_MOD_nulibtable_number_easvariables);
 
   // get oscillated background density
-  array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> DBackground = s.oscillated_moments(profile);
+  array<array<array<MATRIX<complex<double>,NF,NF>,NMOMENTS>,NE>,NM> MBackground = s.oscillated_moments(profile);
 
 #pragma omp parallel for collapse(2)
   for(int m=matter; m<=antimatter; m++){
@@ -150,16 +150,16 @@ array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>
 	Phi0avg      = eas.avg_matrix(  eas.Phi0(0,j,i), eas.Phi0(2,j,i));
 	Phi0tilde    = eas.tilde_matrix(eas.Phi0(0,j,i), eas.Phi0(2,j,i));
 	Phi0     = Phi0avg    - Phi0tilde;
-	block    = eas.blocking_term0(Phi0, s.fmatrixf[m][i], DBackground[m][j]);
+	block    = eas.blocking_term0(Phi0, s.fmatrixf[m][i], MBackground[m][j][0]);
 	for(flavour f1=e; f1<=mu; f1++)
 	  for(flavour f2=e; f2<=mu; f2++)
-	    dfdr[m][i][f1][f2] += (DBackground[m][j][f1][f2]*Phi0[f1][f2] - block[f1][f2]) / s.Vphase(i,s.Etop);
+	    dfdr[m][i][f1][f2] += (MBackground[m][j][0][f1][f2]*Phi0[f1][f2] - block[f1][f2]) / s.Vphase(i,s.Etop);
 
 	// out-scattering from i to j. for blocking, get phase space vol from D[j] in j
 	Phi0avg      = eas.avg_matrix(  eas.Phi0(0,i,j), eas.Phi0(2,i,j));
 	Phi0tilde    = eas.tilde_matrix(eas.Phi0(0,i,j), eas.Phi0(2,i,j));
 	Phi0    = Phi0avg    - Phi0tilde;
-	block    = eas.blocking_term0(Phi0, s.fmatrixf[m][i], DBackground[m][j] );
+	block    = eas.blocking_term0(Phi0, s.fmatrixf[m][i], MBackground[m][j][0] );
 	for(flavour f1=e; f1<=mu; f1++)
 	  for(flavour f2=e; f2<=mu; f2++)
 	    dfdr[m][i][f1][f2] += s.fmatrixf[m][i][f1][f2]*Phi0avg[f1][f2] - block[f1][f2]/s.Vphase(j,s.Etop);
