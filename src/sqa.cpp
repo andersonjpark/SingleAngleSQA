@@ -72,7 +72,6 @@ int main(int argc, char *argv[]){
   ifstream fin(inputfilename.c_str());
     
   // load the nulib table
-  const string nulibfilename = get_parameter<string>(fin,"nulibfilename");
   const string input_directory = get_parameter<string>(fin,"input_directory");
   const double rmin = get_parameter<double>(fin, "rmin"); // cm
   const double rmax = get_parameter<double>(fin, "rmax"); // cm
@@ -109,11 +108,6 @@ int main(int argc, char *argv[]){
     cout << Etop[i]/(1.e6*cgs::units::eV) << endl;
   }
   cout.flush();
-  
-  // *************************************************
-  // set up global variables defined in parameters.h *
-  // *************************************************
-  // vectors of energies and vacuum eigenvalues
   
   // **************************************
   // quantities evaluated at inital point *
