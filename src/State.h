@@ -56,67 +56,8 @@ class State{
       }
     }
   }
-
-  static double Vphase(double Elow, double Ehi){
-    assert(Ehi>Elow);
-    assert(Elow>=0);
-    double dE3 = pow(Ehi,3) - pow(Elow,3);
-    double result = 4.*M_PI * dE3/3. / pow(2.*M_PI*cgs::constants::hbarc,3);
-    return result;
-  }
-
-  static double Vphase_overlap(double Elow1, double Ehi1, double Elow2, double Ehi2){
-    assert(Elow1<Ehi1);
-    assert(Elow2<Ehi2);
-    assert(Elow1>=0);
-    assert(Elow2>=0);
-    double Elow = max(Elow1,Elow2);
-    double Ehi  = min(Ehi1, Ehi2);
-    if(Ehi<=Elow) return 0;
-    else return Vphase(Elow, Ehi);
-  }
-
-  static double Vphase_overlap_comoving(int i0, const array<double,NE>& Etop0,
-					int ilab, const array<double,NE>& Etop_lab,
-					double Ecom_Elab){
-    assert(i0>=0);
-    assert(i0<NE);
-    assert(ilab>=0);
-    assert(ilab<NE);
-
-    // compute top and bottom energies in the comoving frame
-    double Etop_fromLab = Etop_lab[ilab] * Ecom_Elab;
-    double Ebottom_fromLab = Ebottom(ilab, Etop_lab) * Ecom_Elab;
-
-    // grab the top and bottom energies from E0
-    double Etop_fromCom = Etop0[i0];
-    double Ebottom_fromCom = Ebottom(i0, Etop0);
-
-    // extend fromLab grid out to end of comoving grid
-    // so S maps onto whole comoving bin
-    if(ilab==NE-1) Etop_fromLab = max(Etop_fromLab, Etop_fromCom);
-
-    // get the phase space overlap
-    double V_overlap = Vphase_overlap(Ebottom_fromLab, Etop_fromLab, Ebottom_fromCom, Etop_fromCom);
-    assert(V_overlap <= Vphase(i0,Etop0));
-    return V_overlap;
-  }
-
-  static double Ebottom(int i, const array<double,NE>& Etop){
-    assert(i>=0);
-    assert(i<NE);
-    double result = (i>0 ? Etop[i-1] : 0);
-    assert(result < Etop[i]);
-    return result;
-  }
-  
-  static double Vphase(int i, const array<double,NE>& Etop){
-    assert(i>=0);
-    assert(i<NE);
-    return Vphase(Ebottom(i,Etop), Etop[i]);
-  }
-
   void update_background(const Profile& profile, const State& s0){
+
     rho = exp(profile.lnrho(r));
     T = profile.temperature(r);
     Ye = profile.Ye(r);
