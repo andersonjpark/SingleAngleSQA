@@ -73,6 +73,7 @@ int main(int argc, char *argv[]){
     
   // load the nulib table
   const string input_directory = get_parameter<string>(fin,"input_directory");
+  const string eosfilename = get_parameter<string>(fin, "eosfilename");
   const double rmin = get_parameter<double>(fin, "rmin"); // cm
   const double rmax = get_parameter<double>(fin, "rmax"); // cm
   const double dr0 = get_parameter<double>(fin, "dr0"); // cm
@@ -83,9 +84,9 @@ int main(int argc, char *argv[]){
   const double target_impact = get_parameter<double>(fin, "target_impact");
   const double increase = get_parameter<double>(fin, "increase");
   fin.close();
-    
-  //nulib_init(nulibfilename, 0);
+
   Profile profile(input_directory, rmin);
+  read_eos_table_((char*)eosfilename.c_str());
 
   //=======//
   // Ebins //

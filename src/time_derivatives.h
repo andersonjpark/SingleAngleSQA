@@ -94,6 +94,38 @@ array<array<array<array<double,NY>,NS>,NE>,NM> Koscillate(const State& s){
 }// end of K function
 
 
+//==================//
+// HELPER FUNCTIONS //
+//==================//
+MATRIX<double,2,2> avg_matrix(const double eval, const double muval){
+  MATRIX<double,2,2> result;
+  result[e ][e ] = eval;
+  result[mu][mu] = muval;
+  result[e ][mu] = result[mu][e] = (eval + muval) / 2.;
+  return result;
+}
+MATRIX<double,2,2> tilde_matrix(const double eval, const double muval){
+  MATRIX<double,2,2> result;
+  result[e ][e ] = 0;
+  result[mu][mu] = 0;
+  result[e ][mu] = result[mu][e] = (eval - muval) / (4.*sin2thetaW);
+  return result;
+}
+MATRIX<complex<double>,2,2> blocking_term0(const MATRIX<double,2,2>& Phi0matrix,
+					   const MATRIX<complex<double>,2,2>& f,
+					   const MATRIX<complex<double>,2,2>& fp){
+  MATRIX<complex<double>,2,2> result;
+  for(flavour fa=e; fa<=mu; fa++)
+    for(flavour fb=e; fb<=mu; fb++){
+      result[fa][fb] = 0;
+      for(flavour fc=e; fc<=mu; fc++){
+	result[fa][fb] += 0.25 * (Phi0matrix[fc][fb]*f[fa][fc]*fp[fc][fb] + Phi0matrix[fa][fc]*fp[fa][fc]*f[fc][fb]);
+      }
+    }
+  return result;
+}
+
+
 //===========//
 // Kinteract //
 //===========//
@@ -103,15 +135,8 @@ array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>
   // set up the array to be returned
   array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> dfdr;
 
-  // don't do anything if too sparse
-  if(log10(s.rho) <= __nulibtable_MOD_nulibtable_logrho_min)
-    return dfdr;
-
-  // T should be MeV
-  nulibtable_range_species_range_energy_(&s.rho, &s.T, &s.Ye, &eas.eas.front(),
-  					 &__nulibtable_MOD_nulibtable_number_species,
-  					 &__nulibtable_MOD_nulibtable_number_groups,
-  					 &__nulibtable_MOD_nulibtable_number_easvariables);
+  // Set up EAS object
+  EAS eas(s.rho, s.T, s.Ye);
 
   // get oscillated background density
   array<array<array<MATRIX<complex<double>,NF,NF>,NMOMENTS>,NE>,NM> MBackground = s.oscillated_moments(profile, s0);
@@ -130,12 +155,12 @@ array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>
       MATRIX<complex<double>,NF,NF> block, Pi_plus, Pi_minus;
       MATRIX<double,NF,NF> Phi0, Phi0avg,  Phi0tilde;      
 
-      // emission
-      dfdr[m][i][e ][e ] += eas.emis(se,i);
-      dfdr[m][i][mu][mu] += eas.emis(sx,i);
-      
-      // absorption kappa_abs is <kappa> for absorption
-      Phi0avg = eas.avg_matrix(eas.abs(se,i), eas.abs(sx,i));
+      // absorption and emission
+      // Phi0avg is <kappa> for absorption
+      Phi0avg = avg_matrix(eas.abs(se,s.E[i]), eas.abs(sx,s.E[i]));
+      double E_kT = s.E[i]/(1e6*eV) / s.T;
+      dfdr[m][i][e ][e ] += Phi0avg[e ][e ] * eas.fermidirac(se, E_kT);
+      dfdr[m][i][mu][mu] += Phi0avg[mu][mu] * eas.fermidirac(sx, E_kT);
       for(flavour f1=e; f1<=mu; f1++)
 	for(flavour f2=e; f2<=mu; f2++)
 	  dfdr[m][i][f1][f2] -= Phi0avg[f1][f2] * s.fmatrixf[m][i][f1][f2];
@@ -147,22 +172,22 @@ array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>
 
 	// in-scattering from j to i. D*Phi0 give density scattered
 	// divide by phase space vol in i to get f
-	Phi0avg      = eas.avg_matrix(  eas.Phi0(0,j,i), eas.Phi0(2,j,i));
-	Phi0tilde    = eas.tilde_matrix(eas.Phi0(0,j,i), eas.Phi0(2,j,i));
-	Phi0     = Phi0avg    - Phi0tilde;
-	block    = eas.blocking_term0(Phi0, s.fmatrixf[m][i], MBackground[m][j][0]);
-	for(flavour f1=e; f1<=mu; f1++)
-	  for(flavour f2=e; f2<=mu; f2++)
-	    dfdr[m][i][f1][f2] += (MBackground[m][j][0][f1][f2]*Phi0[f1][f2] - block[f1][f2]) / s.Vphase(i,s.Etop);
+	/* Phi0avg      = avg_matrix(  eas.Phi0(0,j,i), eas.Phi0(2,j,i)); */
+	/* Phi0tilde    = tilde_matrix(eas.Phi0(0,j,i), eas.Phi0(2,j,i)); */
+	/* Phi0     = Phi0avg    - Phi0tilde; */
+	/* block    = blocking_term0(Phi0, s.fmatrixf[m][i], MBackground[m][j][0]); */
+	/* for(flavour f1=e; f1<=mu; f1++) */
+	/*   for(flavour f2=e; f2<=mu; f2++) */
+	/*     dfdr[m][i][f1][f2] += (MBackground[m][j][0][f1][f2]*Phi0[f1][f2] - block[f1][f2]) / s.Vphase(i,s.Etop); */
 
 	// out-scattering from i to j. for blocking, get phase space vol from D[j] in j
-	Phi0avg      = eas.avg_matrix(  eas.Phi0(0,i,j), eas.Phi0(2,i,j));
-	Phi0tilde    = eas.tilde_matrix(eas.Phi0(0,i,j), eas.Phi0(2,i,j));
-	Phi0    = Phi0avg    - Phi0tilde;
-	block    = eas.blocking_term0(Phi0, s.fmatrixf[m][i], MBackground[m][j][0] );
-	for(flavour f1=e; f1<=mu; f1++)
-	  for(flavour f2=e; f2<=mu; f2++)
-	    dfdr[m][i][f1][f2] += s.fmatrixf[m][i][f1][f2]*Phi0avg[f1][f2] - block[f1][f2]/s.Vphase(j,s.Etop);
+	/* Phi0avg      = avg_matrix(  eas.Phi0(0,i,j), eas.Phi0(2,i,j)); */
+	/* Phi0tilde    = tilde_matrix(eas.Phi0(0,i,j), eas.Phi0(2,i,j)); */
+	/* Phi0    = Phi0avg    - Phi0tilde; */
+	/* block    = blocking_term0(Phi0, s.fmatrixf[m][i], MBackground[m][j][0] ); */
+	/* for(flavour f1=e; f1<=mu; f1++) */
+	/*   for(flavour f2=e; f2<=mu; f2++) */
+	/*     dfdr[m][i][f1][f2] += s.fmatrixf[m][i][f1][f2]*Phi0avg[f1][f2] - block[f1][f2]/s.Vphase(j,s.Etop); */
 
 	// Make sure dfdr is Hermitian
 	dfdr[m][i][mu][e ] = conj(dfdr[m][i][e][mu]);

@@ -5,12 +5,14 @@
 #include "mixing_angles.h"
 #include "isospin.h"
 #include "profile.h"
+#include "nulib_interface.h"
 
 class State{
  public:
   double Ecom_Elab, Elab_Elab0;
   double r;
   double rho, T, Ye;
+  double munue, eta;
 
   // energy grid
   array<double,NE> E, Etop;
@@ -119,6 +121,8 @@ class State{
     rho = exp(profile.lnrho(r));
     T = profile.temperature(r);
     Ye = profile.Ye(r);
+    munue = get_munue(rho,T,Ye);
+    eta = get_eta(rho,T,Ye);
     Ecom_Elab = profile.Ecom_Elab(r);
     Elab_Elab0 = profile.Elab_Elab0(r);
 
