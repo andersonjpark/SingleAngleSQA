@@ -9,6 +9,8 @@
 const double clight = 2.99792458e10; // cm/s
 const double hplanck = 1.0545716e-27; // erg.s
 const double MeV_to_ergs = 1.60217646e-6;
+const int NEUTRINO_SCHEME = 2;
+const long int NS_NULIB = 4;
 
 inline bool hdf5_dataset_exists(const char* filename, const char* datasetname){
   bool exists = true;
@@ -42,52 +44,38 @@ extern double* __nulib_MOD_energies;
 extern "C"{
   void set_eos_variables_(double* eos_variables);
   void read_eos_table_(char* filename);
-  void __nulib_MOD_initialize_nulib(int* neutrino_scheme, int* number_species, int* number_groups);
-}
-
-double get_munue(const double rho /* g/ccm */, const double temp /*MeV*/, const double ye){ // MeV
-  double eos_variables[__nulib_MOD_total_eos_variables];
-  for(int i=0; i<__nulib_MOD_total_eos_variables; i++) eos_variables[i] = 0;
-  eos_variables[0] = rho;
-  eos_variables[1] = temp;
-  eos_variables[2] = ye;
-    
-  set_eos_variables_(eos_variables);
-  double mue = eos_variables[10];
-  double muhat = eos_variables[13];
-  return (mue-muhat);
-}
-double get_eta(const double rho /* g/ccm */, const double temp /*MeV*/, const double ye){ // dimensionless
-  double eos_variables[__nulib_MOD_total_eos_variables];
-  for(int i=0; i<__nulib_MOD_total_eos_variables; i++) eos_variables[i] = 0;
-  eos_variables[0] = rho;
-  eos_variables[1] = temp;
-  eos_variables[2] = ye;
-
-  set_eos_variables_(eos_variables);
-  double mue = eos_variables[10];
-  return mue/eos_variables[1];
+  void total_absorption_opacities_(const int* neutrino_species,
+				   const double* neutrino_energy,
+				   double* absorption_opacity,
+				   const double* eos_variables);
 }
 
 
 class EAS{
  public:
 
+  vector<double> eos_variables;
   double munue_kT, eta;
+
+  array<array<double,NE>,NS_NULIB> absorption_opacity, emissivities, scattering_opacity, delta;
   
   EAS(){
-    int neutrino_scheme = 2;
     int number_species = 6; // has to be 6 no matter how many are included in nux
     int number_groups = NE;
-    __nulib_MOD_initialize_nulib(&neutrino_scheme, &number_species, &number_groups);
+    eos_variables.resize(__nulib_MOD_total_eos_variables);
   }
 
-  void update(const array<double,NE>& E, double rho, double T, double Ye){
-    munue_kT = get_munue(rho,T,Ye) / T;
-    eta = get_eta(rho,T,Ye);
-    for(int i=0; i<NE; i++){
-      __nulib_MOD_energies[i] = E[i] / (1e6*eV);
-    }
+  void update(const double rho /* g/ccm */, const double T /*MeV*/, const double Ye){
+    // set the EOS variables
+    for(int i=0; i<__nulib_MOD_total_eos_variables; i++) eos_variables[i] = 0;
+    eos_variables[0] = rho;
+    eos_variables[1] = T;
+    eos_variables[2] = Ye;
+    set_eos_variables_(&eos_variables[0]);
+    double mue = eos_variables[10];
+    double muhat = eos_variables[13];
+    munue_kT = (mue-muhat) / T;
+    eta = mue / T;
   }
 
   /* int index(const int is,const int ig,const int iv) const{ */
@@ -105,10 +93,16 @@ class EAS{
   /*   return i1+i3-ik; */
   /* } */
   
-  double abs(int s, double E) const{ // 1/cm
-    return 1;
+  double abs(int s, double E /*erg*/) const{ // 1/cm
+    double EMeV = E / (1e6*eV);
+    int s_nulib = s+1;
+
+    double absopac;
+    total_absorption_opacities_(&s_nulib, &EMeV, &absopac, &eos_variables[0]);
+
+    return absopac;
   }
-  double scat(int s, double E) const{ // 1/cm
+  double scat(int s, int ig) const{ // 1/cm
     return 1;
   }
   /* double delta(const int is,const int ig) const{ // 1/cm */
