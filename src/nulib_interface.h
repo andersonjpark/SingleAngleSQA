@@ -41,6 +41,76 @@ inline bool hdf5_dataset_exists(const char* filename, const char* datasetname){
 // module variables set in fortran NuLib code
 extern int     __nulib_MOD_total_eos_variables;
 extern double* __nulib_MOD_energies;
+extern double __nulib_MOD_m_ref;
+extern const bool __nulib_MOD_do_weak_mag_corrections,
+  __nulib_MOD_do_ionion_correlation,
+  __nulib_MOD_do_heavyscat_formfactor,
+  __nulib_MOD_do_electronpolarization_correction,
+  __nulib_MOD_do_nc_virial_correction,
+  __nulib_MOD_do_strange_coupling,
+  __nulib_MOD_do_transport_opacities,
+  __nulib_MOD_add_nue_absorption_on_n,
+  __nulib_MOD_add_anue_absorption_on_p,
+  __nulib_MOD_add_nue_absorption_on_a,
+  __nulib_MOD_add_nux_absorption_on_n_and_p,
+  __nulib_MOD_add_nue_scattering_n,
+  __nulib_MOD_add_nue_scattering_p,
+  __nulib_MOD_add_nue_scattering_heavies,
+  __nulib_MOD_add_nue_scattering_electrons,
+  __nulib_MOD_add_nue_scattering_alphas,
+  __nulib_MOD_add_anue_scattering_n,
+  __nulib_MOD_add_anue_scattering_p,
+  __nulib_MOD_add_anue_scattering_heavies,
+  __nulib_MOD_add_anue_scattering_electrons,
+  __nulib_MOD_add_anue_scattering_alphas,
+  __nulib_MOD_add_numu_scattering_n,
+  __nulib_MOD_add_numu_scattering_p,
+  __nulib_MOD_add_numu_scattering_heavies,
+  __nulib_MOD_add_numu_scattering_electrons,
+  __nulib_MOD_add_numu_scattering_alphas,
+  __nulib_MOD_add_anumu_scattering_n,
+  __nulib_MOD_add_anumu_scattering_p,
+  __nulib_MOD_add_anumu_scattering_heavies,
+  __nulib_MOD_add_anumu_scattering_electrons,
+  __nulib_MOD_add_anumu_scattering_alphas,
+  __nulib_MOD_add_nutau_scattering_n,
+  __nulib_MOD_add_nutau_scattering_p,
+  __nulib_MOD_add_nutau_scattering_heavies,
+  __nulib_MOD_add_nutau_scattering_electrons,
+  __nulib_MOD_add_nutau_scattering_alphas,
+  __nulib_MOD_add_anutau_scattering_n,
+  __nulib_MOD_add_anutau_scattering_p,
+  __nulib_MOD_add_anutau_scattering_heavies,
+  __nulib_MOD_add_anutau_scattering_electrons,
+  __nulib_MOD_add_anutau_scattering_alphas,
+  __nulib_MOD_add_nue_iscattering_electrons,
+  __nulib_MOD_add_anue_iscattering_electrons,
+  __nulib_MOD_add_numu_iscattering_electrons,
+  __nulib_MOD_add_anumu_iscattering_electrons,
+  __nulib_MOD_add_nutau_iscattering_electrons,
+  __nulib_MOD_add_anutau_iscattering_electrons,
+  __nulib_MOD_add_nue_emission_epannihil,
+  __nulib_MOD_add_anue_emission_epannihil,
+  __nulib_MOD_add_numu_emission_epannihil,
+  __nulib_MOD_add_anumu_emission_epannihil,
+  __nulib_MOD_add_nutau_emission_epannihil,
+  __nulib_MOD_add_anutau_emission_epannihil,
+  __nulib_MOD_add_nue_emission_nnbrems,
+  __nulib_MOD_add_anue_emission_nnbrems,
+  __nulib_MOD_add_numu_emission_nnbrems,
+  __nulib_MOD_add_anumu_emission_nnbrems,
+  __nulib_MOD_add_nutau_emission_nnbrems,
+  __nulib_MOD_add_anutau_emission_nnbrems,	
+  __nulib_MOD_add_nue_emission_weakinteraction_ecap,
+  __nulib_MOD_add_anue_emission_weakinteraction_poscap,
+  __nulib_MOD_apply_kirchoff_to_pair_creation,
+  __nulib_MOD_add_nue_kernel_epannihil,
+  __nulib_MOD_add_anue_kernel_epannihil,
+  __nulib_MOD_add_numu_kernel_epannihil,
+  __nulib_MOD_add_anumu_kernel_epannihil,
+  __nulib_MOD_add_nutau_kernel_epannihil,
+  __nulib_MOD_add_anutau_kernel_epannihil;
+  
 extern "C"{
   void set_eos_variables_(double* eos_variables);
   void read_eos_table_(char* filename);
@@ -63,6 +133,79 @@ class EAS{
     int number_species = 6; // has to be 6 no matter how many are included in nux
     int number_groups = NE;
     eos_variables.resize(__nulib_MOD_total_eos_variables);
+    
+    // output all nulib parameters
+    cout << endl;
+    cout << "REQUESTED INTERACTIONS" << endl;
+    cout << __nulib_MOD_do_weak_mag_corrections << " do_weak_mag_corrections" << endl;
+    cout << __nulib_MOD_do_ionion_correlation << " do_ionion_correlation" << endl;
+    cout << __nulib_MOD_do_heavyscat_formfactor << " do_heavyscat_formfactor" << endl;
+    cout << __nulib_MOD_do_electronpolarization_correction << " do_electronpolarization_correction" << endl;
+    cout << __nulib_MOD_do_nc_virial_correction << " do_nc_virial_correction" << endl;
+    cout << __nulib_MOD_do_strange_coupling << " do_strange_coupling" << endl;
+    cout << __nulib_MOD_do_transport_opacities << " do_transport_opacities" << endl;
+    cout << __nulib_MOD_add_nue_absorption_on_n << " add_nue_absorption_on_n" << endl;
+    cout << __nulib_MOD_add_anue_absorption_on_p << " add_anue_absorption_on_p" << endl;
+    cout << __nulib_MOD_add_nue_absorption_on_a << " add_nue_absorption_on_A" << endl;
+    cout << __nulib_MOD_add_nux_absorption_on_n_and_p << " add_nux_absorption_on_n_and_p" << endl;
+    cout << __nulib_MOD_add_nue_scattering_n << " add_nue_scattering_n" << endl;
+    cout << __nulib_MOD_add_nue_scattering_p << " add_nue_scattering_p" << endl;
+    cout << __nulib_MOD_add_nue_scattering_heavies << " add_nue_scattering_heavies" << endl;
+    cout << __nulib_MOD_add_nue_scattering_electrons << " add_nue_scattering_electrons" << endl;
+    cout << __nulib_MOD_add_nue_scattering_alphas << " add_nue_scattering_alphas" << endl;
+    cout << __nulib_MOD_add_anue_scattering_n << " add_anue_scattering_n" << endl;
+    cout << __nulib_MOD_add_anue_scattering_p << " add_anue_scattering_p" << endl;
+    cout << __nulib_MOD_add_anue_scattering_heavies << " add_anue_scattering_heavies" << endl;
+    cout << __nulib_MOD_add_anue_scattering_electrons << " add_anue_scattering_electrons" << endl;
+    cout << __nulib_MOD_add_anue_scattering_alphas << " add_anue_scattering_alphas" << endl;
+    cout << __nulib_MOD_add_numu_scattering_n << " add_numu_scattering_n" << endl;
+    cout << __nulib_MOD_add_numu_scattering_p << " add_numu_scattering_p" << endl;
+    cout << __nulib_MOD_add_numu_scattering_heavies << " add_numu_scattering_heavies" << endl;
+    cout << __nulib_MOD_add_numu_scattering_electrons << " add_numu_scattering_electrons" << endl;
+    cout << __nulib_MOD_add_numu_scattering_alphas << " add_numu_scattering_alphas" << endl;
+    cout << __nulib_MOD_add_anumu_scattering_n << " add_anumu_scattering_n" << endl;
+    cout << __nulib_MOD_add_anumu_scattering_p << " add_anumu_scattering_p" << endl;
+    cout << __nulib_MOD_add_anumu_scattering_heavies << " add_anumu_scattering_heavies" << endl;
+    cout << __nulib_MOD_add_anumu_scattering_electrons << " add_anumu_scattering_electrons" << endl;
+    cout << __nulib_MOD_add_anumu_scattering_alphas << " add_anumu_scattering_alphas" << endl;
+    cout << __nulib_MOD_add_nutau_scattering_n << " add_nutau_scattering_n" << endl;
+    cout << __nulib_MOD_add_nutau_scattering_p << " add_nutau_scattering_p" << endl;
+    cout << __nulib_MOD_add_nutau_scattering_heavies << " add_nutau_scattering_heavies" << endl;
+    cout << __nulib_MOD_add_nutau_scattering_electrons << " add_nutau_scattering_electrons" << endl;
+    cout << __nulib_MOD_add_nutau_scattering_alphas << " add_nutau_scattering_alphas" << endl;
+    cout << __nulib_MOD_add_anutau_scattering_n << " add_anutau_scattering_n" << endl;
+    cout << __nulib_MOD_add_anutau_scattering_p << " add_anutau_scattering_p" << endl;
+    cout << __nulib_MOD_add_anutau_scattering_heavies << " add_anutau_scattering_heavies" << endl;
+    cout << __nulib_MOD_add_anutau_scattering_electrons << " add_anutau_scattering_electrons" << endl;
+    cout << __nulib_MOD_add_anutau_scattering_alphas << " add_anutau_scattering_alphas" << endl;
+    cout << __nulib_MOD_add_nue_iscattering_electrons << " add_nue_Iscattering_electrons" << endl;
+    cout << __nulib_MOD_add_anue_iscattering_electrons << " add_anue_Iscattering_electrons" << endl;
+    cout << __nulib_MOD_add_numu_iscattering_electrons << " add_numu_Iscattering_electrons" << endl;
+    cout << __nulib_MOD_add_anumu_iscattering_electrons << " add_anumu_Iscattering_electrons" << endl;
+    cout << __nulib_MOD_add_nutau_iscattering_electrons << " add_nutau_Iscattering_electrons" << endl;
+    cout << __nulib_MOD_add_anutau_iscattering_electrons << " add_anutau_Iscattering_electrons" << endl;
+    cout << __nulib_MOD_add_nue_emission_epannihil << " add_nue_emission_epannihil" << endl;
+    cout << __nulib_MOD_add_anue_emission_epannihil << " add_anue_emission_epannihil" << endl;
+    cout << __nulib_MOD_add_numu_emission_epannihil << " add_numu_emission_epannihil" << endl;
+    cout << __nulib_MOD_add_anumu_emission_epannihil << " add_anumu_emission_epannihil" << endl;
+    cout << __nulib_MOD_add_nutau_emission_epannihil << " add_nutau_emission_epannihil" << endl;
+    cout << __nulib_MOD_add_anutau_emission_epannihil << " add_anutau_emission_epannihil" << endl;
+    cout << __nulib_MOD_add_nue_emission_nnbrems << " add_nue_emission_NNBrems" << endl;
+    cout << __nulib_MOD_add_anue_emission_nnbrems << " add_anue_emission_NNBrems" << endl;
+    cout << __nulib_MOD_add_numu_emission_nnbrems << " add_numu_emission_NNBrems" << endl;
+    cout << __nulib_MOD_add_anumu_emission_nnbrems << " add_anumu_emission_NNBrems" << endl;
+    cout << __nulib_MOD_add_nutau_emission_nnbrems << " add_nutau_emission_NNBrems" << endl;
+    cout << __nulib_MOD_add_anutau_emission_nnbrems << " add_anutau_emission_NNBrems" << endl;	
+    cout << __nulib_MOD_add_nue_emission_weakinteraction_ecap << " add_nue_emission_weakinteraction_ecap" << endl;
+    cout << __nulib_MOD_add_anue_emission_weakinteraction_poscap << " add_anue_emission_weakinteraction_poscap" << endl;
+    cout << __nulib_MOD_apply_kirchoff_to_pair_creation << " apply_kirchoff_to_pair_creation" << endl;
+    cout << __nulib_MOD_add_nue_kernel_epannihil << " add_nue_kernel_epannihil" << endl;
+    cout << __nulib_MOD_add_anue_kernel_epannihil << " add_anue_kernel_epannihil" << endl;
+    cout << __nulib_MOD_add_numu_kernel_epannihil << " add_numu_kernel_epannihil" << endl;
+    cout << __nulib_MOD_add_anumu_kernel_epannihil << " add_anumu_kernel_epannihil" << endl;
+    cout << __nulib_MOD_add_nutau_kernel_epannihil << " add_nutau_kernel_epannihil" << endl;
+    cout << __nulib_MOD_add_anutau_kernel_epannihil << " add_anutau_kernel_epannihil" << endl;
+    cout << endl;
   }
 
   void update(const double rho /* g/ccm */, const double T /*MeV*/, const double Ye){
