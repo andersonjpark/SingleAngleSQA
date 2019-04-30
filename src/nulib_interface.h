@@ -38,6 +38,7 @@ inline bool hdf5_dataset_exists(const char* filename, const char* datasetname){
 
 // module variables set in fortran NuLib code
 extern int     __nulib_MOD_total_eos_variables;
+extern double* __nulib_MOD_energies;
 extern "C"{
   void set_eos_variables_(double* eos_variables);
   void read_eos_table_(char* filename);
@@ -62,7 +63,7 @@ double get_eta(const double rho /* g/ccm */, const double temp /*MeV*/, const do
   eos_variables[0] = rho;
   eos_variables[1] = temp;
   eos_variables[2] = ye;
-    
+
   set_eos_variables_(eos_variables);
   double mue = eos_variables[10];
   return mue/eos_variables[1];
@@ -81,9 +82,12 @@ class EAS{
     __nulib_MOD_initialize_nulib(&neutrino_scheme, &number_species, &number_groups);
   }
 
-  void update(double rho, double T, double Ye){
+  void update(const array<double,NE>& E, double rho, double T, double Ye){
     munue_kT = get_munue(rho,T,Ye) / T;
     eta = get_eta(rho,T,Ye);
+    for(int i=0; i<NE; i++){
+      __nulib_MOD_energies[i] = E[i] / (1e6*eV);
+    }
   }
 
   /* int index(const int is,const int ig,const int iv) const{ */
