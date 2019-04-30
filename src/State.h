@@ -314,12 +314,10 @@ class State{
 	  fmatrixf[m][i][f][f] = D_unosc[m][i][f](r) / Vphase(i,Etop);
       }
     
-      cout << "GROUP " << i << endl;
-      cout << "\tf = {" << real(fmatrixf[matter][i][e][e]) << ", " << real(fmatrixf[antimatter][i][e][e]) << ", " << real(fmatrixf[matter][i][mu][mu]) <<"}" << endl;
-      /* cout << "\teas.emis = {" << eas.emis(0,i) << ", " << eas.emis(1,i) << ", " << eas.emis(2,i) << "}" << endl; */
-      /* cout << "\teas.abs = {" << eas.abs(0,i) << ", " << eas.abs(1,i) << ", " << eas.abs(2,i) << "}" << endl; */
-      /* cout << "\tBB = {" << eas.emis(0,i)/eas.abs(0,i) << ", " << eas.emis(1,i)/eas.abs(1,i) << ", " << eas.emis(2,i)/eas.abs(2,i) << "}" << endl; */
-      /* cout << "\teas.scat = {" << eas.scat(0,i) << ", " << eas.scat(1,i) << ", " << eas.scat(2,i) << "}" << endl; */
+      cout << "GROUP " << i << " f = {";
+      cout << real(fmatrixf[matter][i][e][e]) << ", ";
+      cout << real(fmatrixf[antimatter][i][e][e]) << ", ";
+      cout << real(fmatrixf[matter][i][mu][mu]) <<"}" << endl;
     }
   }
 
