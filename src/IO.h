@@ -102,7 +102,7 @@ FilePointers setup_HDF5_file(const array<double,NE>& E, const array<double,NE>& 
   H5Fflush(fp.file,H5F_SCOPE_LOCAL);
 
   // preliminary stdout
-  cout << "r(cm) \t rho(g/ccm) \t Ye \t T(MeV) \t dr_osc(cm) \t dr_int(cm) \t dr_block(cm)" << endl;
+  cout << "r(cm) \t rho(g/ccm) \t Ye \t T(MeV) \t eta \t munue_kT \t dr_osc(cm) \t dr_int(cm) \t dr_block(cm)" << endl;
   
   return fp;
 }
@@ -116,6 +116,8 @@ void write_data_HDF5(FilePointers& fp, const State& s, double dr_osc, double dr_
   cout << s.rho << "\t";
   cout << s.Ye << "\t";
   cout << s.T << "\t";
+  cout << eas.eta << "\t";
+  cout << eas.munue_kT << "\t";
   cout << dr_osc << "\t";
   cout << dr_int << "\t";
   cout << dr_block << "\t";

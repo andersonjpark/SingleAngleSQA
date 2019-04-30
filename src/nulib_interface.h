@@ -41,6 +41,7 @@ extern int     __nulib_MOD_total_eos_variables;
 extern "C"{
   void set_eos_variables_(double* eos_variables);
   void read_eos_table_(char* filename);
+  void __nulib_MOD_initialize_nulib(int* neutrino_scheme, int* number_species, int* number_groups);
 }
 
 double get_munue(const double rho /* g/ccm */, const double temp /*MeV*/, const double ye){ // MeV
@@ -73,11 +74,18 @@ class EAS{
 
   double munue_kT, eta;
   
-  EAS(double rho, double T, double Ye){
-    munue_kT = get_munue(rho, T, Ye) / T;
+  EAS(){
+    int neutrino_scheme = 2;
+    int number_species = 6; // has to be 6 no matter how many are included in nux
+    int number_groups = NE;
+    __nulib_MOD_initialize_nulib(&neutrino_scheme, &number_species, &number_groups);
+  }
+
+  void update(double rho, double T, double Ye){
+    munue_kT = get_munue(rho,T,Ye) / T;
     eta = get_eta(rho,T,Ye);
   }
-  
+
   /* int index(const int is,const int ig,const int iv) const{ */
   /*   return is + ig*ns + iv*ns*ng; */
   /* } */
@@ -147,6 +155,6 @@ class EAS{
   /* } */
 
 };
-
+EAS eas;
 
 #endif

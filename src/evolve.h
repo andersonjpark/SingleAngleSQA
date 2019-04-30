@@ -129,7 +129,7 @@ void evolve_interactions(State& s,
 	    for(int l=0;l<=k-1;l++)
 	      s.fmatrixf[m][i] += dfdr[l][m][i] * BB[k][l] * dr;
 
-	// NEED TO UPDATE BACKGROUND INFO
+	eas.update(s.rho, s.T, s.Ye);
 	dfdr[k] = Kinteract(s,s0,profile);
       }
 	  

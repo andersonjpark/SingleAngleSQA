@@ -135,9 +135,6 @@ array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>
   // set up the array to be returned
   array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> dfdr;
 
-  // Set up EAS object
-  EAS eas(s.rho, s.T, s.Ye);
-
   // get oscillated background density
   array<array<array<MATRIX<complex<double>,NF,NF>,NMOMENTS>,NE>,NM> MBackground = s.oscillated_moments(profile, s0);
 
