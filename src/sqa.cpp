@@ -87,7 +87,7 @@ int main(int argc, char *argv[]){
 
   Profile profile(input_directory, rmin);
   read_eos_table_((char*)eosfilename.c_str());
-  cout << "m_ref = " << __nulib_MOD_m_ref << endl;
+  cout << "m_ref = " << __nulib_MOD_m_ref << " (939=m_n for LS, 931=m_amu for Hempel)" << endl;
 
   //=======//
   // Ebins //
