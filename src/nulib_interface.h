@@ -118,6 +118,11 @@ extern "C"{
 				   const double* neutrino_energy,
 				   double* absorption_opacity,
 				   const double* eos_variables);
+  void total_scattering_opacity_(const int* neutrino_species,
+				   const double* neutrino_energy,
+				   double* scattering_opacity,
+				   double* delta,
+				   const double* eos_variables);
 }
 
 
@@ -245,9 +250,9 @@ class EAS{
 
     return absopac;
   }
-  double scat(int s, int ig) const{ // 1/cm
-    return 1;
-  }
+  /* double scat(int s, int ig) const{ // 1/cm */
+  /*   return 1; */
+  /* } */
   /* double delta(const int is,const int ig) const{ // 1/cm */
   /*   if(do_delta){ */
   /*     int ind = index(is,ig,3); */
@@ -264,36 +269,49 @@ class EAS{
     double result = 1./(1. + exp(E_kT-mu_kT));
     return result;
   }
-  /* double Phi0scat(const int is,const int igin, const int igout) const{ // cm^3/s/sr */
-  /*   double result = 0; */
-  /*   if(igin == igout) */
-  /*     result += scat(is,igin) */
-  /* 	/(4.*M_PI*nu[igin]*nu[igin]*dnu[igin]/cgs::constants::c4); */
-  /*   if(do_iscat) */
-  /*     result += escat_kernel0[kernel_index(is,igin,igout)]; */
-  /*   return result; */
-  /* } */
-  /* double Phi1scat(const int is,const int igin, const int igout) const{ // cm^3/s/sr */
-  /*   double result = 0; */
-  /*   if(igin == igout) */
-  /*     result += scat(is,igin)*delta(is,igin)/3. */
-  /* 	/(4.*M_PI*nu[igin]*nu[igin]*dnu[igin]/cgs::constants::c4); */
-  /*   if(do_iscat) */
-  /*     result += escat_kernel1[kernel_index(is,igin,igout)]; */
-  /*   else return 0; */
-  /* } */
-  /* double Phi0pair(const int is,const int igin, const int igout) const{ // cm^3/s/sr */
-  /*   double result = 0; */
-  /*   if(do_pair) */
-  /*     result += pair_kernel0[kernel_index(is,igin,igout)]; */
-  /*   return result; */
-  /* } */
-  /* double Phi1pair(const int is,const int igin, const int igout) const{ // cm^3/s/sr */
-  /*   double result = 0; */
-  /*   if(do_pair) */
-  /*     result += pair_kernel1[kernel_index(is,igin,igout)]; */
-  /*   else return 0; */
-  /* } */
+
+  //===================//
+  // SCATTERING KERNEL //
+  //===================//
+  array<double,2> Phi_scat(int s, double Ein /*erg*/, double Eout /*erg*/,
+			   double Vin /*cm^-3*/, double Vout /*cm^-3*/){
+    array<double,2> Phi;
+    double EinMeV  = Ein  / (1e6*eV);
+    double EoutMeV = Eout / (1e6*eV);
+    int s_nulib = s+1;
+
+    // elastic scattering contribution
+    if(Ein==Eout){
+      double scatopac, delta;
+      total_scattering_opacity_(&s_nulib, &EinMeV, &scatopac, &delta, &eos_variables[0]);
+      Phi[0] = scatopac / Vin;
+      Phi[0] = scatopac / Vin * delta/3.;
+    }
+    else{
+      Phi[0] = 0;
+      Phi[1] = 0;
+    }
+
+    // inelastic scattering contribution
+    return Phi;
+  }
+  
+
+  //=============//
+  // PAIR KERNEL //
+  //=============//
+  array<double,2> Phi_pair(int s, double Ein /*erg*/, double Eout /*erg*/,
+			   double Vin /*cm^-3*/, double Vout /*cm^-3*/){
+    double EinMeV  = Ein  / (1e6*eV);
+    double EoutMeV = Eout / (1e6*eV);
+    int s_nulib = s+1;
+    
+    array<double,2> Phi;
+    Phi[0] = 0;
+    Phi[1] = 0;
+    
+    return Phi;
+  }
 
 };
 EAS eas;

@@ -72,7 +72,7 @@ double Ebottom(int i, const array<double,NE>& Etop){
   return result;
 }
 
-double Vphase(double Elow, double Ehi){
+double Vphase(double Elow, double Ehi){ // cm^-3
   assert(Ehi>Elow);
   assert(Elow>=0);
   double dE3 = pow(Ehi,3) - pow(Elow,3);

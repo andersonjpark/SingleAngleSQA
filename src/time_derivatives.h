@@ -150,46 +150,57 @@ array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>
       // intermediate variables
       complex<double> unblock_in, unblock_out;
       MATRIX<complex<double>,NF,NF> block, Pi_plus, Pi_minus;
-      MATRIX<double,NF,NF> Phi0, Phi0avg,  Phi0tilde;      
 
       // absorption and emission
-      // Phi0avg is <kappa> for absorption
-      Phi0avg = avg_matrix(eas.abs(se,s.E[i]), eas.abs(sx,s.E[i]));
+      MATRIX<double,NF,NF> kappa_abs_avg = avg_matrix(eas.abs(se,s.E[i]), eas.abs(sx,s.E[i]));
       double E_kT = s.E[i]/(1e6*eV) / s.T;
-      dfdr[m][i][e ][e ] += Phi0avg[e ][e ] * eas.fermidirac(se, E_kT);
-      dfdr[m][i][mu][mu] += Phi0avg[mu][mu] * eas.fermidirac(sx, E_kT);
+      dfdr[m][i][e ][e ] += kappa_abs_avg[e ][e ] * eas.fermidirac(se, E_kT);
+      dfdr[m][i][mu][mu] += kappa_abs_avg[mu][mu] * eas.fermidirac(sx, E_kT);
       for(flavour f1=e; f1<=mu; f1++)
 	for(flavour f2=e; f2<=mu; f2++)
-	  dfdr[m][i][f1][f2] -= Phi0avg[f1][f2] * s.fmatrixf[m][i][f1][f2];
+	  dfdr[m][i][f1][f2] -= kappa_abs_avg[f1][f2] * s.fmatrixf[m][i][f1][f2];
     
       // scattering and pair annihilation
       // no factor of 1/2 in front of Phi0 because
       // integrated over outgoing theta, assumed isotropic
+      double Vi = Vphase(i, s.Etop);
       for(int j=0; j<NE; j++){
-
+	double Vj = Vphase(j, s.Etop);
+	array<MATRIX<double,NF,NF>,2> Phi, PhiAvg,  PhiTilde;      
+	array<double,2> Phi_scat_e, Phi_scat_x;
+	
 	// in-scattering from j to i. D*Phi0 give density scattered
 	// divide by phase space vol in i to get f
-	/* Phi0avg      = avg_matrix(  eas.Phi0(0,j,i), eas.Phi0(2,j,i)); */
-	/* Phi0tilde    = tilde_matrix(eas.Phi0(0,j,i), eas.Phi0(2,j,i)); */
-	/* Phi0     = Phi0avg    - Phi0tilde; */
-	/* block    = blocking_term0(Phi0, s.fmatrixf[m][i], MBackground[m][j][0]); */
-	/* for(flavour f1=e; f1<=mu; f1++) */
-	/*   for(flavour f2=e; f2<=mu; f2++) */
-	/*     dfdr[m][i][f1][f2] += (MBackground[m][j][0][f1][f2]*Phi0[f1][f2] - block[f1][f2]) / s.Vphase(i,s.Etop); */
+	Phi_scat_e = eas.Phi_scat(se, s.E[i], s.E[j], Vi, Vj);
+	Phi_scat_x = eas.Phi_scat(sx, s.E[i], s.E[j], Vi, Vj);
+	for(int mom=0; mom<1; mom++){
+	  PhiAvg[mom]   = avg_matrix(  Phi_scat_e[mom], Phi_scat_x[mom]);
+	  PhiTilde[mom] = tilde_matrix(Phi_scat_e[mom], Phi_scat_x[mom]);
+	  Phi[mom] = PhiAvg[mom] - PhiTilde[mom];
+	}
+	block    = blocking_term0(Phi[0], s.fmatrixf[m][i], MBackground[m][j][0]);
+	for(flavour f1=e; f1<=mu; f1++)
+	  for(flavour f2=e; f2<=mu; f2++)
+	    dfdr[m][i][f1][f2] += (MBackground[m][j][0][f1][f2]*Phi[0][f1][f2] - block[f1][f2]) / Vi;
 
-	// out-scattering from i to j. for blocking, get phase space vol from D[j] in j
-	/* Phi0avg      = avg_matrix(  eas.Phi0(0,i,j), eas.Phi0(2,i,j)); */
-	/* Phi0tilde    = tilde_matrix(eas.Phi0(0,i,j), eas.Phi0(2,i,j)); */
-	/* Phi0    = Phi0avg    - Phi0tilde; */
-	/* block    = blocking_term0(Phi0, s.fmatrixf[m][i], MBackground[m][j][0] ); */
-	/* for(flavour f1=e; f1<=mu; f1++) */
-	/*   for(flavour f2=e; f2<=mu; f2++) */
-	/*     dfdr[m][i][f1][f2] += s.fmatrixf[m][i][f1][f2]*Phi0avg[f1][f2] - block[f1][f2]/s.Vphase(j,s.Etop); */
-
-	// Make sure dfdr is Hermitian
-	dfdr[m][i][mu][e ] = conj(dfdr[m][i][e][mu]);
+	//out-scattering from i to j. for blocking, get phase space vol from D[j] in j
+	Phi_scat_e = eas.Phi_scat(se, s.E[i], s.E[j], Vi, Vj);
+	Phi_scat_x = eas.Phi_scat(sx, s.E[i], s.E[j], Vi, Vj);
+	for(int mom=0; mom<1; mom++){
+	  PhiAvg[mom]   = avg_matrix(  Phi_scat_e[mom], Phi_scat_x[mom]);
+	  PhiTilde[mom] = tilde_matrix(Phi_scat_e[mom], Phi_scat_x[mom]);
+	  Phi[mom] = PhiAvg[mom] - PhiTilde[mom];
+	}
+	block    = blocking_term0(Phi[0], s.fmatrixf[m][i], MBackground[m][j][0] );
+	for(flavour f1=e; f1<=mu; f1++)
+	  for(flavour f2=e; f2<=mu; f2++)
+	    dfdr[m][i][f1][f2] += s.fmatrixf[m][i][f1][f2]*PhiAvg[0][f1][f2] - block[f1][f2]/Vj;
+	
 	
       } // other group
+
+      // Make sure dfdr is Hermitian
+      dfdr[m][i][mu][e ] = conj(dfdr[m][i][e][mu]);
     } // group
   } // state
   
