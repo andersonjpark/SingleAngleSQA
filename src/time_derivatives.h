@@ -153,7 +153,7 @@ Kinteract(const State& s, const State& s0, const Profile& profile){
 			// get nulib species indices
 			const int se = (m==matter ? 0 : 1);
 			const int sx = (m==matter ? 2 : 3);
-			//const state mbar = (m==matter ? antimatter : matter);
+			const state mbar = (m==matter ? antimatter : matter);
 
 			// intermediate variables
 			complex<double> unblock_in, unblock_out;
@@ -173,15 +173,15 @@ Kinteract(const State& s, const State& s0, const Profile& profile){
 			for(int j=0; j<NE; j++){
 				double Vj = Vphase(j, s.Etop);
 				array<MATRIX<double,NF,NF>,KMOMENTS> Phi, PhiAvg,  PhiTilde;
-				array<double,KMOMENTS> Phi_scat_e, Phi_scat_x;
+				array<double,KMOMENTS> Phi_e, Phi_x;
 				double conv_to_in_rate;
 
 				//out-scattering from i to j and reverse
-				Phi_scat_e = eas.Phi_scat(se, s.T, s.E[i], s.E[j], Vi, Vj);
-				Phi_scat_x = eas.Phi_scat(sx, s.T, s.E[i], s.E[j], Vi, Vj);
+				Phi_e = eas.Phi_scat(se, s.T, s.E[i], s.E[j], Vi, Vj);
+				Phi_x = eas.Phi_scat(sx, s.T, s.E[i], s.E[j], Vi, Vj);
 				for(int mom=0; mom<KMOMENTS; mom++){
-					PhiAvg[mom]   = avg_matrix(  Phi_scat_e[mom], Phi_scat_x[mom]);
-					PhiTilde[mom] = tilde_matrix(Phi_scat_e[mom], Phi_scat_x[mom]);
+					PhiAvg[mom]   = avg_matrix(  Phi_e[mom], Phi_x[mom]);
+					PhiTilde[mom] = tilde_matrix(Phi_e[mom], Phi_x[mom]);
 					Phi[mom] = PhiAvg[mom] - PhiTilde[mom];
 				}
 				block = blocking_term(Phi, s.fmatrixf[m][i], MBackground[m][j]);
@@ -202,6 +202,31 @@ Kinteract(const State& s, const State& s0, const Profile& profile){
 						dfdr[m][i][f1][f2] += in_rate - out_rate;
 					}
 
+				// annihilation with group j and reverse
+				Phi_e = eas.Phi_pair(se, s.T, s.E[i], s.E[j], Vi, Vj);
+				Phi_e = eas.Phi_pair(sx, s.T, s.E[i], s.E[j], Vi, Vj);
+				for(int mom=0; mom<KMOMENTS; mom++){
+					PhiAvg[mom]   = avg_matrix(  Phi_e[mom], Phi_x[mom]);
+					PhiTilde[mom] = tilde_matrix(Phi_e[mom], Phi_x[mom]);
+					Phi[mom] = PhiAvg[mom] - PhiTilde[mom];
+				}
+				block = blocking_term(Phi, s.fmatrixf[m][i], MBackground[mbar][j]);
+				conv_to_in_rate = exp(-(s.E[j]+s.E[i])/(s.T*1e6*cgs::units::eV));
+				for(flavour f1=e; f1<=mu; f1++){
+					for(flavour f2=e; f2<=mu; f2++){
+						complex<double> in_rate = conv_to_in_rate * (
+								(f1==f2 ? 1. : 0.)         * Vj   * 0.5*Phi   [0][f1][f2]
+								- s.fmatrixf[m][i][f1][f2] * Vj   * 0.5*PhiAvg[0][f1][f2]
+								- MBackground[mbar][j][0][f1][f2] * 0.5*Phi   [0][f1][f2]
+								- MBackground[mbar][j][1][f1][f2] * 1.5*Phi   [1][f1][f2]
+								+ block[f1][f2]
+								);
+
+						complex<double> out_rate = block[f1][f2];
+
+						dfdr[m][i][f1][f2] += in_rate - out_rate;
+				    }
+				}
 
 			} // other group
 
