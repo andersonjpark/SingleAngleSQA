@@ -135,6 +135,12 @@ extern "C"{
 			const double* matter_eta, /*mue/T*/
 			const double* matter_temperature, /*MeV*/
 			const int* neutrino_species);
+	double epannihil_phi_bruenn_(const double* nu_energy_x, /*E/kT*/
+			const double* nubar_energy_x, /*E/kT*/
+			const double* matter_eta, /*mue/kT*/
+			const int* neutrino_species,
+			const int*pro_or_ann,
+			const int* which_l);
 }
 
 
@@ -147,8 +153,6 @@ public:
 	array<array<double,NE>,NS_NULIB> absorption_opacity, emissivities, scattering_opacity, delta;
 
 	EAS(){
-		int number_species = 6; // has to be 6 no matter how many are included in nux
-		int number_groups = NE;
 		eos_variables.resize(__nulib_MOD_total_eos_variables);
 		eta = 0;
 		munue_kT = 0;
@@ -268,8 +272,8 @@ public:
 			double Ein /*erg*/, double Eout /*erg*/,
 			double Vin /*cm^-3*/, double Vout /*cm^-3*/){
 		array<double,KMOMENTS> Phi;
-		double EinMeV  = Ein  / (1e6*eV);
-		double EoutMeV = Eout / (1e6*eV);
+		const double EinMeV  = Ein  / (1e6*eV);
+		const double EoutMeV = Eout / (1e6*eV);
 		int s_nulib = s+1;
 
 		// elastic scattering contribution
@@ -291,8 +295,10 @@ public:
 			assert(__nulib_MOD_add_anue_iscattering_electrons);
 			assert(__nulib_MOD_add_numu_iscattering_electrons);
 			assert(__nulib_MOD_add_anumu_iscattering_electrons);
-			double Elo = min(Ein, Eout);
-			double Ehi = max(Ein, Eout);
+			assert(__nulib_MOD_add_nutau_iscattering_electrons);
+			assert(__nulib_MOD_add_anutau_iscattering_electrons);
+			const double Elo = min(EinMeV, EoutMeV);
+			const double Ehi = max(EinMeV, EoutMeV);
 			double conv_to_out_rate = (Eout>Ein ? exp((Ehi-Elo)/(T*1e6*cgs::units::eV)) : 1.0);
 			Phi[0] += nes_phi0_thompsonbruenn_(&Ehi, &Elo, &eta, &T, &s_nulib) * conv_to_out_rate;
 			Phi[1] += nes_phi0_thompsonbruenn_(&Ehi, &Elo, &eta, &T, &s_nulib) * conv_to_out_rate;
@@ -301,6 +307,8 @@ public:
 			assert(!__nulib_MOD_add_anue_iscattering_electrons);
 			assert(!__nulib_MOD_add_numu_iscattering_electrons);
 			assert(!__nulib_MOD_add_anumu_iscattering_electrons);
+			assert(!__nulib_MOD_add_nutau_iscattering_electrons);
+			assert(!__nulib_MOD_add_anutau_iscattering_electrons);
 		}
 
 		return Phi;
@@ -310,15 +318,36 @@ public:
 	//=============//
 	// PAIR KERNEL //
 	//=============//
-	array<double,KMOMENTS> Phi_pair(int s, double Ein /*erg*/, double Eout /*erg*/,
+	// only return annihilation kernels
+	// cm^3/s
+	array<double,KMOMENTS> Phi_pair(int s, double T /*MeV*/,
+			double E /*erg*/, double Ebar /*erg*/,
 			double Vin /*cm^-3*/, double Vout /*cm^-3*/){
-		double EinMeV  = Ein  / (1e6*eV);
-		double EoutMeV = Eout / (1e6*eV);
-		int s_nulib = s+1;
+		const double X    = E    / (1e6*eV) / (T*1e6*cgs::units::eV);
+		const double Xbar = Ebar / (1e6*eV) / (T*1e6*cgs::units::eV);
+		const int s_nulib = s+1; // Fortran indexing
+		const int pro_or_ann = 2; // annihilation
 
 		array<double,2> Phi;
 		Phi[0] = 0;
 		Phi[1] = 0;
+
+		if(__nulib_MOD_add_nue_kernel_epannihil){
+			assert(__nulib_MOD_add_anue_kernel_epannihil);
+			assert(__nulib_MOD_add_numu_kernel_epannihil);
+			assert(__nulib_MOD_add_anumu_kernel_epannihil);
+			assert(__nulib_MOD_add_nutau_emission_epannihil);
+			assert(__nulib_MOD_add_anutau_emission_epannihil);
+			for(int mom=0; mom<KMOMENTS; mom++)
+				Phi[mom] = epannihil_phi_bruenn_(&X, &Xbar, &eta, &s_nulib, &pro_or_ann, &mom);
+		}
+		else{
+			assert(!__nulib_MOD_add_anue_kernel_epannihil);
+			assert(!__nulib_MOD_add_numu_kernel_epannihil);
+			assert(!__nulib_MOD_add_anumu_kernel_epannihil);
+			assert(!__nulib_MOD_add_nutau_emission_epannihil);
+			assert(!__nulib_MOD_add_anutau_emission_epannihil);
+		}
 
 		return Phi;
 	}
