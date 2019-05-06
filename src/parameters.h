@@ -1,7 +1,8 @@
 #ifndef PARAMETERS_H
 #define PARAMETERS_H
 
-const int NMOMENTS=3;
+const int NMOMENTS=3; // number of background moments
+const int KMOMENTS=2; // number of kernel moments
 
 const int NM=2;
 enum state { matter,antimatter};

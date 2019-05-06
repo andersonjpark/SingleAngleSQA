@@ -111,18 +111,26 @@ MATRIX<double,2,2> tilde_matrix(const double eval, const double muval){
   result[e ][mu] = result[mu][e] = (eval - muval) / (4.*sin2thetaW);
   return result;
 }
-MATRIX<complex<double>,2,2> blocking_term0(const MATRIX<double,2,2>& Phi0matrix,
-					   const MATRIX<complex<double>,2,2>& f,
-					   const MATRIX<complex<double>,2,2>& fp){
-  MATRIX<complex<double>,2,2> result;
+
+MATRIX<complex<double>,NF,NF>
+  blocking_term(const array<MATRIX<double,NF,NF>,KMOMENTS>& Phi /*cm^3/s/sr*/,
+		const MATRIX<complex<double>,NF,NF>& f/*dimensionless*/,
+		const array<MATRIX<complex<double>,NF,NF>,NMOMENTS>& Mp /* cm^-3*/){
+
+  MATRIX<complex<double>,NF,NF> result;
   for(flavour fa=e; fa<=mu; fa++)
     for(flavour fb=e; fb<=mu; fb++){
       result[fa][fb] = 0;
+
       for(flavour fc=e; fc<=mu; fc++){
-	result[fa][fb] += 0.25 * (Phi0matrix[fc][fb]*f[fa][fc]*fp[fc][fb] + Phi0matrix[fa][fc]*fp[fa][fc]*f[fc][fb]);
+        result[fa][fb] += 0.5 * Phi[0][fc][fb]*f[fa][fc]*Mp[0][fc][fb];
+        result[fa][fb] += 0.5 * Phi[0][fa][fc]*Mp[0][fa][fc]*f[fc][fb];
+        result[fa][fb] += 1.5 * Phi[1][fc][fb]*f[fa][fc]*Mp[1][fc][fb];
+        result[fa][fb] += 1.5 * Phi[1][fa][fc]*Mp[1][fa][fc]*f[fc][fb];
       }
     }
-  return result;
+
+  return result * 0.5; // 1/s (really M involves vol int. which gets rid of sr units)
 }
 
 
@@ -161,40 +169,37 @@ array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>
 	  dfdr[m][i][f1][f2] -= kappa_abs_avg[f1][f2] * s.fmatrixf[m][i][f1][f2];
     
       // scattering and pair annihilation
-      // no factor of 1/2 in front of Phi0 because
-      // integrated over outgoing theta, assumed isotropic
       double Vi = Vphase(i, s.Etop);
       for(int j=0; j<NE; j++){
 	double Vj = Vphase(j, s.Etop);
-	array<MATRIX<double,NF,NF>,2> Phi, PhiAvg,  PhiTilde;      
-	array<double,2> Phi_scat_e, Phi_scat_x;
-	
-	// in-scattering from j to i. D*Phi0 give density scattered
-	// divide by phase space vol in i to get f
-	Phi_scat_e = eas.Phi_scat(se, s.E[i], s.E[j], Vi, Vj);
-	Phi_scat_x = eas.Phi_scat(sx, s.E[i], s.E[j], Vi, Vj);
-	for(int mom=0; mom<1; mom++){
-	  PhiAvg[mom]   = avg_matrix(  Phi_scat_e[mom], Phi_scat_x[mom]);
-	  PhiTilde[mom] = tilde_matrix(Phi_scat_e[mom], Phi_scat_x[mom]);
-	  Phi[mom] = PhiAvg[mom] - PhiTilde[mom];
-	}
-	block    = blocking_term0(Phi[0], s.fmatrixf[m][i], MBackground[m][j][0]);
-	for(flavour f1=e; f1<=mu; f1++)
-	  for(flavour f2=e; f2<=mu; f2++)
-	    dfdr[m][i][f1][f2] += (MBackground[m][j][0][f1][f2]*Phi[0][f1][f2] - block[f1][f2]) / Vi;
+	array<MATRIX<double,NF,NF>,KMOMENTS> Phi, PhiAvg,  PhiTilde;
+	array<double,KMOMENTS> Phi_scat_e, Phi_scat_x;
+	double conv_to_in_rate;
 
-	//out-scattering from i to j. for blocking, get phase space vol from D[j] in j
-	Phi_scat_e = eas.Phi_scat(se, s.E[i], s.E[j], Vi, Vj);
-	Phi_scat_x = eas.Phi_scat(sx, s.E[i], s.E[j], Vi, Vj);
-	for(int mom=0; mom<1; mom++){
+	//out-scattering from i to j and reverse
+	Phi_scat_e = eas.Phi_scat(se, s.T, s.E[i], s.E[j], Vi, Vj);
+	Phi_scat_x = eas.Phi_scat(sx, s.T, s.E[i], s.E[j], Vi, Vj);
+	for(int mom=0; mom<KMOMENTS; mom++){
 	  PhiAvg[mom]   = avg_matrix(  Phi_scat_e[mom], Phi_scat_x[mom]);
 	  PhiTilde[mom] = tilde_matrix(Phi_scat_e[mom], Phi_scat_x[mom]);
 	  Phi[mom] = PhiAvg[mom] - PhiTilde[mom];
 	}
-	block    = blocking_term0(Phi[0], s.fmatrixf[m][i], MBackground[m][j][0] );
+	block = blocking_term(Phi, s.fmatrixf[m][i], MBackground[m][j]);
+	conv_to_in_rate = exp((s.E[j]-s.E[i])/(s.T*1e6*cgs::units::eV));
 	for(flavour f1=e; f1<=mu; f1++)
-	  for(flavour f2=e; f2<=mu; f2++)
-	    dfdr[m][i][f1][f2] += s.fmatrixf[m][i][f1][f2]*PhiAvg[0][f1][f2] - block[f1][f2]/Vj;
+	  for(flavour f2=e; f2<=mu; f2++){
+
+	    complex<double> in_rate = conv_to_in_rate * (
+	      MBackground[m][j][0][f1][f2] * 0.5*Phi[0][f1][f2] +
+	      MBackground[m][j][1][f1][f2] * 1.5*Phi[1][f1][f2] -
+	      block[f1][f2]);
+
+	    complex<double> out_rate =
+	      s.fmatrixf[m][i][f1][f2] * 0.5*PhiAvg[0][f1][f2]*Vj -
+	      block[f1][f2];
+
+	    dfdr[m][i][f1][f2] += in_rate - out_rate;
+	  }
 	
 	
       } // other group

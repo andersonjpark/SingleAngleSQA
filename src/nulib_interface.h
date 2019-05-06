@@ -138,6 +138,8 @@ class EAS{
     int number_species = 6; // has to be 6 no matter how many are included in nux
     int number_groups = NE;
     eos_variables.resize(__nulib_MOD_total_eos_variables);
+    eta = 0;
+    munue_kT = 0;
     
     // output all nulib parameters
     cout << endl;
@@ -226,21 +228,6 @@ class EAS{
     eta = mue / T;
   }
 
-  /* int index(const int is,const int ig,const int iv) const{ */
-  /*   return is + ig*ns + iv*ns*ng; */
-  /* } */
-
-  /* int kernel_index(const int is,const int igin, const int igout) const{ */
-  /*   return is + igin*ns + igout*ns*ng; */
-  /* } */
-
-  /* inline int nu4_kernel_index(const int ik, const int i1, const int i3) const{ */
-  /*   return i3 + ng*i1 + ng*ng*ik; */
-  /* } */
-  /* inline int nu4_bin2(const int ik, const int i1, const int i3) const{ */
-  /*   return i1+i3-ik; */
-  /* } */
-  
   double abs(int s, double E /*erg*/) const{ // 1/cm
     double EMeV = E / (1e6*eV);
     int s_nulib = s+1;
@@ -250,17 +237,7 @@ class EAS{
 
     return absopac;
   }
-  /* double scat(int s, int ig) const{ // 1/cm */
-  /*   return 1; */
-  /* } */
-  /* double delta(const int is,const int ig) const{ // 1/cm */
-  /*   if(do_delta){ */
-  /*     int ind = index(is,ig,3); */
-  /*     assert(ind < eas.size()); */
-  /*     return eas[ind]; */
-  /*   } */
-  /*   else return 0; */
-  /* } */
+
   double fermidirac(int s, double E_kT) const{
     double mu_kT;
     if     (s==0) mu_kT =  munue_kT;
@@ -273,9 +250,11 @@ class EAS{
   //===================//
   // SCATTERING KERNEL //
   //===================//
-  array<double,2> Phi_scat(int s, double Ein /*erg*/, double Eout /*erg*/,
-			   double Vin /*cm^-3*/, double Vout /*cm^-3*/){
-    array<double,2> Phi;
+  // returns out-scattering rate from Ein to Eout.
+  array<double,KMOMENTS> Phi_scat(int s, double T /*MeV*/,
+		  double Ein /*erg*/, double Eout /*erg*/,
+		  double Vin /*cm^-3*/, double Vout /*cm^-3*/){
+    array<double,KMOMENTS> Phi;
     double EinMeV  = Ein  / (1e6*eV);
     double EoutMeV = Eout / (1e6*eV);
     int s_nulib = s+1;
@@ -284,8 +263,8 @@ class EAS{
     if(Ein==Eout){
       double scatopac, delta;
       total_scattering_opacity_(&s_nulib, &EinMeV, &scatopac, &delta, &eos_variables[0]);
-      Phi[0] = scatopac / Vin;
-      Phi[0] = scatopac / Vin * delta/3.;
+      Phi[0] = 2.    * scatopac / Vin;
+      Phi[0] = 2./3. * scatopac / Vin * delta;
     }
     else{
       Phi[0] = 0;
@@ -293,6 +272,14 @@ class EAS{
     }
 
     // inelastic scattering contribution
+    double Elo = min(Ein, Eout);
+    double Ehi = max(Ein, Eout);
+
+
+    if(Eout>Ein){
+      double conv_to_in_rate = exp(-(Eout-Ein)/(T*1e6*cgs::units::eV));
+    }
+
     return Phi;
   }
   
@@ -300,7 +287,7 @@ class EAS{
   //=============//
   // PAIR KERNEL //
   //=============//
-  array<double,2> Phi_pair(int s, double Ein /*erg*/, double Eout /*erg*/,
+  array<double,KMOMENTS> Phi_pair(int s, double Ein /*erg*/, double Eout /*erg*/,
 			   double Vin /*cm^-3*/, double Vout /*cm^-3*/){
     double EinMeV  = Ein  / (1e6*eV);
     double EoutMeV = Eout / (1e6*eV);
