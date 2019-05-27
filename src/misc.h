@@ -80,13 +80,13 @@ double Vphase(double Elow, double Ehi){ // cm^-3
   return result;
 }
 
-double Vphase(int i, const array<double,NE>& Etop){
+double Vphase(int i, const array<double,NE>& Etop){ // cm^-3
   assert(i>=0);
   assert(i<NE);
   return Vphase(Ebottom(i,Etop), Etop[i]);
 }
 
-double Vphase_overlap(double Elow1, double Ehi1, double Elow2, double Ehi2){
+double Vphase_overlap(double Elow1, double Ehi1, double Elow2, double Ehi2){ // cm^-3
   assert(Elow1<Ehi1);
   assert(Elow2<Ehi2);
   assert(Elow1>=0);
@@ -99,7 +99,7 @@ double Vphase_overlap(double Elow1, double Ehi1, double Elow2, double Ehi2){
 
 double Vphase_overlap_comoving(int i0, const array<double,NE>& Etop0,
 			       int ilab, const array<double,NE>& Etop_lab,
-			       double Ecom_Elab){
+			       double Ecom_Elab){ // cm^-3
   assert(i0>=0);
   assert(i0<NE);
   assert(ilab>=0);
