@@ -65,6 +65,15 @@ template<typename T, unsigned a, unsigned b>
       return result;
     }
 
+    MATRIX<T,a,b> operator/(const T right) const{
+      MATRIX<T,a,b> result;
+
+      for(unsigned i=0; i<a; i++)
+	for(unsigned j=0; j<b; j++)
+	  result[i][j] = m[i][j]/right;
+      return result;
+    }
+
     template<typename T1>
     MATRIX<T,a,b> operator+(const MATRIX<T1,a,b>& right) const{
       MATRIX<T,a,b> result;
