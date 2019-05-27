@@ -156,10 +156,14 @@ Kinteract(const State& s, const State& s0, const Profile& profile){
 			const state mbar = (m==matter ? antimatter : matter);
 
 			// intermediate variables
-			complex<double> unblock_in, unblock_out;
-			MATRIX<complex<double>,NF,NF> block, Pi_plus, Pi_minus;
+			MATRIX<complex<double>,NF,NF> block, Pi_plus, Pi_minus, tmp;
+			array<MATRIX<double,NF,NF>,KMOMENTS> Phi, PhiAvg,  PhiTilde;
+			array<double,KMOMENTS> Phi_e, Phi_x;
+			double conv_to_in_rate;
 
-			// absorption and emission
+			//=========================//
+			// absorption and emission //
+			//=========================//
 			MATRIX<double,NF,NF> kappa_abs_avg = avg_matrix(eas.abs(se,s.E[i]), eas.abs(sx,s.E[i]));
 			double E_kT = s.E[i]/(1e6*eV) / s.T;
 			dfdr[m][i][e ][e ] += kappa_abs_avg[e ][e ] * eas.fermidirac(se, E_kT);
@@ -168,17 +172,17 @@ Kinteract(const State& s, const State& s0, const Profile& profile){
 				for(flavour f2=e; f2<=mu; f2++)
 					dfdr[m][i][f1][f2] -= kappa_abs_avg[f1][f2] * s.fmatrixf[m][i][f1][f2];
 
-			// scattering and pair annihilation
-			double Vi = Vphase(i, s.Etop);
-			for(int j=0; j<NE; j++){
-				double Vj = Vphase(j, s.Etop);
-				array<MATRIX<double,NF,NF>,KMOMENTS> Phi, PhiAvg,  PhiTilde;
-				array<double,KMOMENTS> Phi_e, Phi_x;
-				double conv_to_in_rate;
 
-				//out-scattering from i to j and reverse
-				Phi_e = eas.Phi_scat(se, s.T, s.E[i], s.E[j], Vi, Vj);
-				Phi_x = eas.Phi_scat(sx, s.T, s.E[i], s.E[j], Vi, Vj);
+			// scattering and pair annihilation
+			double Vi = Vphase(i, s.Etop); // cm^-3
+			for(int j=0; j<NE; j++){
+				double Vj = Vphase(j, s.Etop); // cm^-3
+
+				//============//
+				// scattering //
+				//============//
+				Phi_e = eas.Phi_scat(se, s.T, s.E[i], s.E[j], Vi, Vj); // cm^3/s
+				Phi_x = eas.Phi_scat(sx, s.T, s.E[i], s.E[j], Vi, Vj); // cm^3/s
 				for(int mom=0; mom<KMOMENTS; mom++){
 					PhiAvg[mom]   = avg_matrix(  Phi_e[mom], Phi_x[mom]);
 					PhiTilde[mom] = tilde_matrix(Phi_e[mom], Phi_x[mom]);
@@ -187,7 +191,7 @@ Kinteract(const State& s, const State& s0, const Profile& profile){
 				block = blocking_term(Phi, s.fmatrixf[m][i], MBackground[m][j]);
 				// target energy difference negative of neutrino energy difference
 				conv_to_in_rate = exp((s.E[j]-s.E[i])/(s.T*1e6*cgs::units::eV));
-				for(flavour f1=e; f1<=mu; f1++)
+				for(flavour f1=e; f1<=mu; f1++){
 					for(flavour f2=e; f2<=mu; f2++){
 
 						complex<double> in_rate = conv_to_in_rate * (
@@ -199,12 +203,15 @@ Kinteract(const State& s, const State& s0, const Profile& profile){
 								s.fmatrixf[m][i][f1][f2] * 0.5*PhiAvg[0][f1][f2]*Vj -
 								block[f1][f2];
 
-						dfdr[m][i][f1][f2] += in_rate - out_rate;
+						dfdr[m][i][f1][f2] += (in_rate - out_rate) / (cgs::constants::c);
 					}
+				}
 
-				// annihilation with group j and reverse
-				Phi_e = eas.Phi_pair(se, s.T, s.E[i], s.E[j], Vi, Vj);
-				Phi_e = eas.Phi_pair(sx, s.T, s.E[i], s.E[j], Vi, Vj);
+				//==============//
+				// annihilation //
+				//==============//
+				Phi_e = eas.Phi_pair(se, s.T, s.E[i], s.E[j], Vi, Vj); // cm^3/s
+				Phi_e = eas.Phi_pair(sx, s.T, s.E[i], s.E[j], Vi, Vj); // cm^3/s
 				for(int mom=0; mom<KMOMENTS; mom++){
 					PhiAvg[mom]   = avg_matrix(  Phi_e[mom], Phi_x[mom]);
 					PhiTilde[mom] = tilde_matrix(Phi_e[mom], Phi_x[mom]);
@@ -224,9 +231,66 @@ Kinteract(const State& s, const State& s0, const Profile& profile){
 
 						complex<double> out_rate = block[f1][f2];
 
-						dfdr[m][i][f1][f2] += in_rate - out_rate;
+						dfdr[m][i][f1][f2] += (in_rate - out_rate) / (cgs::constants::c);
 				    }
 				}
+
+
+				//===============//
+				// nu4 processes //
+				//===============//
+				if(__nulib_MOD_add_nu4scat_kernel or __nulib_MOD_add_nu4pair_kernel){
+					assert(__nulib_MOD_add_nu4scat_kernel);
+					assert(__nulib_MOD_add_nu4pair_kernel);
+					double k = s.E[i];
+					double kernel = NAN;
+
+					double q1 = s.E[j];
+					for(int j3=0; j3<NE; j3++){
+						double q3 = s.E[j3];
+						double V3 = Vphase(j3, s.Etop); // cm^-3
+
+						double q2 = q1+q3-k;
+						int j2 = j+j3-i; //s.find_background_bin(q2); // NEED TO FIX THIS
+
+						if(j2>=0 and j2<NE){
+							double V2 = Vphase(j2, s.Etop); // cm^-3
+							MATRIX<complex<double>,NF,NF> fj, fj2, fj3;
+
+							// SCATTERING
+							fj  = MBackground[m][j ][0] / Vj;
+							fj2 = MBackground[m][j2][0] / V2;
+							fj3 = MBackground[m][j3][0] / V3;
+							kernel = __nulib_MOD_nu4scat_kernel_single(&k, &q1, &q2, &q3) * Vj*V3; // 1/cm
+
+							tmp = (1.-fj) * fj2;
+							Pi_minus += (Trace(tmp) + tmp) * (1.-fj3) * kernel;
+
+							tmp = fj*(1.-fj2);
+							Pi_plus  += (Trace(tmp) + tmp) * fj3 * kernel;
+
+							// PAIR PROCESSES
+							fj  = MBackground[mbar][j ][0] / Vj;
+							fj2 = MBackground[mbar][j2][0] / V2;
+							kernel = __nulib_MOD_nu4pair_kernel_single(&k, &q1, &q2, &q3) * Vj*V3; // 1/cm
+
+							tmp = fj2 * (1.-fj);
+							Pi_minus += (Trace(tmp) + tmp) * (1.-fj3) * kernel;
+
+							tmp = (1.-fj3) * (1.-fj);
+							Pi_minus += (Trace(tmp) + tmp) * fj2 * kernel;
+
+							tmp = (1.-fj2)*fj;
+							Pi_plus += (Trace(tmp) + tmp) * fj3 * kernel;
+
+							tmp = fj3*fj;
+							Pi_plus += (Trace(tmp) + tmp) * (1.-fj2) * kernel;
+						}
+					}
+					dfdr[m][i] += Pi_plus *(1.-s.fmatrixf[m][i]) + (1.-s.fmatrixf[m][i])*Pi_plus ;
+					dfdr[m][i] -= Pi_minus*    s.fmatrixf[m][i]  +     s.fmatrixf[m][i] *Pi_minus;
+				} // nu4 processes
+
 
 			} // other group
 
