@@ -109,7 +109,10 @@ __nulib_MOD_add_anue_kernel_epannihil,
 __nulib_MOD_add_numu_kernel_epannihil,
 __nulib_MOD_add_anumu_kernel_epannihil,
 __nulib_MOD_add_nutau_kernel_epannihil,
-__nulib_MOD_add_anutau_kernel_epannihil;
+__nulib_MOD_add_anutau_kernel_epannihil,
+__nulib_MOD_add_anutau_kernel_epannihil,
+__nulib_MOD_add_nu4pair_kernel,
+__nulib_MOD_add_nu4scat_kernel;
 
 extern "C"{
 	void set_eos_variables_(double* eos_variables);
@@ -141,6 +144,10 @@ extern "C"{
 			const int* neutrino_species,
 			const int*pro_or_ann,
 			const int* which_l);
+
+	// 1/cm, all arguments in MeV
+	double __nulib_MOD_nu4scat_kernel_single(double* k, double* q1, double* q2, double* q3); // cm^5
+	double __nulib_MOD_nu4pair_kernel_single(double* k, double* q1, double* q2, double* q3); // cm^5
 }
 
 
