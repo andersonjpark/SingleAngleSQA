@@ -123,44 +123,13 @@ class State{
       }
     }
 
+    array<array<array<MATRIX<complex<double>,NF,NF>,NMOMENTS>,NE>,NM> MBackground = oscillated_moments(profile, s0);
+
     // calculate the self-interaction potential
-    #pragma omp parallel for collapse(2)
     for(int m=matter; m<=antimatter; m++){
       for(int i0=0; i0<NE; i0++){
-
-	// decompose unoscillated potential
-	// remains in comoving frame for the time being
-	MATRIX<complex<double>,NF,NF> pmatrixf0;
-	pmatrixf0[e ][e ] = sqrt(2.)*cgs::constants::GF
-	  * complex<double>(profile.Dens_unosc[m][i0][e](r) - 
-			    profile.Flux_unosc[m][i0][e](r),0);
-	pmatrixf0[mu][e ] = complex<double>(0,0);
-	pmatrixf0[e ][mu] = complex<double>(0,0);
-	pmatrixf0[mu][mu] = sqrt(2.)*cgs::constants::GF
-	  * complex<double>(profile.Dens_unosc[m][i0][mu](r) -
-			    profile.Flux_unosc[m][i0][mu](r),0);
-
-	MATRIX<complex<double>,NF,NF> VfSIE;
-	double V0 = Vphase(i0, s0.Etop);
-	double total_overlap_fraction = 0; // should end up being 1
-	for(int ilab=0; ilab<NE; ilab++){
-
-	  // calculate fraction of bin i0 that overlaps with bin ilab
-	  double V_overlap = Vphase_overlap_comoving(i0, s0.Etop, ilab, Etop, Ecom_Elab);
-	  double overlap_fraction = V_overlap / V0;
-	  total_overlap_fraction += overlap_fraction;
-	  
-	  // calculate contribution to the potential due to this overlapping
-	  // segment of bin i0, oscillating it with Sf from bin ilab
-	  VfSIE += Sf[m][ilab]
-	    * (pmatrixf0 * overlap_fraction)
-	    * Adjoint(Sf[m][ilab]);
-	}
-	assert(fabs(total_overlap_fraction-1.)<1e-6);
-
-	// accumulate the contribution from bin i0 onto the com-frame potential
-        #pragma omp critical
-	VfSI[matter] += (m==matter ? VfSIE : -Conjugate(VfSIE));
+    	  MATRIX<complex<double>,NF,NF> VfSIE = (MBackground[m][i0][0] - MBackground[m][i0][1]) * sqrt(2.)*cgs::constants::GF;
+    	  VfSI[matter] += (m==matter ? VfSIE : -Conjugate(VfSIE));
       }
     }
 
@@ -175,33 +144,52 @@ class State{
   //====================//
   // OSCILLATED MOMENTS //
   //====================//
+  // oscillate moments, keeping the moments' comoving-frame energy grid
   array<array<array<MATRIX<complex<double>,NF,NF>,NMOMENTS>,NE>,NM> oscillated_moments(const Profile& profile, const State& s0) const{
 
     array<array<array<MATRIX<complex<double>,NF,NF>,NMOMENTS>,NE>,NM> MBackground;
 
-    #pragma omp parallel for collapse(2)
+	#pragma omp parallel for collapse(2)
     for(int m=matter; m<=antimatter; m++){
-      for(int ig=0; ig<NE; ig++){
+    	for(int i0=0; i0<NE; i0++){
+    		double V0 = Vphase(i0, s0.Etop);
 
-	// fill in the un-oscillated diagonals
-	double Vp = Vphase(ig, Etop);
-	for(int ig0=0; ig0<NE; ig0++){
-	  double V_overlap = Vphase_overlap_comoving(ig0, s0.Etop, ig, Etop, Ecom_Elab);
-	  if(V_overlap>0){
-	    for(flavour f=e; f<=mu; f++){
-	      double overlap_fraction = V_overlap / Vp;
-	      MBackground[m][ig][0][f][f] += profile.Dens_unosc[m][ig0][f](r) * overlap_fraction;
-	      MBackground[m][ig][1][f][f] += profile.Flux_unosc[m][ig0][f](r) * overlap_fraction;
-	      MBackground[m][ig][2][f][f] += profile.Pres_unosc[m][ig0][f](r) * overlap_fraction;
-	    }
-	  }
-	}
+    		// fill in the un-oscillated diagonals
+    		array<MATRIX<complex<double>,NF,NF>,NMOMENTS> unosc_moment;
+    		for(flavour f=e; f<=mu; f++){
+    			unosc_moment[0][f][f] += profile.Dens_unosc[m][i0][f](r);
+    			unosc_moment[1][f][f] += profile.Flux_unosc[m][i0][f](r);
+    			unosc_moment[2][f][f] += profile.Pres_unosc[m][i0][f](r);
+    		}
 
-	// oscillate the moments
-	for(int mom=0; mom<NMOMENTS; mom++)
-	  MBackground[m][ig][mom] = Sf[m][ig]*MBackground[m][ig][mom]*Adjoint(Sf[m][ig]);
-      }
+    		double total_overlap_fraction = 0; // should end up being 1
+    		for(int ilab=0; ilab<NE; ilab++){
+
+    			// calculate fraction of bin i0 that overlaps with bin ilab
+    			double V_overlap = Vphase_overlap_comoving(i0, s0.Etop, ilab, Etop, Ecom_Elab);
+
+    			// calculate contribution to the potential due to this overlapping
+    			// segment of bin i0, oscillating it with Sf from bin ilab
+    			// oscillate the moments
+    			if(V_overlap>0){
+    				double overlap_fraction = V_overlap / V0;
+    				total_overlap_fraction += overlap_fraction;
+    				for(int mom=0; mom<NMOMENTS; mom++)
+    					MBackground[m][i0][mom] += Sf[m][ilab]*unosc_moment[mom]*Adjoint(Sf[m][ilab]) * overlap_fraction;
+    			}
+    		}
+
+    		// add in rest of moment using highest-bin Sf
+    		assert(total_overlap_fraction < 1.+1e-6);
+    		assert(total_overlap_fraction >= 0);
+    		if(total_overlap_fraction < 1.){
+    			assert(s0.Etop[i0] > Etop[NE-1]);
+    			for(int mom=0; mom<NMOMENTS; mom++)
+    				MBackground[m][i0][mom] += Sf[m][NE-1]*unosc_moment[mom]*Adjoint(Sf[m][NE-1]) * (1.-total_overlap_fraction);
+    		}
+    	}
     }
+
     return MBackground;
   }
   
