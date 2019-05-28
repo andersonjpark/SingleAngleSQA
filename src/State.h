@@ -1,6 +1,7 @@
 #ifndef STATE_H
 #define STATE_H
 
+#include <algorithm>
 #include "misc.h"
 #include "mixing_angles.h"
 #include "isospin.h"
@@ -56,6 +57,16 @@ class State{
       }
     }
   }
+
+  int find_bin(const double x) const{
+	  // upper_bound returns first element greater than xval
+	  // values mark bin tops, so this is what we want
+	  int ind = std::upper_bound(Etop.begin(), Etop.end(), x) - Etop.begin();
+	  assert(ind >= 0);
+	  assert(ind <= NE);
+	  return ind;
+  }
+
   void update_background(const Profile& profile, const State& s0){
 
     rho = exp(profile.lnrho(r));
