@@ -176,13 +176,13 @@ Kinteract(const State& s, const State& s0, const Profile& profile){
 			// scattering and pair annihilation
 			double Vi = Vphase(i, s.Etop); // cm^-3
 			for(int j=0; j<NE; j++){
-				double Vj = Vphase(j, s.Etop); // cm^-3
+				double Vj = Vphase(j, s0.Etop); // cm^-3
 
 				//============//
 				// scattering //
 				//============//
-				Phi_e = eas.Phi_scat(se, s.T, s.E[i], s.E[j], Vi, Vj); // cm^3/s
-				Phi_x = eas.Phi_scat(sx, s.T, s.E[i], s.E[j], Vi, Vj); // cm^3/s
+				Phi_e = eas.Phi_scat(se, s.T, s.E[i], s0.E[j], Vi, Vj); // cm^3/s
+				Phi_x = eas.Phi_scat(sx, s.T, s.E[i], s0.E[j], Vi, Vj); // cm^3/s
 				for(int mom=0; mom<KMOMENTS; mom++){
 					PhiAvg[mom]   = avg_matrix(  Phi_e[mom], Phi_x[mom]);
 					PhiTilde[mom] = tilde_matrix(Phi_e[mom], Phi_x[mom]);
@@ -190,7 +190,7 @@ Kinteract(const State& s, const State& s0, const Profile& profile){
 				}
 				block = blocking_term(Phi, s.fmatrixf[m][i], MBackground[m][j]);
 				// target energy difference negative of neutrino energy difference
-				conv_to_in_rate = exp((s.E[j]-s.E[i])/(s.T*1e6*cgs::units::eV));
+				conv_to_in_rate = exp((s0.E[j]-s.E[i])/(s.T*1e6*cgs::units::eV));
 				for(flavour f1=e; f1<=mu; f1++){
 					for(flavour f2=e; f2<=mu; f2++){
 
@@ -210,15 +210,15 @@ Kinteract(const State& s, const State& s0, const Profile& profile){
 				//==============//
 				// annihilation //
 				//==============//
-				Phi_e = eas.Phi_pair(se, s.T, s.E[i], s.E[j], Vi, Vj); // cm^3/s
-				Phi_e = eas.Phi_pair(sx, s.T, s.E[i], s.E[j], Vi, Vj); // cm^3/s
+				Phi_e = eas.Phi_pair(se, s.T, s.E[i], s0.E[j], Vi, Vj); // cm^3/s
+				Phi_e = eas.Phi_pair(sx, s.T, s.E[i], s0.E[j], Vi, Vj); // cm^3/s
 				for(int mom=0; mom<KMOMENTS; mom++){
 					PhiAvg[mom]   = avg_matrix(  Phi_e[mom], Phi_x[mom]);
 					PhiTilde[mom] = tilde_matrix(Phi_e[mom], Phi_x[mom]);
 					Phi[mom] = PhiAvg[mom] - PhiTilde[mom];
 				}
 				block = blocking_term(Phi, s.fmatrixf[m][i], MBackground[mbar][j]);
-				conv_to_in_rate = exp(-(s.E[j]+s.E[i])/(s.T*1e6*cgs::units::eV));
+				conv_to_in_rate = exp(-(s0.E[j]+s.E[i])/(s.T*1e6*cgs::units::eV));
 				for(flavour f1=e; f1<=mu; f1++){
 					for(flavour f2=e; f2<=mu; f2++){
 						complex<double> in_rate = conv_to_in_rate * (
@@ -245,16 +245,16 @@ Kinteract(const State& s, const State& s0, const Profile& profile){
 					double k = s.E[i];
 					double kernel = NAN;
 
-					double q1 = s.E[j];
+					double q1 = s0.E[j];
 					for(int j3=0; j3<NE; j3++){
-						double q3 = s.E[j3];
-						double V3 = Vphase(j3, s.Etop); // cm^-3
+						double q3 = s0.E[j3];
+						double V3 = Vphase(j3, s0.Etop); // cm^-3
 
 						double q2 = q1+q3-k;
-						int j2 = j+j3-i; //s.find_background_bin(q2); // NEED TO FIX THIS
+						int j2 = s0.find_bin(q2);
 
 						if(j2>=0 and j2<NE){
-							double V2 = Vphase(j2, s.Etop); // cm^-3
+							double V2 = Vphase(j2, s0.Etop); // cm^-3
 							MATRIX<complex<double>,NF,NF> fj, fj2, fj3;
 
 							// SCATTERING
