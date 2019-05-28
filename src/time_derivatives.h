@@ -211,7 +211,7 @@ Kinteract(const State& s, const State& s0, const Profile& profile){
 				// annihilation //
 				//==============//
 				Phi_e = eas.Phi_pair(se, s.T, s.E[i], s0.E[j]); // cm^3/s
-				Phi_e = eas.Phi_pair(sx, s.T, s.E[i], s0.E[j]); // cm^3/s
+				Phi_x = eas.Phi_pair(sx, s.T, s.E[i], s0.E[j]); // cm^3/s
 				for(int mom=0; mom<KMOMENTS; mom++){
 					PhiAvg[mom]   = avg_matrix(  Phi_e[mom], Phi_x[mom]);
 					PhiTilde[mom] = tilde_matrix(Phi_e[mom], Phi_x[mom]);

@@ -115,6 +115,9 @@ __nulib_MOD_add_nu4pair_kernel,
 __nulib_MOD_add_nu4scat_kernel;
 
 extern "C"{
+	void __nulib_MOD_initialize_nulib(const int* neutrino_scheme,
+			const int* number_species,
+			const int* number_groups);
 	void set_eos_variables_(double* eos_variables);
 	void read_eos_table_(char* filename);
 	void total_absorption_opacities_(const int* neutrino_species,
@@ -163,6 +166,10 @@ public:
 		eos_variables.resize(__nulib_MOD_total_eos_variables);
 		eta = 0;
 		munue_kT = 0;
+
+		int neutrino_scheme = 2; // e,ebar,x,xbar
+		int number_species = 6;
+		__nulib_MOD_initialize_nulib(&neutrino_scheme, &number_species, &NE);
 
 		// output all nulib parameters
 		cout << endl;
@@ -329,8 +336,9 @@ public:
 	// cm^3/s
 	array<double,KMOMENTS> Phi_pair(int s, double T /*MeV*/,
 			double E /*erg*/, double Ebar /*erg*/){
-		const double X    = E    / (1e6*eV) / (T*1e6*cgs::units::eV);
-		const double Xbar = Ebar / (1e6*eV) / (T*1e6*cgs::units::eV);
+		const double Terg = T*1e6*cgs::units::eV;
+		const double X    = E    / Terg;
+		const double Xbar = Ebar / Terg;
 		const int s_nulib = s+1; // Fortran indexing
 		const int pro_or_ann = 2; // annihilation
 
@@ -342,17 +350,20 @@ public:
 			assert(__nulib_MOD_add_anue_kernel_epannihil);
 			assert(__nulib_MOD_add_numu_kernel_epannihil);
 			assert(__nulib_MOD_add_anumu_kernel_epannihil);
-			assert(__nulib_MOD_add_nutau_emission_epannihil);
-			assert(__nulib_MOD_add_anutau_emission_epannihil);
-			for(int mom=0; mom<KMOMENTS; mom++)
+			assert(__nulib_MOD_add_nutau_kernel_epannihil);
+			assert(__nulib_MOD_add_anutau_kernel_epannihil);
+			for(int mom=0; mom<KMOMENTS; mom++){
 				Phi[mom] = epannihil_phi_bruenn_(&X, &Xbar, &eta, &s_nulib, &pro_or_ann, &mom);
+				Phi[mom] *= 2.0*cgs::constants::GF*cgs::constants::GF * Terg*Terg * clight / (2.*M_PI) / pow(cgs::constants::hbarc,4);// from nulib.F90
+			}
+			assert(std::abs(Phi[1]) <= Phi[0]);
 		}
 		else{
 			assert(!__nulib_MOD_add_anue_kernel_epannihil);
 			assert(!__nulib_MOD_add_numu_kernel_epannihil);
 			assert(!__nulib_MOD_add_anumu_kernel_epannihil);
-			assert(!__nulib_MOD_add_nutau_emission_epannihil);
-			assert(!__nulib_MOD_add_anutau_emission_epannihil);
+			assert(!__nulib_MOD_add_nutau_kernel_epannihil);
+			assert(!__nulib_MOD_add_anutau_kernel_epannihil);
 		}
 
 		return Phi;
