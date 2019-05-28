@@ -174,15 +174,15 @@ Kinteract(const State& s, const State& s0, const Profile& profile){
 
 
 			// scattering and pair annihilation
-			double Vi = Vphase(i, s.Etop); // cm^-3
 			for(int j=0; j<NE; j++){
 				double Vj = Vphase(j, s0.Etop); // cm^-3
 
 				//============//
 				// scattering //
 				//============//
-				Phi_e = eas.Phi_scat(se, s.T, s.E[i], s0.E[j], Vi, Vj); // cm^3/s
-				Phi_x = eas.Phi_scat(sx, s.T, s.E[i], s0.E[j], Vi, Vj); // cm^3/s
+				bool include_elastic = (j == s0.find_bin(s.E[i])); // E[i] is inside current background energy bin j
+				Phi_e = eas.Phi_scat(se, s.T, s.E[i], s0.E[j], Vj, include_elastic); // cm^3/s
+				Phi_x = eas.Phi_scat(sx, s.T, s.E[i], s0.E[j], Vj, include_elastic); // cm^3/s
 				for(int mom=0; mom<KMOMENTS; mom++){
 					PhiAvg[mom]   = avg_matrix(  Phi_e[mom], Phi_x[mom]);
 					PhiTilde[mom] = tilde_matrix(Phi_e[mom], Phi_x[mom]);
@@ -210,8 +210,8 @@ Kinteract(const State& s, const State& s0, const Profile& profile){
 				//==============//
 				// annihilation //
 				//==============//
-				Phi_e = eas.Phi_pair(se, s.T, s.E[i], s0.E[j], Vi, Vj); // cm^3/s
-				Phi_e = eas.Phi_pair(sx, s.T, s.E[i], s0.E[j], Vi, Vj); // cm^3/s
+				Phi_e = eas.Phi_pair(se, s.T, s.E[i], s0.E[j]); // cm^3/s
+				Phi_e = eas.Phi_pair(sx, s.T, s.E[i], s0.E[j]); // cm^3/s
 				for(int mom=0; mom<KMOMENTS; mom++){
 					PhiAvg[mom]   = avg_matrix(  Phi_e[mom], Phi_x[mom]);
 					PhiTilde[mom] = tilde_matrix(Phi_e[mom], Phi_x[mom]);

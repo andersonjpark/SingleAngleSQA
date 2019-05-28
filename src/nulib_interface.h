@@ -277,18 +277,18 @@ public:
 	// cm^3/s
 	array<double,KMOMENTS> Phi_scat(int s, double T /*MeV*/,
 			double Ein /*erg*/, double Eout /*erg*/,
-			double Vin /*cm^-3*/, double Vout /*cm^-3*/){
+			double Vout /*cm^-3*/, bool include_elastic){
 		array<double,KMOMENTS> Phi;
 		const double EinMeV  = Ein  / (1e6*eV);
 		const double EoutMeV = Eout / (1e6*eV);
 		int s_nulib = s+1;
 
 		// elastic scattering contribution
-		if(Ein==Eout){
+		if(include_elastic){
 			double scatopac, delta;
 			total_scattering_opacity_(&s_nulib, &EinMeV, &scatopac, &delta, &eos_variables[0]);
-			Phi[0] = 2.    * scatopac / Vin;
-			Phi[0] = 2./3. * scatopac / Vin * delta;
+			Phi[0] = 2.    * scatopac*clight / Vout;
+			Phi[0] = 2./3. * scatopac*clight / Vout * delta;
 		}
 		else{
 			Phi[0] = 0;
@@ -328,8 +328,7 @@ public:
 	// only return annihilation kernels
 	// cm^3/s
 	array<double,KMOMENTS> Phi_pair(int s, double T /*MeV*/,
-			double E /*erg*/, double Ebar /*erg*/,
-			double Vin /*cm^-3*/, double Vout /*cm^-3*/){
+			double E /*erg*/, double Ebar /*erg*/){
 		const double X    = E    / (1e6*eV) / (T*1e6*cgs::units::eV);
 		const double Xbar = Ebar / (1e6*eV) / (T*1e6*cgs::units::eV);
 		const int s_nulib = s+1; // Fortran indexing
