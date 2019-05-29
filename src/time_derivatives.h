@@ -164,8 +164,8 @@ Kinteract(const State& s, const State& s0, const Profile& profile){
 			//=========================//
 			// absorption and emission //
 			//=========================//
-			MATRIX<double,NF,NF> kappa_abs_avg = avg_matrix(eas.abs(se,s.E[i]), eas.abs(sx,s.E[i]));
-			double E_kT = s.E[i]/(1e6*eV) / s.T;
+			MATRIX<double,NF,NF> kappa_abs_avg = avg_matrix(eas.abs(se,s.Ecom[i]), eas.abs(sx,s.Ecom[i]));
+			double E_kT = s.Ecom[i]/(1e6*eV) / s.T;
 			dfdr[m][i][e ][e ] += kappa_abs_avg[e ][e ] * eas.fermidirac(se, E_kT);
 			dfdr[m][i][mu][mu] += kappa_abs_avg[mu][mu] * eas.fermidirac(sx, E_kT);
 			for(flavour f1=e; f1<=mu; f1++)
@@ -180,9 +180,9 @@ Kinteract(const State& s, const State& s0, const Profile& profile){
 				//============//
 				// scattering //
 				//============//
-				bool include_elastic = (j == s0.find_bin(s.E[i])); // E[i] is inside current background energy bin j
-				Phi_e = eas.Phi_scat(se, s.T, s.E[i], s0.E[j], Vj, include_elastic); // cm^3/s
-				Phi_x = eas.Phi_scat(sx, s.T, s.E[i], s0.E[j], Vj, include_elastic); // cm^3/s
+				bool include_elastic = (j == s0.find_bin(s.Ecom[i])); // E[i] is inside current background energy bin j
+				Phi_e = eas.Phi_scat(se, s.T, s.Ecom[i], s0.Ecom[j], Vj, include_elastic); // cm^3/s
+				Phi_x = eas.Phi_scat(sx, s.T, s.Ecom[i], s0.Ecom[j], Vj, include_elastic); // cm^3/s
 				for(int mom=0; mom<KMOMENTS; mom++){
 					PhiAvg[mom]   = avg_matrix(  Phi_e[mom], Phi_x[mom]);
 					PhiTilde[mom] = tilde_matrix(Phi_e[mom], Phi_x[mom]);
@@ -190,7 +190,7 @@ Kinteract(const State& s, const State& s0, const Profile& profile){
 				}
 				block = blocking_term(Phi, s.fmatrixf[m][i], MBackground[m][j]);
 				// target energy difference negative of neutrino energy difference
-				conv_to_in_rate = exp((s0.E[j]-s.E[i])/(s.T*1e6*cgs::units::eV));
+				conv_to_in_rate = exp((s0.Ecom[j]-s.Ecom[i])/(s.T*1e6*cgs::units::eV));
 				for(flavour f1=e; f1<=mu; f1++){
 					for(flavour f2=e; f2<=mu; f2++){
 
@@ -210,15 +210,15 @@ Kinteract(const State& s, const State& s0, const Profile& profile){
 				//==============//
 				// annihilation //
 				//==============//
-				Phi_e = eas.Phi_pair(se, s.T, s.E[i], s0.E[j]); // cm^3/s
-				Phi_x = eas.Phi_pair(sx, s.T, s.E[i], s0.E[j]); // cm^3/s
+				Phi_e = eas.Phi_pair(se, s.T, s.Ecom[i], s0.Ecom[j]); // cm^3/s
+				Phi_x = eas.Phi_pair(sx, s.T, s.Ecom[i], s0.Ecom[j]); // cm^3/s
 				for(int mom=0; mom<KMOMENTS; mom++){
 					PhiAvg[mom]   = avg_matrix(  Phi_e[mom], Phi_x[mom]);
 					PhiTilde[mom] = tilde_matrix(Phi_e[mom], Phi_x[mom]);
 					Phi[mom] = PhiAvg[mom] - PhiTilde[mom];
 				}
 				block = blocking_term(Phi, s.fmatrixf[m][i], MBackground[mbar][j]);
-				conv_to_in_rate = exp(-(s0.E[j]+s.E[i])/(s.T*1e6*cgs::units::eV));
+				conv_to_in_rate = exp(-(s0.Ecom[j]+s.Ecom[i])/(s.T*1e6*cgs::units::eV));
 				for(flavour f1=e; f1<=mu; f1++){
 					for(flavour f2=e; f2<=mu; f2++){
 						complex<double> in_rate = conv_to_in_rate * (
@@ -242,12 +242,12 @@ Kinteract(const State& s, const State& s0, const Profile& profile){
 				if(__nulib_MOD_add_nu4scat_kernel or __nulib_MOD_add_nu4pair_kernel){
 					assert(__nulib_MOD_add_nu4scat_kernel);
 					assert(__nulib_MOD_add_nu4pair_kernel);
-					double k = s.E[i];
+					double k = s.Ecom[i];
 					double kernel = NAN;
 
-					double q1 = s0.E[j];
+					double q1 = s0.Ecom[j];
 					for(int j3=0; j3<NE; j3++){
-						double q3 = s0.E[j3];
+						double q3 = s0.Ecom[j3];
 						double V3 = Vphase(j3, s0.Etop); // cm^-3
 
 						double q2 = q1+q3-k;
