@@ -309,8 +309,10 @@ public:
 		for(int i=0; i<NE; i++){
 			for(state m=matter; m<=antimatter; m++){
 				fmatrixf[m][i] = MATRIX<complex<double>,NF,NF>();
-				for(flavour f=e; f<=mu; f++)
+				for(flavour f=e; f<=mu; f++){
+					Sf[m][i][f][f] = 1.0;
 					fmatrixf[m][i][f][f] = D_unosc[m][i][f](r) / Vphase(i,Etop);
+				}
 			}
 
 			cout << "GROUP " << i << " f = {";
