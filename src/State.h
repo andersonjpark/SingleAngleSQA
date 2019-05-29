@@ -15,7 +15,7 @@ public:
 	double rho, T, Ye;
 
 	// energy grid
-	array<double,NE> E, Etop;
+	array<double,NE> E, Etop, Ecom;
 
 	// distribution function in the direction of the trajectory
 	// value at the last reset
@@ -42,8 +42,15 @@ public:
 	array<array<double,NM>,NE> dphi_dr_osc,      dtheta_dr_osc;
 
 	State(const array<double,NE>& E, const array<double,NE>& Etop){
+		rho=NAN;
+		T=NAN;
+		Ye=NAN;
+		r=NAN;
+		Ecom_Elab=NAN;
+		Elab_Elab0=NAN;
 		this->E    = E;
 		this->Etop = Etop;
+		this->Ecom = Ecom;
 
 		// set Scumulative to identity
 		for(int m=0; m<NM; m++){
@@ -78,6 +85,7 @@ public:
 		for(int i=0; i<NE; i++){
 			E[i]    = s0.E[i]    * Elab_Elab0;
 			Etop[i] = s0.Etop[i] * Elab_Elab0;
+			Ecom[i] = E[i]       * Ecom_Elab;
 		}
 	}
 
@@ -193,7 +201,7 @@ public:
 				// add in rest of moment using highest-bin Sf
 				assert(total_overlap_fraction < 1.+1e-6);
 				assert(total_overlap_fraction >= 0);
-				if(total_overlap_fraction < 1.){
+				if(total_overlap_fraction < 1.-1e-6){
 					assert(s0.Etop[i0] > Etop[NE-1]);
 					for(int mom=0; mom<NMOMENTS; mom++)
 						MBackground[m][i0][mom] += Sf[m][NE-1]*unosc_moment[mom]*Adjoint(Sf[m][NE-1]) * (1.-total_overlap_fraction);
