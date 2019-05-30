@@ -56,9 +56,12 @@ public:
 		for(int m=0; m<NM; m++){
 			for(int ig=0; ig<NE; ig++){
 				for(int f1=0; f1<NF; f1++){
-					for(int f2=0; f2<NF; f2++)
+					for(int f2=0; f2<NF; f2++){
 						Scumulative[m][ig][f1][f2] = 0.;
+						Sf[m][ig][f1][f2] = 0.;
+					}
 					Scumulative[m][ig][f1][f1] = 1.;
+					Sf[m][ig][f1][f1] = 1.;
 				}
 				Y[m][ig] = YIdentity;
 			}
@@ -317,10 +320,8 @@ public:
 		for(int i=0; i<NE; i++){
 			for(state m=matter; m<=antimatter; m++){
 				fmatrixf[m][i] = MATRIX<complex<double>,NF,NF>();
-				for(flavour f=e; f<=mu; f++){
-					Sf[m][i][f][f] = 1.0;
+				for(flavour f=e; f<=mu; f++)
 					fmatrixf[m][i][f][f] = D_unosc[m][i][f](r) / Vphase(i,Etop);
-				}
 			}
 
 			cout << "GROUP " << i << " f = {";
