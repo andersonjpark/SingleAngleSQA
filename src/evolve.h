@@ -37,6 +37,7 @@ void evolve_oscillations(State& s,
 								for(int l=0;l<=k-1;l++)
 									s.Y[m][i][x][j] += BB[k][l] * dYdr[l][m][i][x][j] * dr;
 
+				s.update_background(profile, s0);
 				s.update_potential(profile,s0);
 				dYdr[k] = Koscillate(s);
 			}
@@ -60,6 +61,7 @@ void evolve_oscillations(State& s,
 					}
 				}
 			}
+			s.update_background(profile, s0);
 			s.update_potential(profile,s0);
 
 			// decide whether to accept step, if not adjust step size
@@ -129,6 +131,7 @@ void evolve_interactions(State& s,
 						for(int l=0;l<=k-1;l++)
 							s.fmatrixf[m][i] += dfdr[l][m][i] * BB[k][l] * dr;
 
+				s.update_background(profile, s0);
 				eas.update(s.rho, s.T, s.Ye);
 				dfdr[k] = Kinteract(s,s0,profile);
 			}
@@ -150,6 +153,7 @@ void evolve_interactions(State& s,
 							maxerror = max(maxerror, fabs(ferror[f1][f2]));
 				}
 			}
+			s.update_background(profile, s0);
 
 			// decide whether to accept step, if not adjust step size
 			if(maxerror>accuracy){
