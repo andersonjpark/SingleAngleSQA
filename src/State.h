@@ -41,16 +41,29 @@ public:
 	array<array<double,NM>,NE> dphi_dr_interact, dtheta_dr_interact;
 	array<array<double,NM>,NE> dphi_dr_osc,      dtheta_dr_osc;
 
-	State(const array<double,NE>& E, const array<double,NE>& Etop){
+	State(const Profile& profile, const double rmin){
 		rho=NAN;
 		T=NAN;
 		Ye=NAN;
-		r=NAN;
-		Ecom_Elab=NAN;
+		r=rmin;
+		Ecom_Elab=profile.Ecom_Elab(r);
 		Elab_Elab0=NAN;
-		this->E    = E;
-		this->Etop = Etop;
-		this->Ecom = Ecom;
+
+		// set energy bins to match the profile at rmin in the comoving frame
+		cout << endl;
+		cout<<"NE="<<NE << "   Ecom0/Elab0=" << Ecom_Elab << endl;
+		cout << "mid(com) \t mid(lab) \t top(lab)" << endl;
+		this->Ecom = profile.Ecom;
+		for(int i=0;i<NE;i++){
+			Ecom[i] = profile.Ecom[i];
+			E[i]    = profile.Ecom[i]    / Ecom_Elab;
+			Etop[i] = profile.Etopcom[i] / Ecom_Elab;
+			cout << Ecom[i] / (1.e6*cgs::units::eV) << " \t ";
+			cout << E[i]    / (1.e6*cgs::units::eV) << " \t ";
+			cout << Etop[i] / (1.e6*cgs::units::eV) << endl;
+		}
+		cout.flush();
+
 
 		// set Scumulative to identity
 		for(int m=0; m<NM; m++){
@@ -317,8 +330,13 @@ public:
 		for(int i=0; i<NE; i++){
 			for(state m=matter; m<=antimatter; m++){
 				fmatrixf[m][i] = MATRIX<complex<double>,NF,NF>();
-				for(flavour f=e; f<=mu; f++)
-					fmatrixf[m][i][f][f] = D_unosc[m][i][f](r) / Vphase(i,Etop);
+				for(flavour f=e; f<=mu; f++){
+					double D = D_unosc[m][i][f](r);
+					double V = Vphase(i,Etop);
+					fmatrixf[m][i][f][f] = D / V;
+					assert(abs(fmatrixf[m][i][f][f]) >= 0);
+					assert(abs(fmatrixf[m][i][f][f]) <= 1);
+				}
 			}
 
 			cout << "GROUP " << i << " f = {";

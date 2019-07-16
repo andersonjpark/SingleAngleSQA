@@ -68,6 +68,7 @@ using std::array;
 int main(int argc, char *argv[]){
   string inputfilename;
     
+  assert(argc==2);
   inputfilename=string(argv[1]);
   ifstream fin(inputfilename.c_str());
     
@@ -89,34 +90,12 @@ int main(int argc, char *argv[]){
   read_eos_table_((char*)eosfilename.c_str());
   cout << "m_ref = " << __nulib_MOD_m_ref << " (939=m_n for LS, 931=m_amu for Hempel)" << endl;
 
-  //=======//
-  // Ebins //
-  //=======//
-  array<double,NE> E, Etop;
-  const double NEP=8;
-  cout << endl;
-  cout<<"NE="<<NE << " NEP="<<NEP << endl;
-  for(int i=0;i<NE;i++){
-    unsigned ind = i;
-    if(NE==1||NE==2||NE==4) ind = i*NEP/NE+NEP/NE/2;
-    
-    double lEmax = log(37.48 * 1e6*cgs::units::eV) ; //erg
-    double lEbottom = log(2. * 1e6*cgs::units::eV) ; //erg
-    double dlE = (lEmax-lEbottom)/(NE-1);
-    E[i] =  exp(lEbottom + ind*dlE);
-    Etop[i] = exp(lEbottom + (ind+0.5)*dlE);
-    
-    cout << E[i]/(1.e6*cgs::units::eV) << " ";
-    cout << Etop[i]/(1.e6*cgs::units::eV) << endl;
-  }
-  cout.flush();
-  
   // **************************************
   // quantities evaluated at inital point *
   // **************************************
 
-  State s(E,Etop);
-  s.r=rmin;
+  State s(profile, rmin);
+  s.update_background(profile, s);
   s.update_potential(profile,s);
   s.initialize(profile.Dens_unosc);
   const State s0 = s;
