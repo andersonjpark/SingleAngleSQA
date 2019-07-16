@@ -13,6 +13,7 @@ class Profile{
   array<array<array<DISCONTINUOUS,NF>,NE>,NM> Dens_unosc;
   array<array<array<DISCONTINUOUS,NF>,NE>,NM> Flux_unosc;
   array<array<array<DISCONTINUOUS,NF>,NE>,NM> Pres_unosc;
+  array<double,NE> Ecom, Etopcom;
 
   Profile(string inputfile, double rmin){
     H5::H5File file(inputfile, H5F_ACC_RDONLY );
@@ -28,6 +29,10 @@ class Profile{
     assert(ns==2*NF);
     vector<double> x(nr), data(nr);
   
+    // energy grid
+    file.openDataSet("Ecom(erg)"   ).read(&Ecom,    H5::PredType::NATIVE_DOUBLE);
+    file.openDataSet("Etopcom(erg)").read(&Etopcom, H5::PredType::NATIVE_DOUBLE);
+
     // load rho and Ye data
     file.openDataSet("ct(cm)"    ).read(&x[0],    H5::PredType::NATIVE_DOUBLE);
     file.openDataSet("Ecom_Elab" ).read(&data[0], H5::PredType::NATIVE_DOUBLE);
@@ -59,21 +64,21 @@ class Profile{
     file.openDataSet("Pdens(1|ccm)").read(Pdens, H5::PredType::NATIVE_DOUBLE);
 
     for(int m=matter; m<=antimatter; m++){
-      for(int i=0; i<NE; i++){
-	for(int f=e; f<=mu; f++){
-	  int s = m + 2*f; // species index. 0-e 1-ebar 2-x 3-xbar
-	
-	  for(size_t ir=0; ir<nr; ir++) data[ir] = Ndens[s][i][ir];
-	  Dens_unosc[m][i][f].SetData(x,data);
+    	for(int i=0; i<NE; i++){
+    		for(int f=e; f<=mu; f++){
+    			int s = m + 2*f; // species index. 0-e 1-ebar 2-x 3-xbar
 
-	  for(size_t ir=0; ir<nr; ir++) data[ir] = Fdens[s][i][ir];
-	  Flux_unosc[m][i][f].SetData(x,data);
+    			for(size_t ir=0; ir<nr; ir++) data[ir] = Ndens[s][i][ir];
+    			Dens_unosc[m][i][f].SetData(x,data);
 
-	  for(size_t ir=0; ir<nr; ir++) data[ir] = Pdens[s][i][ir];
-	  Pres_unosc[m][i][f].SetData(x,data);
+    			for(size_t ir=0; ir<nr; ir++) data[ir] = Fdens[s][i][ir];
+    			Flux_unosc[m][i][f].SetData(x,data);
 
-	}
-      }
+    			for(size_t ir=0; ir<nr; ir++) data[ir] = Pdens[s][i][ir];
+    			Pres_unosc[m][i][f].SetData(x,data);
+
+    		}
+    	}
     }
 
   }
