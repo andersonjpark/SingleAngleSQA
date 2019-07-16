@@ -95,12 +95,12 @@ __nulib_MOD_add_numu_emission_epannihil,
 __nulib_MOD_add_anumu_emission_epannihil,
 __nulib_MOD_add_nutau_emission_epannihil,
 __nulib_MOD_add_anutau_emission_epannihil,
-__nulib_MOD_add_nue_emission_nnbrems,
-__nulib_MOD_add_anue_emission_nnbrems,
-__nulib_MOD_add_numu_emission_nnbrems,
-__nulib_MOD_add_anumu_emission_nnbrems,
-__nulib_MOD_add_nutau_emission_nnbrems,
-__nulib_MOD_add_anutau_emission_nnbrems,
+__nulib_MOD_add_nue_emission_bremsstrahlung,
+__nulib_MOD_add_anue_emission_bremsstrahlung,
+__nulib_MOD_add_numu_emission_bremsstrahlung,
+__nulib_MOD_add_anumu_emission_bremsstrahlung,
+__nulib_MOD_add_nutau_emission_bremsstrahlung,
+__nulib_MOD_add_anutau_emission_bremsstrahlung,
 __nulib_MOD_add_nue_emission_weakinteraction_ecap,
 __nulib_MOD_add_anue_emission_weakinteraction_poscap,
 __nulib_MOD_apply_kirchoff_to_pair_creation,
@@ -227,12 +227,12 @@ public:
 		cout << __nulib_MOD_add_anumu_emission_epannihil << " add_anumu_emission_epannihil" << endl;
 		cout << __nulib_MOD_add_nutau_emission_epannihil << " add_nutau_emission_epannihil" << endl;
 		cout << __nulib_MOD_add_anutau_emission_epannihil << " add_anutau_emission_epannihil" << endl;
-		cout << __nulib_MOD_add_nue_emission_nnbrems << " add_nue_emission_NNBrems" << endl;
-		cout << __nulib_MOD_add_anue_emission_nnbrems << " add_anue_emission_NNBrems" << endl;
-		cout << __nulib_MOD_add_numu_emission_nnbrems << " add_numu_emission_NNBrems" << endl;
-		cout << __nulib_MOD_add_anumu_emission_nnbrems << " add_anumu_emission_NNBrems" << endl;
-		cout << __nulib_MOD_add_nutau_emission_nnbrems << " add_nutau_emission_NNBrems" << endl;
-		cout << __nulib_MOD_add_anutau_emission_nnbrems << " add_anutau_emission_NNBrems" << endl;
+		cout << __nulib_MOD_add_nue_emission_bremsstrahlung << " add_nue_emission_Bremsstrahlung" << endl;
+		cout << __nulib_MOD_add_anue_emission_bremsstrahlung << " add_anue_emission_Bremsstrahlung" << endl;
+		cout << __nulib_MOD_add_numu_emission_bremsstrahlung << " add_numu_emission_Bremsstrahlung" << endl;
+		cout << __nulib_MOD_add_anumu_emission_bremsstrahlung << " add_anumu_emission_Bremsstrahlung" << endl;
+		cout << __nulib_MOD_add_nutau_emission_bremsstrahlung << " add_nutau_emission_Bremsstrahlung" << endl;
+		cout << __nulib_MOD_add_anutau_emission_bremsstrahlung << " add_anutau_emission_Bremsstrahlung" << endl;
 		cout << __nulib_MOD_add_nue_emission_weakinteraction_ecap << " add_nue_emission_weakinteraction_ecap" << endl;
 		cout << __nulib_MOD_add_anue_emission_weakinteraction_poscap << " add_anue_emission_weakinteraction_poscap" << endl;
 		cout << __nulib_MOD_apply_kirchoff_to_pair_creation << " apply_kirchoff_to_pair_creation" << endl;
