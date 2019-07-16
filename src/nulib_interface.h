@@ -112,7 +112,13 @@ __nulib_MOD_add_nutau_kernel_epannihil,
 __nulib_MOD_add_anutau_kernel_epannihil,
 __nulib_MOD_add_anutau_kernel_epannihil,
 __nulib_MOD_add_nu4pair_kernel,
-__nulib_MOD_add_nu4scat_kernel;
+__nulib_MOD_add_nu4scat_kernel,
+__nulib_MOD_add_nue_kernel_bremsstrahlung,
+__nulib_MOD_add_anue_kernel_bremsstrahlung,
+__nulib_MOD_add_numu_kernel_bremsstrahlung,
+__nulib_MOD_add_anumu_kernel_bremsstrahlung,
+__nulib_MOD_add_nutau_kernel_bremsstrahlung,
+__nulib_MOD_add_anutau_kernel_bremsstrahlung;
 
 extern "C"{
 	void __nulib_MOD_initialize_nulib(const int* neutrino_scheme,
@@ -145,8 +151,14 @@ extern "C"{
 			const double* nubar_energy_x, /*E/kT*/
 			const double* matter_eta, /*mue/kT*/
 			const int* neutrino_species,
-			const int*pro_or_ann,
+			const int* pro_or_ann,
 			const int* which_l);
+	double bremsstrahlung_phi0_hannestad_(const double* nu_energy_x, /*E/kT*/
+			const double* nubar_energy_x, /*E/kT*/
+			const double* matter_temperature, /*MeV*/
+			const double* n_N, /*cm^-3*/
+			const int* neutrino_species,
+			const int* pro_ann);
 
 	// 1/cm, all arguments in MeV
 	double __nulib_MOD_nu4scat_kernel_single(double* k, double* q1, double* q2, double* q3); // cm^5
@@ -227,12 +239,12 @@ public:
 		cout << __nulib_MOD_add_anumu_emission_epannihil << " add_anumu_emission_epannihil" << endl;
 		cout << __nulib_MOD_add_nutau_emission_epannihil << " add_nutau_emission_epannihil" << endl;
 		cout << __nulib_MOD_add_anutau_emission_epannihil << " add_anutau_emission_epannihil" << endl;
-		cout << __nulib_MOD_add_nue_emission_bremsstrahlung << " add_nue_emission_Bremsstrahlung" << endl;
-		cout << __nulib_MOD_add_anue_emission_bremsstrahlung << " add_anue_emission_Bremsstrahlung" << endl;
-		cout << __nulib_MOD_add_numu_emission_bremsstrahlung << " add_numu_emission_Bremsstrahlung" << endl;
-		cout << __nulib_MOD_add_anumu_emission_bremsstrahlung << " add_anumu_emission_Bremsstrahlung" << endl;
-		cout << __nulib_MOD_add_nutau_emission_bremsstrahlung << " add_nutau_emission_Bremsstrahlung" << endl;
-		cout << __nulib_MOD_add_anutau_emission_bremsstrahlung << " add_anutau_emission_Bremsstrahlung" << endl;
+		cout << __nulib_MOD_add_nue_emission_bremsstrahlung << " add_nue_emission_bremsstrahlung" << endl;
+		cout << __nulib_MOD_add_anue_emission_bremsstrahlung << " add_anue_emission_bremsstrahlung" << endl;
+		cout << __nulib_MOD_add_numu_emission_bremsstrahlung << " add_numu_emission_bremsstrahlung" << endl;
+		cout << __nulib_MOD_add_anumu_emission_bremsstrahlung << " add_anumu_emission_bremsstrahlung" << endl;
+		cout << __nulib_MOD_add_nutau_emission_bremsstrahlung << " add_nutau_emission_bremsstrahlung" << endl;
+		cout << __nulib_MOD_add_anutau_emission_bremsstrahlung << " add_anutau_emission_bremsstrahlung" << endl;
 		cout << __nulib_MOD_add_nue_emission_weakinteraction_ecap << " add_nue_emission_weakinteraction_ecap" << endl;
 		cout << __nulib_MOD_add_anue_emission_weakinteraction_poscap << " add_anue_emission_weakinteraction_poscap" << endl;
 		cout << __nulib_MOD_apply_kirchoff_to_pair_creation << " apply_kirchoff_to_pair_creation" << endl;
@@ -315,7 +327,7 @@ public:
 			const double Ehi = max(EinMeV, EoutMeV);
 			double conv_to_out_rate = (Eout>Ein ? exp((Ehi-Elo)/(T*1e6*cgs::units::eV)) : 1.0);
 			Phi[0] += nes_phi0_thompsonbruenn_(&Ehi, &Elo, &eta, &T, &s_nulib) * conv_to_out_rate;
-			Phi[1] += nes_phi0_thompsonbruenn_(&Ehi, &Elo, &eta, &T, &s_nulib) * conv_to_out_rate;
+			Phi[1] += nes_phi1_thompsonbruenn_(&Ehi, &Elo, &eta, &T, &s_nulib) * conv_to_out_rate;
 		}
 		else{
 			assert(!__nulib_MOD_add_anue_iscattering_electrons);
@@ -334,9 +346,8 @@ public:
 	//=============//
 	// only return annihilation kernels
 	// cm^3/s
-	array<double,KMOMENTS> Phi_pair(int s, double T /*MeV*/,
-			double E /*erg*/, double Ebar /*erg*/){
-		const double Terg = T*1e6*cgs::units::eV;
+	array<double,KMOMENTS> Phi_pair(int s, double E /*erg*/, double Ebar /*erg*/){
+		const double Terg = eos_variables[1]*1e6*cgs::units::eV;
 		const double X    = E    / Terg;
 		const double Xbar = Ebar / Terg;
 		const int s_nulib = s+1; // Fortran indexing
@@ -352,20 +363,29 @@ public:
 			assert(__nulib_MOD_add_anumu_kernel_epannihil);
 			assert(__nulib_MOD_add_nutau_kernel_epannihil);
 			assert(__nulib_MOD_add_anutau_kernel_epannihil);
-			for(int mom=0; mom<KMOMENTS; mom++){
-				Phi[mom] = epannihil_phi_bruenn_(&X, &Xbar, &eta, &s_nulib, &pro_or_ann, &mom);
-				Phi[mom] *= 2.0*cgs::constants::GF*cgs::constants::GF * Terg*Terg * clight / (2.*M_PI) / pow(cgs::constants::hbarc,4);// from nulib.F90
-			}
-			assert(std::abs(Phi[1]) <= Phi[0]);
+			for(int mom=0; mom<KMOMENTS; mom++)
+			  Phi[mom] += epannihil_phi_bruenn_(&X, &Xbar, &eta, &s_nulib, &pro_or_ann, &mom);
 		}
-		else{
-			assert(!__nulib_MOD_add_anue_kernel_epannihil);
-			assert(!__nulib_MOD_add_numu_kernel_epannihil);
-			assert(!__nulib_MOD_add_anumu_kernel_epannihil);
-			assert(!__nulib_MOD_add_nutau_kernel_epannihil);
-			assert(!__nulib_MOD_add_anutau_kernel_epannihil);
+		if(__nulib_MOD_add_nue_kernel_bremsstrahlung){
+			assert(__nulib_MOD_add_anue_kernel_bremsstrahlung);
+			assert(__nulib_MOD_add_numu_kernel_bremsstrahlung);
+			assert(__nulib_MOD_add_anumu_kernel_bremsstrahlung);
+			assert(__nulib_MOD_add_nutau_kernel_bremsstrahlung);
+			assert(__nulib_MOD_add_anutau_kernel_bremsstrahlung);
+
+			// neutron-neutron
+			double ndens = eos_variables[0] / __nulib_MOD_m_ref; // total number density
+			double n_N = ndens * (eos_variables[14] + eos_variables[15]); // eos_variables[14/15] = neutron/proton mass fraction
+			assert(n_N>=0);
+			assert(n_N<=ndens);
+			Phi[0] += bremsstrahlung_phi0_hannestad_(&X, &Xbar, &eos_variables[1], &n_N, &s_nulib, &pro_or_ann);
 		}
 
+		// convert to cm^3/s
+		for(int mom=0; mom<KMOMENTS; mom++)
+		    Phi[mom] *= 2.0*cgs::constants::GF*cgs::constants::GF * Terg*Terg * clight / (2.*M_PI) / pow(cgs::constants::hbarc,4);// from nulib.F90
+		assert(std::abs(Phi[1]) <= Phi[0]);
+		
 		return Phi;
 	}
 
