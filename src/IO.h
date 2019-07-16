@@ -102,7 +102,7 @@ FilePointers setup_HDF5_file(const array<double,NE>& E, const array<double,NE>& 
   H5Fflush(fp.file,H5F_SCOPE_LOCAL);
 
   // preliminary stdout
-  cout << "r(cm) \t rho(g/ccm) \t Ye \t T(MeV) \t eta \t munue_kT \t dr_osc(cm) \t dr_int(cm) \t dr_block(cm)" << endl;
+  cout << "r(km) \t rho(g/ccm) \t Ye \t T(MeV) \t eta \t munue_kT \t dr_osc(cm) \t dr_int(cm) \t dr_block(cm)" << endl;
   
   return fp;
 }
