@@ -15,7 +15,7 @@ class Profile{
   array<array<array<DISCONTINUOUS,NF>,NE>,NM> Pres_unosc;
   array<double,NE> Ecom, Etopcom;
 
-  Profile(string inputfile, double rmin){
+  Profile(string inputfile, double rmin, bool do_SR, bool do_GR){
     H5::H5File file(inputfile, H5F_ACC_RDONLY );
 
     // get the dimenions of the dataset
@@ -35,14 +35,21 @@ class Profile{
 
     // load rho and Ye data
     file.openDataSet("ct(cm)"    ).read(&x[0],    H5::PredType::NATIVE_DOUBLE);
-    file.openDataSet("Ecom_Elab" ).read(&data[0], H5::PredType::NATIVE_DOUBLE);
+
+    if(do_SR) file.openDataSet("Ecom_Elab" ).read(&data[0], H5::PredType::NATIVE_DOUBLE);
+    else for(int i=0; i<data.size(); i++) data[i] = 1.;
     Ecom_Elab.SetData(x, data);
-    file.openDataSet("Elab_Elab0").read(&data[0], H5::PredType::NATIVE_DOUBLE);
+
+    if(do_GR) file.openDataSet("Elab_Elab0").read(&data[0], H5::PredType::NATIVE_DOUBLE);
+    else for(int i=0; i<data.size(); i++) data[i] = 1.;
     Elab_Elab0.SetData(x, data);
+
     file.openDataSet("Ye"        ).read(&data[0], H5::PredType::NATIVE_DOUBLE);
     Ye.SetData(x, data);
+
     file.openDataSet("T(MeV)"    ).read(&data[0], H5::PredType::NATIVE_DOUBLE);
     temperature.SetData(x, data);
+
     file.openDataSet("rho(g|ccm)").read(&data[0], H5::PredType::NATIVE_DOUBLE);
     lnrho.SetData(x, data);
     lnrho = lnrho.copy_logy();

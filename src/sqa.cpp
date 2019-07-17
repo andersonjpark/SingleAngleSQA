@@ -82,11 +82,13 @@ int main(int argc, char *argv[]){
   const double accuracy = get_parameter<double>(fin, "accuracy");
   const bool do_oscillate = get_parameter<bool>(fin, "do_oscillate");
   const bool do_interact = get_parameter<bool>(fin, "do_interact");
+  const bool do_SR = get_parameter<bool>(fin, "do_SR");
+  const bool do_GR = get_parameter<bool>(fin, "do_GR");
   const double target_impact = get_parameter<double>(fin, "target_impact");
   const double increase = get_parameter<double>(fin, "increase");
   fin.close();
 
-  Profile profile(input_directory, rmin);
+  Profile profile(input_directory, rmin, do_SR, do_GR);
   read_eos_table_((char*)eosfilename.c_str());
   cout << "m_ref = " << __nulib_MOD_m_ref << " (939=m_n for LS, 931=m_amu for Hempel)" << endl;
 
