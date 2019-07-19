@@ -98,8 +98,8 @@ int main(int argc, char *argv[]){
 
   State s(profile, rmin);
   s.update_background(profile, s);
-  s.update_potential(profile,s);
   s.initialize(profile.Dens_unosc);
+  s.update_potential(profile,s);
   const State s0 = s;
     
   // *****************************************
