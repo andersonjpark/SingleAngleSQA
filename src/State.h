@@ -12,10 +12,10 @@ class State{
 public:
 	double Ecom_Elab, Elab_Elab0;
 	double r;
-	double rho, T, Ye;
+	double rho, T, Ye; // g/ccm, MeV
 
 	// energy grid
-	array<double,NE> E, Etop, Ecom;
+	array<double,NE> E, Etop, Ecom; // erg
 
 	// distribution function in the direction of the trajectory
 	// value at the last reset
@@ -152,6 +152,8 @@ public:
 				SThisStep[m][i] = WW[m][i][msw] * BB[m][i][msw] * WW[m][i][si] * BB[m][i][si];
 				Sf[m][i] = UU[m][i] * SThisStep[m][i] * Scumulative[m][i] * Adjoint(s0.UU[m][i]);
 
+				assert( abs( Trace( Scumulative[m][i]*Adjoint(Scumulative[m][i])) - (double)NF) < 1e-5);
+				assert( abs( Trace(          Sf[m][i]*Adjoint(         Sf[m][i])) - (double)NF) < 1e-5);
 			}
 		}
 
@@ -196,6 +198,7 @@ public:
 
 				double total_overlap_fraction = 0; // should end up being 1
 				for(int ilab=0; ilab<NE; ilab++){
+					assert( abs(Trace(Sf[m][ilab]*Adjoint(Sf[m][ilab])) - (double)NF) < 1e-5);
 
 					// calculate fraction of bin i0 that overlaps with bin ilab
 					double V_overlap = Vphase_overlap_comoving(i0, s0.Etop, ilab, Etop, Ecom_Elab);
@@ -225,11 +228,14 @@ public:
 		return MBackground;
 	}
 
-	void accumulate_S(double dr, const State& sReset){
+	void accumulate_S(double dr, const State& sReset, const State& s0){
 #pragma omp parallel for collapse(2)
 		for(int m=matter;m<=antimatter;m++){
 			for(int i=0;i<=NE-1;i++){
 				Scumulative[m][i] = SThisStep[m][i] * Scumulative[m][i];
+				Sf[m][i] = UU[m][i] * Scumulative[m][i] * Adjoint(s0.UU[m][i]);
+				assert( abs( Trace( Scumulative[m][i]*Adjoint(Scumulative[m][i])) - (double)NF) < 1e-5);
+				assert( abs( Trace(          Sf[m][i]*Adjoint(         Sf[m][i])) - (double)NF) < 1e-5);
 
 				// convert fmatrix from flavor basis to (reset-point) mass basis
 				// evolve fmatrix from reset-point to current-point mass basis
