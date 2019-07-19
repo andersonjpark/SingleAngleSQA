@@ -5,15 +5,15 @@
 
 class Profile{
  public:
-  DISCONTINUOUS lnrho;
+  DISCONTINUOUS lnrho; // ln(g/ccm)
   DISCONTINUOUS Ye;
-  DISCONTINUOUS temperature;
+  DISCONTINUOUS temperature; // MeV
   DISCONTINUOUS Ecom_Elab;
   DISCONTINUOUS Elab_Elab0;
   array<array<array<DISCONTINUOUS,NF>,NE>,NM> Dens_unosc;
   array<array<array<DISCONTINUOUS,NF>,NE>,NM> Flux_unosc;
   array<array<array<DISCONTINUOUS,NF>,NE>,NM> Pres_unosc;
-  array<double,NE> Ecom, Etopcom;
+  array<double,NE> Ecom, Etopcom; // erg
 
   Profile(string inputfile, double rmin, bool do_SR, bool do_GR){
     H5::H5File file(inputfile, H5F_ACC_RDONLY );

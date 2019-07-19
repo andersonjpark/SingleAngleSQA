@@ -296,6 +296,9 @@ Kinteract(const State& s, const State& s0, const Profile& profile){
 
 			// Make sure dfdr is Hermitian
 			dfdr[m][i][mu][e ] = conj(dfdr[m][i][e][mu]);
+			assert(dfdr[m][i][e ][e ] == dfdr[m][i][e ][e ]);
+			assert(dfdr[m][i][e ][mu] == dfdr[m][i][e ][mu]);
+			assert(dfdr[m][i][mu][mu] == dfdr[m][i][mu][mu]);
 		} // group
 	} // state
 
