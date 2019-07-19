@@ -4,6 +4,7 @@
 #include "H5Cpp.h"
 #include <string>
 #include <cstdlib>
+#include <cmath>
 
 // physical constants
 const double clight = 2.99792458e10; // cm/s
@@ -307,7 +308,7 @@ public:
 			double scatopac, delta;
 			total_scattering_opacity_(&s_nulib, &EinMeV, &scatopac, &delta, &eos_variables[0]);
 			Phi[0] = 2.    * scatopac*clight / Vout;
-			Phi[0] = 2./3. * scatopac*clight / Vout * delta;
+			Phi[1] = 2./3. * scatopac*clight / Vout * delta;
 		}
 		else{
 			Phi[0] = 0;
@@ -325,7 +326,7 @@ public:
 			assert(__nulib_MOD_add_anutau_iscattering_electrons);
 			const double Elo = min(EinMeV, EoutMeV);
 			const double Ehi = max(EinMeV, EoutMeV);
-			double conv_to_out_rate = (Eout>Ein ? exp((Ehi-Elo)/(T*1e6*cgs::units::eV)) : 1.0);
+			double conv_to_out_rate = (Eout>Ein ? exp((Ehi-Elo)/T) : 1.0);
 			Phi[0] += nes_phi0_thompsonbruenn_(&Ehi, &Elo, &eta, &T, &s_nulib) * conv_to_out_rate;
 			Phi[1] += nes_phi1_thompsonbruenn_(&Ehi, &Elo, &eta, &T, &s_nulib) * conv_to_out_rate;
 		}
@@ -337,6 +338,12 @@ public:
 			assert(!__nulib_MOD_add_anutau_iscattering_electrons);
 		}
 
+		assert(Phi[0]>=0);
+		assert(fabs(Phi[1])<=Phi[0]);
+		for(int i=0; i<KMOMENTS; i++){
+			assert(Phi[i]==Phi[i]);
+			assert(fabs(Phi[i]) < std::numeric_limits<double>::infinity() );
+		}
 		return Phi;
 	}
 
@@ -386,6 +393,12 @@ public:
 		    Phi[mom] *= 2.0*cgs::constants::GF*cgs::constants::GF * Terg*Terg * clight / (2.*M_PI) / pow(cgs::constants::hbarc,4);// from nulib.F90
 		assert(std::abs(Phi[1]) <= Phi[0]);
 		
+		assert(Phi[0]>=0);
+		assert(fabs(Phi[1])<=Phi[0]);
+		for(int i=0; i<KMOMENTS; i++){
+			assert(Phi[i]==Phi[i]);
+			assert(fabs(Phi[i]) < std::numeric_limits<double>::infinity() );
+		}
 		return Phi;
 	}
 
