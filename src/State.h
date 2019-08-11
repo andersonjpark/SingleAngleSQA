@@ -207,10 +207,17 @@ public:
 					// segment of bin i0, oscillating it with Sf from bin ilab
 					// oscillate the moments
 					if(V_overlap>0){
+					  if(ASSUME_ISOTROPY){
+					    MBackground[m][i0][0] += fmatrixf[m][ilab] * V_overlap;
+					    MBackground[m][i0][1] += MBackground[m][i0][0] * 0;
+					    MBackground[m][i0][2] += MBackground[m][i0][0] * 1./3.;
+					  }
+					  else{
 						double overlap_fraction = V_overlap / V0;
 						total_overlap_fraction += overlap_fraction;
 						for(int mom=0; mom<NMOMENTS; mom++)
 							MBackground[m][i0][mom] += Sf[m][ilab]*unosc_moment[mom]*Adjoint(Sf[m][ilab]) * overlap_fraction;
+					  }
 					}
 				}
 
