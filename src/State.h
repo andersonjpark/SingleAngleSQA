@@ -203,7 +203,7 @@ public:
 					// calculate fraction of bin i0 that overlaps with bin ilab
 					double V_overlap = Vphase_overlap_comoving(i0, s0.Etop, ilab, Etop, Ecom_Elab);
 
-					// calculate contribution to the potential due to this overlapping
+					// calculate contribution to the moments due to this overlapping
 					// segment of bin i0, oscillating it with Sf from bin ilab
 					// oscillate the moments
 					if(V_overlap>0){
