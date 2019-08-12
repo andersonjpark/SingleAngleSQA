@@ -82,6 +82,8 @@ public:
 	}
 
 	int find_bin(const double x) const{
+	        if(x<0) return -1;
+
 		// upper_bound returns first element greater than xval
 		// values mark bin tops, so this is what we want
 		int ind = std::upper_bound(Etop.begin(), Etop.end(), x) - Etop.begin();
