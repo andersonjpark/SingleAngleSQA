@@ -278,7 +278,7 @@ public:
 				array<double,4> isospin = pauli_decompose(fmatrixf[m][i]);
 				double fperp2 = isospin[0]*isospin[0] + isospin[1]*isospin[1];
 				assert(fabs(isospin[0]) <= isospin[3]);
-				assert(fperp2 <= pow(min(isospin[3], 1.-isospin[3]),2) - isospin[2]*isospin[2]);
+				assert(fperp2*(1.-1e10) <= pow(min(isospin[3], 1.-isospin[3]),2) - isospin[2]*isospin[2]);
 
 				for(solution x=msw;x<=si;x++)
 					for(int j=0;j<=NY-1;j++)
