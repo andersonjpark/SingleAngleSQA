@@ -96,7 +96,7 @@ int main(int argc, char *argv[]){
   // quantities evaluated at inital point *
   // **************************************
 
-  State s(profile, rmin);
+  State s(profile, profile.lnrho.XMin());
   s.update_background(profile, s);
   s.initialize(profile.Dens_unosc);
   s.update_potential(profile,s);
@@ -119,8 +119,8 @@ int main(int argc, char *argv[]){
   bool finish = false;
   do{
     double r_end = s.r + dr_block * min(5., exponential_random());
-    if(r_end>rmax){
-      r_end = rmax;
+    if(r_end>profile.lnrho.XMax()){
+      r_end = profile.lnrho.XMax();
       finish=true;
     }
 

@@ -55,9 +55,10 @@ class Profile{
     lnrho = lnrho.copy_logy();
     
     // normalize the lab-frame neutrino energy relative to the start of the calculation
-    assert(rmin >= lnrho.XMin());
-    assert(rmin <= lnrho.XMax());
-    double startval = Elab_Elab0(rmin);
+    double rstart = max(rmin, lnrho.XMin());
+    assert(rstart >= lnrho.XMin());
+    assert(rstart <= lnrho.XMax());
+    double startval = Elab_Elab0( rstart );
     for(size_t i=0; i<Elab_Elab0.data.size(); i++)
       Elab_Elab0.data[i] /= startval;
 
