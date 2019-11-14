@@ -15,7 +15,7 @@ MODINC="-I ./"
 #it by yourself.
 #See README file for compiling HDF5
 
-#HDF5DIR=/usr/local/hdf5-1.8.17_gnu-5.4.0/hdf5
+HDF5_DIR=/usr/local/hdf5-1.8.20_gnu7.3.0
 HDF5INCS=-I$(HDF5_DIR)/include
 HDF5LIBS=-L$(HDF5_DIR)/lib -lhdf5 -lhdf5_fortran -lhdf5 -lz -Wl,-rpath=$(HDF5_DIR)/lib
 
