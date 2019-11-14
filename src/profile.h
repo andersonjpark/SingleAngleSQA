@@ -37,11 +37,11 @@ class Profile{
     file.openDataSet("ct(cm)"    ).read(&x[0],    H5::PredType::NATIVE_DOUBLE);
 
     if(do_SR) file.openDataSet("Ecom_Elab" ).read(&data[0], H5::PredType::NATIVE_DOUBLE);
-    else for(int i=0; i<data.size(); i++) data[i] = 1.;
+    else for(size_t i=0; i<data.size(); i++) data[i] = 1.;
     Ecom_Elab.SetData(x, data);
 
     if(do_GR) file.openDataSet("Elab_Elab0").read(&data[0], H5::PredType::NATIVE_DOUBLE);
-    else for(int i=0; i<data.size(); i++) data[i] = 1.;
+    else for(size_t i=0; i<data.size(); i++) data[i] = 1.;
     Elab_Elab0.SetData(x, data);
 
     file.openDataSet("Ye"        ).read(&data[0], H5::PredType::NATIVE_DOUBLE);

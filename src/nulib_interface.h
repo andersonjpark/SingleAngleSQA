@@ -354,11 +354,16 @@ public:
 	// only return annihilation kernels
 	// cm^3/s
 	array<double,KMOMENTS> Phi_pair(int s, double E /*erg*/, double Ebar /*erg*/){
-		const double Terg = eos_variables[1]*1e6*cgs::units::eV;
+	        const double TMeV = eos_variables[1];
+		const double Terg = TMeV*1e6*cgs::units::eV;
 		const double X    = E    / Terg;
 		const double Xbar = Ebar / Terg;
 		const int s_nulib = s+1; // Fortran indexing
 		const int pro_or_ann = 2; // annihilation
+		const double rho = eos_variables[0];
+		const double ndens = rho / __nulib_MOD_m_ref; // total number density
+		const double Xn = eos_variables[6];
+		const double Xp = eos_variables[7];
 
 		array<double,2> Phi;
 		Phi[0] = 0;
@@ -373,19 +378,46 @@ public:
 			for(int mom=0; mom<KMOMENTS; mom++)
 			  Phi[mom] += epannihil_phi_bruenn_(&X, &Xbar, &eta, &s_nulib, &pro_or_ann, &mom);
 		}
+		else{
+			assert(!__nulib_MOD_add_anue_kernel_epannihil);
+			assert(!__nulib_MOD_add_numu_kernel_epannihil);
+			assert(!__nulib_MOD_add_anumu_kernel_epannihil);
+			assert(!__nulib_MOD_add_nutau_kernel_epannihil);
+			assert(!__nulib_MOD_add_anutau_kernel_epannihil);
+		}
+
 		if(__nulib_MOD_add_nue_kernel_bremsstrahlung){
 			assert(__nulib_MOD_add_anue_kernel_bremsstrahlung);
-			assert(__nulib_MOD_add_numu_kernel_bremsstrahlung);
+		        assert(__nulib_MOD_add_numu_kernel_bremsstrahlung);
 			assert(__nulib_MOD_add_anumu_kernel_bremsstrahlung);
 			assert(__nulib_MOD_add_nutau_kernel_bremsstrahlung);
 			assert(__nulib_MOD_add_anutau_kernel_bremsstrahlung);
+			double n_N = -1.;
 
 			// neutron-neutron
-			double ndens = eos_variables[0] / __nulib_MOD_m_ref; // total number density
-			double n_N = ndens * (eos_variables[14] + eos_variables[15]); // eos_variables[14/15] = neutron/proton mass fraction
+			n_N = ndens * Xn;
 			assert(n_N>=0);
 			assert(n_N<=ndens);
-			Phi[0] += bremsstrahlung_phi0_hannestad_(&X, &Xbar, &eos_variables[1], &n_N, &s_nulib, &pro_or_ann);
+			Phi[0] += bremsstrahlung_phi0_hannestad_(&X, &Xbar, &TMeV, &n_N, &s_nulib, &pro_or_ann);
+
+			// proton-proton
+			n_N = ndens * Xp;
+			assert(n_N>=0);
+			assert(n_N<=ndens);
+			Phi[0] += bremsstrahlung_phi0_hannestad_(&X, &Xbar, &TMeV, &n_N, &s_nulib, &pro_or_ann);
+
+			// neutron-proton
+			n_N = ndens * sqrt(Xn*Xp);
+			assert(n_N>=0);
+			assert(n_N<=ndens);
+			Phi[0] += bremsstrahlung_phi0_hannestad_(&X, &Xbar, &TMeV, &n_N, &s_nulib, &pro_or_ann) * 28./3.;
+		}
+		else{
+		        assert(!__nulib_MOD_add_anue_kernel_bremsstrahlung);
+		        assert(!__nulib_MOD_add_numu_kernel_bremsstrahlung);
+			assert(!__nulib_MOD_add_anumu_kernel_bremsstrahlung);
+			assert(!__nulib_MOD_add_nutau_kernel_bremsstrahlung);
+			assert(!__nulib_MOD_add_anutau_kernel_bremsstrahlung);
 		}
 
 		// convert to cm^3/s

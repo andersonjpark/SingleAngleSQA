@@ -1,6 +1,20 @@
 #ifndef PARAMETERS_H
 #define PARAMETERS_H
 
+//=======================//
+// CHANGEABLE PARAMETERS //
+//=======================//
+
+// assume isotropy
+const bool ASSUME_ISOTROPY = false;
+
+// number of energy bins, min and max energy
+const int NE = 12;
+
+//=========================//
+// DON'T CHANGE BELOW HERE //
+//=========================//
+
 const int NMOMENTS=3; // number of background moments
 const int KMOMENTS=2; // number of kernel moments
 
@@ -20,9 +34,6 @@ solution operator++(solution &n,int){ solution tmp=n; n=(solution)( (int)n+1 ); 
 // number of parametrs needed to describe neutrino S matrix
 const int NY=6; 
 const array<array<double,NY>,NS> YIdentity{array<double,NY>{M_PI/2., M_PI/2., 0., 1., 0., 0.},array<double,NY>{M_PI/2., M_PI/2., 0., 1., 0., 0.}};
-
-// number of energy bins, min and max energy
-const int NE = 16;
 
 const double M_2PI = 2.*M_PI;
 const complex<double> I = 1i;
