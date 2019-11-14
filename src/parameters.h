@@ -35,9 +35,6 @@ solution operator++(solution &n,int){ solution tmp=n; n=(solution)( (int)n+1 ); 
 const int NY=6; 
 const array<array<double,NY>,NS> YIdentity{array<double,NY>{M_PI/2., M_PI/2., 0., 1., 0., 0.},array<double,NY>{M_PI/2., M_PI/2., 0., 1., 0., 0.}};
 
-// number of energy bins, min and max energy
-const int NE = 12;
-
 const double M_2PI = 2.*M_PI;
 const complex<double> I = 1i;
 // units, etc
