@@ -75,8 +75,7 @@ int main(int argc, char *argv[]){
   // load the nulib table
   const string input_directory = get_parameter<string>(fin,"input_directory");
   const string eosfilename = get_parameter<string>(fin, "eosfilename");
-  const double rmin = get_parameter<double>(fin, "rmin"); // cm
-  const double rmax = get_parameter<double>(fin, "rmax"); // cm
+  const double rhostart = get_parameter<double>(fin, "rhostart"); // cm
   const double dr0 = get_parameter<double>(fin, "dr0"); // cm
   const double dr_block_max = get_parameter<double>(fin, "dr_block_max"); // cm
   const double accuracy = get_parameter<double>(fin, "accuracy");
@@ -88,7 +87,7 @@ int main(int argc, char *argv[]){
   const double increase = get_parameter<double>(fin, "increase");
   fin.close();
 
-  Profile profile(input_directory, rmin, do_SR, do_GR);
+  Profile profile(input_directory, rhostart, do_SR, do_GR);
   read_eos_table_((char*)eosfilename.c_str());
   cout << "m_ref = " << __nulib_MOD_m_ref << " (939=m_n for LS, 931=m_amu for Hempel)" << endl;
 

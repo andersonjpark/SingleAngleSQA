@@ -16,7 +16,7 @@ class Profile{
   array<double,NE> Ecom, Etopcom; // erg
   double rstart;
 
-  Profile(string inputfile, double rmin, bool do_SR, bool do_GR){
+  Profile(string inputfile, double rhostart, bool do_SR, bool do_GR){
     H5::H5File file(inputfile, H5F_ACC_RDONLY );
 
     // get the dimenions of the dataset
@@ -55,8 +55,21 @@ class Profile{
     lnrho.SetData(x, data);
     lnrho = lnrho.copy_logy();
     
+    // get the starting radius
+    rstart = lnrho.XMin();
+    for(size_t i=0; i<lnrho.data.size(); i++){
+      if(lnrho.data[i] >= log(rhostart)){
+	cout << i << " " << lnrho.data[i] << " " << log(rhostart) << endl;
+	double dr = lnrho.x[i+1] - lnrho.x[i];
+	double dlogrho = lnrho.data[i+1] - lnrho.data[i];
+	if(abs(dlogrho)>0 and i<lnrho.x.size()-1){
+	  rstart = lnrho.x[i] + (log(rhostart)-lnrho.data[i]) * dr/dlogrho;
+	}
+	else rstart = lnrho.x[i];
+      }
+    }
+
     // normalize the lab-frame neutrino energy relative to the start of the calculation
-    rstart = max(rmin, lnrho.XMin());
     assert(rstart >= lnrho.XMin());
     assert(rstart <= lnrho.XMax());
     double startval = Elab_Elab0( rstart );
