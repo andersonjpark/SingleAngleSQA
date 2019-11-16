@@ -96,7 +96,7 @@ int main(int argc, char *argv[]){
   // quantities evaluated at inital point *
   // **************************************
 
-  State s(profile, profile.lnrho.XMin());
+  State s(profile, profile.rstart);
   s.update_background(profile, s);
   s.initialize(profile.Dens_unosc);
   s.update_potential(profile,s);
