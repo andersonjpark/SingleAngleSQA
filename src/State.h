@@ -345,11 +345,11 @@ public:
 			for(state m=matter; m<=antimatter; m++){
 				fmatrixf[m][i] = MATRIX<complex<double>,NF,NF>();
 				for(flavour f=e; f<=mu; f++){
-					double D = D_unosc[m][i][f](r);
-					double V = Vphase(i,Etop);
-					fmatrixf[m][i][f][f] = D / V;
-					assert(abs(fmatrixf[m][i][f][f]) >= 0);
-					assert(abs(fmatrixf[m][i][f][f]) <= 1);
+				  //double D = D_unosc[m][i][f](r);
+				  //double V = Vphase(i,Etop);
+				  fmatrixf[m][i][f][f] = 1.e-200; //D / V;
+				  assert(abs(fmatrixf[m][i][f][f]) >= 0);
+				  assert(abs(fmatrixf[m][i][f][f]) <= 1);
 				}
 			}
 
