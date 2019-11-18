@@ -138,6 +138,7 @@ int main(int argc, char *argv[]){
       s.assert_noNaN(accuracy);
       s.r = sBlockStart.r;
       evolve_interactions(s, s0, sBlockStart, r_end, dr_int, profile, accuracy, increase, impact);
+      s.assert_noNaN(accuracy);
     }
 
     // output data
