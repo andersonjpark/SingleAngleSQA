@@ -29,7 +29,6 @@ void evolve_oscillations(State& s,
 			for(int k=0;k<=NRK-1;k++){
 				s = sReset;
 				s.r +=AA[k]* dr;
-
 				for(state m = matter; m <= antimatter; m++)
 					for(int i=0;i<=NE-1;i++)
 						for(solution x=msw;x<=si;x++)
@@ -148,16 +147,21 @@ void evolve_interactions(State& s,
 						s.fmatrixf[m][i] += dfdr[k][m][i] * CC[k] * dr;
 						ferror += dfdr[k][m][i] * (CC[k]-DD[k]) * dr;
 					}
-					for(int f1=e; f1<=mu; f1++)
-						for(int f2=e; f2<=mu; f2++)
-							maxerror = max(maxerror, fabs(ferror[f1][f2]));
+					for(int f1=e; f1<=mu; f1++){
+					  if(real(s.fmatrixf[m][i][f1][f1])<0. or real(s.fmatrixf[m][i][f1][f1])>1.){
+					    maxerror = 1.;
+					  }
+					  for(int f2=e; f2<=mu; f2++){
+					    maxerror = max(maxerror, fabs(ferror[f1][f2]));
+					  }
+					}
 				}
 			}
 			s.update_background(profile, s0);
 
 			// decide whether to accept step, if not adjust step size
 			if(maxerror>accuracy){
-				dr *= 0.9 * pow(accuracy/maxerror, 1./(NRKOrder-1.));
+			        dr /= increase;
 				if(dr > 4.*s.r*numeric_limits<double>::epsilon()) repeat=true;
 			}
 
