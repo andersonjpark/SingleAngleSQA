@@ -9,7 +9,7 @@ class Profile{
   DISCONTINUOUS Ye;
   DISCONTINUOUS temperature; // MeV
   DISCONTINUOUS Ecom_Elab;
-  DISCONTINUOUS Elab_Elab0;
+  DISCONTINUOUS Elab_Elabstart;
   array<array<array<DISCONTINUOUS,NF>,NE>,NM> Dens_unosc;
   array<array<array<DISCONTINUOUS,NF>,NE>,NM> Flux_unosc;
   array<array<array<DISCONTINUOUS,NF>,NE>,NM> Pres_unosc;
@@ -43,7 +43,7 @@ class Profile{
 
     if(do_GR) file.openDataSet("Elab_Elab0").read(&data[0], H5::PredType::NATIVE_DOUBLE);
     else for(size_t i=0; i<data.size(); i++) data[i] = 1.;
-    Elab_Elab0.SetData(x, data);
+    Elab_Elabstart.SetData(x, data);
 
     file.openDataSet("Ye"        ).read(&data[0], H5::PredType::NATIVE_DOUBLE);
     Ye.SetData(x, data);
@@ -72,9 +72,9 @@ class Profile{
     // normalize the lab-frame neutrino energy relative to the start of the calculation
     assert(rstart >= lnrho.XMin());
     assert(rstart <= lnrho.XMax());
-    double startval = Elab_Elab0( rstart );
-    for(size_t i=0; i<Elab_Elab0.data.size(); i++)
-      Elab_Elab0.data[i] /= startval;
+    double startval = Elab_Elabstart( rstart );
+    for(size_t i=0; i<Elab_Elabstart.data.size(); i++)
+      Elab_Elabstart.data[i] /= startval;
 
     // load and compute spectral data
     double Ndens[ns][ng][nr];

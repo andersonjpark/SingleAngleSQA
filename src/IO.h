@@ -10,7 +10,7 @@ class FilePointers{
  public:
   hid_t file;
   hid_t dset_f, dset_S, dset_U, dset_r, dset_dr_osc, dset_dr_int, dset_dr_block,
-    dset_rho, dset_Ye, dset_T, dset_VfSI, dset_dtdrO, dset_dtdrI, dset_dpdrO, dset_dpdrI, dset_Elab_Elab0;
+    dset_rho, dset_Ye, dset_T, dset_VfSI, dset_dtdrO, dset_dtdrI, dset_dpdrO, dset_dpdrI, dset_Elab_Elabstart;
   const hsize_t       dims[6]   = {0,             NM, NE, NF, NF, 2};
   const hsize_t   max_dims[6]   = {H5S_UNLIMITED, NM, NE, NF, NF, 2};
   const hsize_t chunk_dims[6]   = {1,             NM, NE, NF, NF, 2};
@@ -77,7 +77,7 @@ FilePointers setup_HDF5_file(const array<double,NE>& E, const array<double,NE>& 
   H5Dcreate(fp.file, "rho(g|ccm)", H5T_NATIVE_DOUBLE, file_space, H5P_DEFAULT, plist, H5P_DEFAULT);
   H5Dcreate(fp.file, "Ye", H5T_NATIVE_DOUBLE, file_space, H5P_DEFAULT, plist, H5P_DEFAULT);
   H5Dcreate(fp.file, "T(MeV)", H5T_NATIVE_DOUBLE, file_space, H5P_DEFAULT, plist, H5P_DEFAULT);
-  H5Dcreate(fp.file, "Elab_Elab0", H5T_NATIVE_DOUBLE, file_space, H5P_DEFAULT, plist, H5P_DEFAULT);
+  H5Dcreate(fp.file, "Elab_Elabstart", H5T_NATIVE_DOUBLE, file_space, H5P_DEFAULT, plist, H5P_DEFAULT);
   fp.dset_r        = H5Dopen(fp.file, "r(cm)", H5P_DEFAULT);
   fp.dset_dr_osc   = H5Dopen(fp.file, "dr_osc(cm)", H5P_DEFAULT);
   fp.dset_dr_int   = H5Dopen(fp.file, "dr_int(cm)", H5P_DEFAULT);
@@ -85,7 +85,7 @@ FilePointers setup_HDF5_file(const array<double,NE>& E, const array<double,NE>& 
   fp.dset_rho      = H5Dopen(fp.file, "rho(g|ccm)", H5P_DEFAULT);
   fp.dset_Ye       = H5Dopen(fp.file, "Ye", H5P_DEFAULT);
   fp.dset_T        = H5Dopen(fp.file, "T(MeV)", H5P_DEFAULT);
-  fp.dset_Elab_Elab0 = H5Dopen(fp.file, "Elab_Elab0", H5P_DEFAULT);
+  fp.dset_Elab_Elabstart = H5Dopen(fp.file, "Elab_Elabstart", H5P_DEFAULT);
   
   
   // energy grid //
@@ -118,7 +118,7 @@ void write_data_HDF5(FilePointers& fp, const State& s, double dr_osc, double dr_
   cout << s.T << "\t";
   cout << eas.eta << "\t";
   cout << eas.munue_kT << "\t";
-  cout << s.Elab_Elab0 << "\t";
+  cout << s.Elab_Elabstart << "\t";
   cout << s.Ecom_Elab << "\t";
   cout << dr_osc << "\t";
   cout << dr_int << "\t";
@@ -223,11 +223,11 @@ void write_data_HDF5(FilePointers& fp, const State& s, double dr_osc, double dr_
   H5Sselect_hyperslab(file_space, H5S_SELECT_SET, start, NULL, fp.chunk_dims, NULL);
   H5Dwrite(fp.dset_T, H5T_NATIVE_DOUBLE, mem_space, file_space, H5P_DEFAULT, &s.T);
 
-  // Elab_Elab0
-  H5Dset_extent(fp.dset_Elab_Elab0, dims);
-  file_space = H5Dget_space(fp.dset_Elab_Elab0);
+  // Elab_Elabstart
+  H5Dset_extent(fp.dset_Elab_Elabstart, dims);
+  file_space = H5Dget_space(fp.dset_Elab_Elabstart);
   H5Sselect_hyperslab(file_space, H5S_SELECT_SET, start, NULL, fp.chunk_dims, NULL);
-  H5Dwrite(fp.dset_Elab_Elab0, H5T_NATIVE_DOUBLE, mem_space, file_space, H5P_DEFAULT, &s.Elab_Elab0);
+  H5Dwrite(fp.dset_Elab_Elabstart, H5T_NATIVE_DOUBLE, mem_space, file_space, H5P_DEFAULT, &s.Elab_Elabstart);
 
   // free resources
   H5Sclose(file_space);

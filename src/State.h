@@ -10,7 +10,7 @@
 
 class State{
 public:
-	double Ecom_Elab, Elab_Elab0;
+	double Ecom_Elab, Elab_Elabstart;
 	double r;
 	double rho, T, Ye; // g/ccm, MeV
 
@@ -47,7 +47,7 @@ public:
 		Ye=NAN;
 		r=rmin;
 		Ecom_Elab=profile.Ecom_Elab(r);
-		Elab_Elab0=NAN;
+		Elab_Elabstart=NAN;
 
 		// set energy bins to match the profile at rmin in the comoving frame
 		cout << endl;
@@ -98,11 +98,11 @@ public:
 		T = profile.temperature(r);
 		Ye = profile.Ye(r);
 		Ecom_Elab = profile.Ecom_Elab(r);
-		Elab_Elab0 = profile.Elab_Elab0(r);
+		Elab_Elabstart = profile.Elab_Elabstart(r);
 
 		for(int i=0; i<NE; i++){
-			E[i]       = s0.E[i]    * Elab_Elab0;
-			Etop[i]    = s0.Etop[i] * Elab_Elab0;
+			E[i]       = s0.E[i]    * Elab_Elabstart;
+			Etop[i]    = s0.Etop[i] * Elab_Elabstart;
 			Ecom[i]    = E[i]       * Ecom_Elab;
 			Etopcom[i] = Etop[i]    * Ecom_Elab;
 		}
@@ -115,7 +115,7 @@ public:
 		array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> VfVac = Evaluate_VfVac(kV,UV);
 
 		// derivative of vacuum potential (which is proportional to 1/E)
-		double VfVac_derivative_fac = -profile.Elab_Elab0.Derivative(r) / Elab_Elab0;
+		double VfVac_derivative_fac = -profile.Elab_Elabstart.Derivative(r) / Elab_Elabstart;
 
 		// Matter Potential
 		array<MATRIX<complex<double>,NF,NF>,NM> VfMatter, dVfMatterdr;
