@@ -294,26 +294,38 @@ public:
 	// SCATTERING KERNEL //
 	//===================//
 	// returns out-scattering rate from Ein to Eout.
-	// cm^3/s
-	array<double,KMOMENTS> Phi_scat(int s, double T /*MeV*/,
+	// 1/cm
+	array<double,KMOMENTS> escat_opac(int s, double T /*MeV*/, double Ein /*erg*/){
+		array<double,KMOMENTS> opac;
+		const double EinMeV  = Ein  / (1e6*eV);
+		int s_nulib = s+1;
+		double scatopac, delta;
+		total_scattering_opacity_(&s_nulib, &EinMeV, &scatopac, &delta, &eos_variables[0]);
+
+		opac[0] = scatopac;
+		opac[1] = scatopac *delta;
+
+		assert(opac[0]>=0);
+		assert(fabs(opac[1])<=opac[0]);
+		for(int i=0; i<KMOMENTS; i++){
+			assert(opac[i]==opac[i]);
+			assert(fabs(opac[i]) < std::numeric_limits<double>::infinity() );
+		}
+		return opac;
+	}
+
+
+	array<double,KMOMENTS> Phi_iscat(int s, double T /*MeV*/,
 			double Ein /*erg*/, double Eout /*erg*/,
-			double Vout /*cm^-3*/, bool include_elastic){
+			double Vout /*cm^-3*/){
 		array<double,KMOMENTS> Phi;
 		const double EinMeV  = Ein  / (1e6*eV);
 		const double EoutMeV = Eout / (1e6*eV);
 		int s_nulib = s+1;
 
 		// elastic scattering contribution
-		if(include_elastic){
-			double scatopac, delta;
-			total_scattering_opacity_(&s_nulib, &EinMeV, &scatopac, &delta, &eos_variables[0]);
-			Phi[0] = 2.    * scatopac*clight / Vout;
-			Phi[1] = 2./3. * scatopac*clight / Vout * delta;
-		}
-		else{
-			Phi[0] = 0;
-			Phi[1] = 0;
-		}
+		Phi[0] = 0;
+		Phi[1] = 0;
 
 		// inelastic scattering contribution
 		// only use NuLib to calculate rate for Ein>=Eout as per NuLib suggestion

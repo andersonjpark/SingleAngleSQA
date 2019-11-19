@@ -158,7 +158,9 @@ Kinteract(const State& s, const State& s0, const Profile& profile){
 			// intermediate variables
 			MATRIX<complex<double>,NF,NF> block, Pi_plus, Pi_minus, tmp;
 			array<MATRIX<double,NF,NF>,KMOMENTS> Phi, PhiAvg,  PhiTilde;
+			array<MATRIX<double,NF,NF>,KMOMENTS> opac, opacAvg, opacTilde;
 			array<double,KMOMENTS> Phi_e, Phi_x;
+			array<double,KMOMENTS> opac_e, opac_x;
 			double conv_to_in_rate;
 
 			//=========================//
@@ -173,16 +175,46 @@ Kinteract(const State& s, const State& s0, const Profile& profile){
 					dfdr[m][i][f1][f2] -= kappa_abs_avg[f1][f2] * s.fmatrixf[m][i][f1][f2];
 
 
+			// get elastic scattering rates
+			// also do elastic out-scattering
+			opac_e = eas.escat_opac(se, s.T, s.Ecom[i]);
+			opac_x = eas.escat_opac(sx, s.T, s.Ecom[i]);
+			for(int mom=0; mom<KMOMENTS; mom++){
+			  opacAvg[mom]   = avg_matrix(  opac_e[mom], opac_x[mom]);
+			  opacTilde[mom] = tilde_matrix(opac_e[mom], opac_x[mom]);
+			  opac[mom] = opacAvg[mom] - opacTilde[mom];
+			}
+			double Vi = Vphase(i, s.Etopcom); // cm^-3
+			for(flavour f1=e; f1<=mu; f1++)
+				for(flavour f2=e; f2<=mu; f2++)
+				  dfdr[m][i][f1][f2] -= s.fmatrixf[m][i][f1][f2] * opacAvg[0][f1][f2];
+
 			// scattering and pair annihilation
 			for(int j=0; j<NE; j++){
-				double Vj = Vphase(j, s0.Etop); // cm^-3
+				double Vj = Vphase(j, s0.Etopcom); // cm^-3
 
-				//============//
-				// scattering //
-				//============//
-				bool include_elastic = (j == s0.find_bin(s.Ecom[i])); // E[i] is inside current background energy bin j
-				Phi_e = eas.Phi_scat(se, s.T, s.Ecom[i], s0.Ecom[j], Vj, include_elastic); // cm^3/s
-				Phi_x = eas.Phi_scat(sx, s.T, s.Ecom[i], s0.Ecom[j], Vj, include_elastic); // cm^3/s
+				//====================//
+				// elastic scattering //
+				//====================//
+				double Voverlap = Vphase_overlap(Ebottom(i, s.Etopcom),  s.Etopcom[i],
+								 Ebottom(j,s0.Etopcom), s0.Etopcom[j]);
+				for(flavour f1=e; f1<=mu; f1++){
+				  for(flavour f2=e; f2<=mu; f2++){
+
+				    complex<double> in_rate =
+				      MBackground[m][j][0][f1][f2]/Vj * opac[0][f1][f2] +
+				      MBackground[m][j][1][f1][f2]/Vj * opac[1][f1][f2];
+
+				    dfdr[m][i][f1][f2] += in_rate * Voverlap/Vi;
+				  }
+				}
+
+
+				//======================//
+				// inelastic scattering //
+				//======================//
+				Phi_e = eas.Phi_iscat(se, s.T, s.Ecom[i], s0.Ecom[j], Vj); // cm^3/s
+				Phi_x = eas.Phi_iscat(sx, s.T, s.Ecom[i], s0.Ecom[j], Vj); // cm^3/s
 				for(int mom=0; mom<KMOMENTS; mom++){
 					PhiAvg[mom]   = avg_matrix(  Phi_e[mom], Phi_x[mom]);
 					PhiTilde[mom] = tilde_matrix(Phi_e[mom], Phi_x[mom]);
