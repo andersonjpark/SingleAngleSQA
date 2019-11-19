@@ -226,9 +226,18 @@ public:
 				assert(total_overlap_fraction < 1.+1e-6);
 				assert(total_overlap_fraction >= 0);
 				if(total_overlap_fraction < 1.-1e-6){
-					assert(s0.Etop[i0] > Etop[NE-1]);
+					assert(s0.Etop[i0] > Etop[NE-1]*Ecom_Elab);
 					for(int mom=0; mom<NMOMENTS; mom++)
 						MBackground[m][i0][mom] += Sf[m][NE-1]*unosc_moment[mom]*Adjoint(Sf[m][NE-1]) * (1.-total_overlap_fraction);
+				}
+
+				// check that it's reasonable
+				for(flavour f1=e; f1<=mu; f1++){
+				  for(flavour f2=e; f2<=mu; f2++){
+				    assert(abs(MBackground[m][i0][0][f1][f1])/V0 <= 1.);
+				  }
+				  assert(real(MBackground[m][i0][0][f1][f1])/V0 >= 0.);
+				  assert(real(MBackground[m][i0][0][f1][f1])/V0 <= 1.);
 				}
 			}
 		}

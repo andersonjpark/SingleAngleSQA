@@ -113,10 +113,6 @@ double Vphase_overlap_comoving(int i0, const array<double,NE>& Etop0,
   double Etop_fromCom = Etop0[i0];
   double Ebottom_fromCom = Ebottom(i0, Etop0);
 
-  // extend fromLab grid out to end of comoving grid
-  // so S maps onto whole comoving bin
-  if(ilab==NE-1) Etop_fromLab = max(Etop_fromLab, Etop_fromCom);
-
   // get the phase space overlap
   double V_overlap = Vphase_overlap(Ebottom_fromLab, Etop_fromLab, Ebottom_fromCom, Etop_fromCom);
   assert(V_overlap <= Vphase(i0,Etop0));
