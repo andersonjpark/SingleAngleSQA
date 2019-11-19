@@ -97,28 +97,4 @@ double Vphase_overlap(double Elow1, double Ehi1, double Elow2, double Ehi2){ // 
   else return Vphase(Elow, Ehi);
 }
 
-double Vphase_overlap_comoving(int i0, const array<double,NE>& Etop0,
-			       int ilab, const array<double,NE>& Etop_lab,
-			       double Ecom_Elab){ // cm^-3
-  assert(i0>=0);
-  assert(i0<NE);
-  assert(ilab>=0);
-  assert(ilab<NE);
-
-  // compute top and bottom energies in the comoving frame
-  double Etop_fromLab = Etop_lab[ilab] * Ecom_Elab;
-  double Ebottom_fromLab = Ebottom(ilab, Etop_lab) * Ecom_Elab;
-
-  // grab the top and bottom energies from E0
-  double Etop_fromCom = Etop0[i0];
-  double Ebottom_fromCom = Ebottom(i0, Etop0);
-
-  // get the phase space overlap
-  double V_overlap = Vphase_overlap(Ebottom_fromLab, Etop_fromLab, Ebottom_fromCom, Etop_fromCom);
-  assert(V_overlap <= Vphase(i0,Etop0));
-  return V_overlap;
-}
-
-
-
 #endif

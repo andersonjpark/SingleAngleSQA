@@ -144,7 +144,7 @@ Kinteract(const State& s, const State& s0, const Profile& profile){
 	array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> dfdr;
 
 	// get oscillated background density
-	array<array<array<MATRIX<complex<double>,NF,NF>,NMOMENTS>,NE>,NM> MBackground = s.oscillated_moments(profile, s0);
+	array<array<array<MATRIX<complex<double>,NF,NF>,NMOMENTS>,NE>,NM> MBackground = s.oscillated_moments(profile, s0.Etopcom);
 
 #pragma omp parallel for collapse(2)
 	for(int m=matter; m<=antimatter; m++){

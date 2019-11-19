@@ -160,7 +160,7 @@ public:
 			}
 		}
 
-		array<array<array<MATRIX<complex<double>,NF,NF>,NMOMENTS>,NE>,NM> MBackground = oscillated_moments(profile, s0);
+		array<array<array<MATRIX<complex<double>,NF,NF>,NMOMENTS>,NE>,NM> MBackground = oscillated_moments(profile, s0.Etopcom);
 
 		// calculate the self-interaction potential
 		for(int m=matter; m<=antimatter; m++){
@@ -182,44 +182,48 @@ public:
 	// OSCILLATED MOMENTS //
 	//====================//
 	// oscillate moments, keeping the moments' comoving-frame energy grid
-	array<array<array<MATRIX<complex<double>,NF,NF>,NMOMENTS>,NE>,NM> oscillated_moments(const Profile& profile, const State& s0) const{
+	array<array<array<MATRIX<complex<double>,NF,NF>,NMOMENTS>,NE>,NM> oscillated_moments(const Profile& profile, const array<double,NE>& Etopbkgcom) const{
 
 		array<array<array<MATRIX<complex<double>,NF,NF>,NMOMENTS>,NE>,NM> MBackground;
 
 #pragma omp parallel for collapse(2)
 		for(int m=matter; m<=antimatter; m++){
-			for(int i0=0; i0<NE; i0++){
-				double V0 = Vphase(i0, s0.Etop);
+			for(int ibkg=0; ibkg<NE; ibkg++){
+				double V0 = Vphase(ibkg, Etopbkgcom);
 
 				// fill in the un-oscillated diagonals
 				array<MATRIX<complex<double>,NF,NF>,NMOMENTS> unosc_moment;
 				for(flavour f=e; f<=mu; f++){
-					unosc_moment[0][f][f] += profile.Dens_unosc[m][i0][f](r);
-					unosc_moment[1][f][f] += profile.Flux_unosc[m][i0][f](r);
-					unosc_moment[2][f][f] += profile.Pres_unosc[m][i0][f](r);
+					unosc_moment[0][f][f] += profile.Dens_unosc[m][ibkg][f](r);
+					unosc_moment[1][f][f] += profile.Flux_unosc[m][ibkg][f](r);
+					unosc_moment[2][f][f] += profile.Pres_unosc[m][ibkg][f](r);
 				}
 
 				double total_overlap_fraction = 0; // should end up being 1
-				for(int ilab=0; ilab<NE; ilab++){
-					assert( abs(Trace(Sf[m][ilab]*Adjoint(Sf[m][ilab])) - (double)NF) < 1e-5);
+				for(int itraj=0; itraj<NE; itraj++){
+					assert( abs(Trace(Sf[m][itraj]*Adjoint(Sf[m][itraj])) - (double)NF) < 1e-5);
 
-					// calculate fraction of bin i0 that overlaps with bin ilab
-					double V_overlap = Vphase_overlap_comoving(i0, s0.Etop, ilab, Etop, Ecom_Elab);
+					// calculate fraction of bin ibkg that overlaps with bin itraj
+					double Elow1 = Ebottom(ibkg, Etopbkgcom);
+					double Elow2 = Ebottom(itraj, Etopcom);
+					double Ehi1 = Etopbkgcom[ibkg];
+					double Ehi2 = Etopcom[itraj];
+					double V_overlap = Vphase_overlap(Elow1, Ehi1, Elow2, Ehi2);
 
 					// calculate contribution to the moments due to this overlapping
-					// segment of bin i0, oscillating it with Sf from bin ilab
+					// segment of bin ibkg, oscillating it with Sf from bin itraj
 					// oscillate the moments
 					if(V_overlap>0){
 					  double overlap_fraction = V_overlap / V0;
 					  total_overlap_fraction += overlap_fraction;
 
 					  if(ASSUME_ISOTROPY){
-					    MBackground[m][i0][0] += fmatrixf[m][ilab] * V_overlap;
-					    MBackground[m][i0][1] += MBackground[m][i0][0] * 0;
-					    MBackground[m][i0][2] += MBackground[m][i0][0] * 1./3.;
+					    MBackground[m][ibkg][0] += fmatrixf[m][itraj] * V_overlap;
+					    MBackground[m][ibkg][1] += MBackground[m][ibkg][0] * 0;
+					    MBackground[m][ibkg][2] += MBackground[m][ibkg][0] * 1./3.;
 					  }
 					  else for(int mom=0; mom<NMOMENTS; mom++)
-						 MBackground[m][i0][mom] += Sf[m][ilab]*unosc_moment[mom]*Adjoint(Sf[m][ilab]) * overlap_fraction;
+						 MBackground[m][ibkg][mom] += Sf[m][itraj]*unosc_moment[mom]*Adjoint(Sf[m][itraj]) * overlap_fraction;
 					}
 				}
 
@@ -227,18 +231,24 @@ public:
 				assert(total_overlap_fraction < 1.+1e-6);
 				assert(total_overlap_fraction >= 0);
 				if(total_overlap_fraction < 1.-1e-6){
-					assert(s0.Etop[i0] > Etop[NE-1]*Ecom_Elab);
+					assert(Etopbkgcom[ibkg] > Etopcom[NE-1]);
 					for(int mom=0; mom<NMOMENTS; mom++)
-						MBackground[m][i0][mom] += Sf[m][NE-1]*unosc_moment[mom]*Adjoint(Sf[m][NE-1]) * (1.-total_overlap_fraction);
+						MBackground[m][ibkg][mom] += Sf[m][NE-1]*unosc_moment[mom]*Adjoint(Sf[m][NE-1]) * (1.-total_overlap_fraction);
 				}
 
 				// check that it's reasonable
+				for(int mom=0; mom<NMOMENTS; mom++){
+				  double Tr_unosc = abs(Trace(unosc_moment[mom]));
+				  double Tr_osc   = abs(Trace(MBackground[m][ibkg][mom]));
+				  if(Tr_unosc>0)
+				    assert( abs(Tr_osc-Tr_unosc)/Tr_unosc -1. < 1e-6);
+				}
 				for(flavour f1=e; f1<=mu; f1++){
 				  for(flavour f2=e; f2<=mu; f2++){
-				    assert(abs(MBackground[m][i0][0][f1][f1])/V0 <= 1.);
+				    assert(abs(MBackground[m][ibkg][0][f1][f1])/V0 <= 1.);
 				  }
-				  assert(real(MBackground[m][i0][0][f1][f1])/V0 >= 0.);
-				  assert(real(MBackground[m][i0][0][f1][f1])/V0 <= 1.);
+				  assert(real(MBackground[m][ibkg][0][f1][f1])/V0 >= 0.);
+				  assert(real(MBackground[m][ibkg][0][f1][f1])/V0 <= 1.);
 				}
 			}
 		}
