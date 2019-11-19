@@ -128,7 +128,7 @@ MATRIX<complex<double>,NF,NF>
   
   for(int j=0;j<=NF-1;j++){
     if(j==0) d = -dk[0]; // first column 
-    if(j==1) d =  dk[0]; // second column
+    else     d =  dk[0]; // second column
     
     r2[e]  = real(C[j][e ][e ])*d;
     r2[mu] = real(C[j][mu][mu])*d;
@@ -352,7 +352,7 @@ array<array<array<double,NF>,NF>,NE>
   for(int i=0;i<=NE-1;i++){
     for(int j=0;j<=NF-1;j++){
       if(j==0) Delta=(kV[i][1]-kV[i][0]);
-      if(j==1) Delta=(kV[i][0]-kV[i][1]);
+      else     Delta=(kV[i][0]-kV[i][1]);
       
       double re2=Delta*real(C<e,e>(VfVac[matter][i],kV[i][j]));
       double rmu2=Delta*real(C<mu,mu>(VfVac[matter][i],kV[i][j]));
