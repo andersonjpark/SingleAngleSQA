@@ -3,6 +3,7 @@
 #include <string>
 #include "H5Cpp.h"
 #include "State.h"
+#include <iomanip>
 using namespace std;
 
 
@@ -101,29 +102,81 @@ FilePointers setup_HDF5_file(const array<double,NE>& E, const array<double,NE>& 
   H5Pclose(plist);
   H5Fflush(fp.file,H5F_SCOPE_LOCAL);
 
-  // preliminary stdout
-  cout << "r(km) \t rho(g/ccm) \t Ye \t T(MeV) \t eta \t munue_kT \t grav_redshift \t vel_redshift \t dr_osc(cm) \t dr_int(cm) \t dr_block(cm)" << endl;
-  
   return fp;
 }
 
 //============//
 // write_data //
 //============//
-void write_data_HDF5(FilePointers& fp, const State& s, double dr_osc, double dr_int, double dr_block){
+void write_data_HDF5(FilePointers& fp, const State& s, double dr_osc, double dr_int, double dr_block, bool do_header){
   // output to stdout
-  cout << s.r/1e5 << "\t";
-  cout << s.rho << "\t";
-  cout << s.Ye << "\t";
-  cout << s.T << "\t";
-  cout << eas.eta << "\t";
-  cout << eas.munue_kT << "\t";
-  cout << s.Elab_Elabstart << "\t";
-  cout << s.Ecom_Elab << "\t";
-  cout << dr_osc << "\t";
-  cout << dr_int << "\t";
-  cout << dr_block << "\t";
+  int colwidth = 11;
+  int precision = 4;
+
+  // integrate neutrino distributions
+  array<array<double,NF>,NM> ndens, ndensE;
+  for(int i=0; i<NE; i++){
+    double vol = 4.*M_PI * Vphase(i,s.Etop);
+    for(state m=matter; m<=antimatter; m++){
+      for(flavour f=e; f<=mu; f++){
+	ndens[m][f]  += real(s.fmatrixf[m][i][f][f]) * vol;
+	ndensE[m][f] += real(s.fmatrixf[m][i][f][f]) * vol * s.E[i]/(1e6*cgs::units::eV);
+      }
+    }
+  }
+  
+  // preliminary stdout
+  if(do_header){
+    cout << setw(colwidth) << "r(km)";
+    cout << setw(colwidth) << "rho(g/ccm)";
+    cout << setw(colwidth) << "Ye";
+    cout << setw(colwidth) << "T(MeV)";
+    //cout << setw(colwidth) << "eta(MeV)";
+    //cout << setw(colwidth) << "munue_kT";
+    cout << setw(colwidth) << "grv_rdshft";
+    cout << setw(colwidth) << "vel_rdshft";
+    cout << setw(colwidth) << "dr_osc(cm)";
+    cout << setw(colwidth) << "dr_int(cm)";
+    cout << setw(colwidth) << "dr_blk(cm)";
+    cout << " |";
+    for(int m=matter; m<=antimatter; m++){
+      for(int f=e; f<=mu; f++){
+	string name = string("m")+to_string(m)+string("f")+to_string(f)+string("ndens");
+	cout << setw(colwidth) << name;
+      }
+    }
+    for(int m=matter; m<=antimatter; m++){
+      for(int f=e; f<=mu; f++){
+	string name = string("m")+to_string(m)+string("f")+to_string(f)+string("avgE");
+	cout << setw(colwidth) << name;
+      }
+    }
+    cout << endl;
+  }
+  
+  cout << setw(colwidth) << scientific << setprecision(precision) << s.r/1e5;
+  cout << setw(colwidth) << scientific << setprecision(precision) << s.rho;
+  cout << setw(colwidth) << scientific << setprecision(precision) << s.Ye;
+  cout << setw(colwidth) << scientific << setprecision(precision) << s.T;
+  //cout << setw(colwidth) << scientific << setprecision(precision) << eas.eta;
+  //cout << setw(colwidth) << scientific << setprecision(precision) << eas.munue_kT;
+  cout << setw(colwidth) << scientific << setprecision(precision) << s.Elab_Elabstart;
+  cout << setw(colwidth) << scientific << setprecision(precision) << s.Ecom_Elab;
+  cout << setw(colwidth) << scientific << setprecision(precision) << dr_osc;
+  cout << setw(colwidth) << scientific << setprecision(precision) << dr_int;
+  cout << setw(colwidth) << scientific << setprecision(precision) << dr_block;
   /* cout << impact << endl; */
+  cout << " |";
+  for(int m=matter; m<=antimatter; m++){
+    for(int f=e; f<=mu; f++){
+      cout << setw(colwidth) << scientific << setprecision(precision) << ndens[m][f];
+    }
+  }
+  for(int m=matter; m<=antimatter; m++){
+    for(int f=e; f<=mu; f++){
+      cout << setw(colwidth) << scientific << setprecision(precision) << ndensE[m][f]/ndens[m][f];
+    }
+  }
   cout << endl;
   cout.flush();
 

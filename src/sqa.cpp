@@ -110,12 +110,13 @@ int main(int argc, char *argv[]){
       
   // set up files
   FilePointers fp = setup_HDF5_file(s0.E, s0.Etop);
-  write_data_HDF5(fp, s, dr_osc, dr_int, dr_block);
+  write_data_HDF5(fp, s, dr_osc, dr_int, dr_block, true);
 	
   // ***********************
   // start the loop over r *
   // ***********************
   bool finish = false;
+  size_t iter = 0;
   do{
     double r_end = s.r + dr_block * min(5., exponential_random());
     if(r_end>profile.lnrho.XMax()){
@@ -142,7 +143,8 @@ int main(int argc, char *argv[]){
     }
 
     // output data
-    write_data_HDF5(fp, s,dr_osc, dr_int, dr_block);
+    bool do_header = (++iter)%100==0;
+    write_data_HDF5(fp, s,dr_osc, dr_int, dr_block, do_header);
     
     // timestepping
     if(impact > target_impact)
