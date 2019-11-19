@@ -116,7 +116,7 @@ void write_data_HDF5(FilePointers& fp, const State& s, double dr_osc, double dr_
   // integrate neutrino distributions
   array<array<double,NF>,NM> ndens, ndensE;
   for(int i=0; i<NE; i++){
-    double vol = 4.*M_PI * Vphase(i,s.Etop);
+    double vol = Vphase(i,s.Etop);
     for(state m=matter; m<=antimatter; m++){
       for(flavour f=e; f<=mu; f++){
 	ndens[m][f]  += real(s.fmatrixf[m][i][f][f]) * vol;
