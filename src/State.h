@@ -15,7 +15,7 @@ public:
 	double rho, T, Ye; // g/ccm, MeV
 
 	// energy grid
-	array<double,NE> E, Etop, Ecom; // erg
+	array<double,NE> E, Etop, Ecom, Etopcom; // erg
 
 	// distribution function in the direction of the trajectory
 	// value at the last reset
@@ -54,10 +54,10 @@ public:
 		cout<<"NE="<<NE << "   Ecom0/Elab0=" << Ecom_Elab << endl;
 		cout << "mid(com) \t mid(lab) \t top(lab)" << endl;
 		this->Ecom = profile.Ecom;
+		this->Etopcom = profile.Etopcom;
 		for(int i=0;i<NE;i++){
-			Ecom[i] = profile.Ecom[i];
-			E[i]    = profile.Ecom[i]    / Ecom_Elab;
-			Etop[i] = profile.Etopcom[i] / Ecom_Elab;
+			E[i]    = Ecom[i]    / Ecom_Elab;
+			Etop[i] = Etopcom[i] / Ecom_Elab;
 			cout << Ecom[i] / (1.e6*cgs::units::eV) << " \t ";
 			cout << E[i]    / (1.e6*cgs::units::eV) << " \t ";
 			cout << Etop[i] / (1.e6*cgs::units::eV) << endl;
@@ -101,9 +101,10 @@ public:
 		Elab_Elab0 = profile.Elab_Elab0(r);
 
 		for(int i=0; i<NE; i++){
-			E[i]    = s0.E[i]    * Elab_Elab0;
-			Etop[i] = s0.Etop[i] * Elab_Elab0;
-			Ecom[i] = E[i]       * Ecom_Elab;
+			E[i]       = s0.E[i]    * Elab_Elab0;
+			Etop[i]    = s0.Etop[i] * Elab_Elab0;
+			Ecom[i]    = E[i]       * Ecom_Elab;
+			Etopcom[i] = Etop[i]    * Ecom_Elab;
 		}
 	}
 
