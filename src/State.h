@@ -282,7 +282,9 @@ public:
 				array<double,4> hnew = pauli_decompose(       fmatrixf[m][i]);
 				double oldmag   = sqrt(hold[0]*hold[0] + hold[1]*hold[1] + hold[2]*hold[2]);
 				double newmag   = sqrt(hnew[0]*hnew[0] + hnew[1]*hnew[1] + hnew[2]*hnew[2]);
-				double costheta = (hold[0]*hnew[0] + hold[1]*hnew[1] + hold[2]*hnew[2]) / (newmag*oldmag);
+				double costheta = 0;
+				if(newmag*oldmag>0)
+				  costheta = (hold[0]*hnew[0] + hold[1]*hnew[1] + hold[2]*hnew[2]) / (newmag*oldmag);
 				assert(costheta-1. < 1e-10);
 				costheta = min(1.,costheta);
 				dtheta_dr_osc[i][m] = (acos(hnew[2]/newmag) - acos(hold[2]/oldmag)) / dr;
