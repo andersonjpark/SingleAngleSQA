@@ -204,6 +204,9 @@ void evolve_interactions(State& s,
 			s.dphi_dr_interact[i][m] = (atan2(hnew[1],hnew[0]) - atan2(hold[1],hold[0])) / dr;
 
 			// get the axis of rotation
+			// lrot = hold x hnew
+			// alpha = angle between hold and hnew
+			// http://www.vcpc.univie.ac.at/~ian/hotlist/qc/talks/bloch-sphere-rotations.pdf
 			double lrot[3];
 			lrot[0] =   hold[1]*hnew[2] - hold[2]*hnew[1] ;
 			lrot[1] = -(hold[0]*hnew[2] - hold[2]*hnew[0]);
@@ -212,7 +215,7 @@ void evolve_interactions(State& s,
 			double lmag = sqrt(lmag2);
 			double sinalpha = sqrt(lmag2 / (oldmag2*newmag2));
 			if(lmag > 0)
-				for(unsigned i=0; i<3; i++) lrot[i] /= sqrt(lmag);
+				for(unsigned i=0; i<3; i++) lrot[i] /= lmag;
 			else continue;
 
 			// get the rotation operator in the flavor basis
@@ -225,6 +228,10 @@ void evolve_interactions(State& s,
 
 			// apply to Scumulative
 			s.Scumulative[m][i] = Adjoint(s.UU[m][i]) * R * s.UU[m][i] * s.Scumulative[m][i];
+
+			// check that it makes sense
+			assert( abs( Trace( s.Scumulative[m][i]*Adjoint(s.Scumulative[m][i])) - (double)NF) < 1e-5);
+
 		}
 	}
 }
