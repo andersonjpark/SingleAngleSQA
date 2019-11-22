@@ -321,7 +321,7 @@ public:
 	//============//
 	// Initialize //
 	//============//
-	void initialize(const array<array<array<DISCONTINUOUS,NF>,NE>,NM>& D_unosc){
+	void initialize(const Profile& p){
 		array<array<double,NF>,NE> kV = set_kV(E);
 		array<MATRIX<complex<double>,NF,NF>,NM> UV = Evaluate_UV();
 		array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> VfVac = Evaluate_VfVac(kV,UV);
@@ -364,14 +364,16 @@ public:
 		/* 					 &__nulibtable_MOD_nulibtable_number_easvariables); */
 
 		for(int i=0; i<NE; i++){
+		        double V = Vphase(i,Etop);
 			for(state m=matter; m<=antimatter; m++){
-				fmatrixf[m][i] = MATRIX<complex<double>,NF,NF>();
+			        fmatrixf[m][i] = MATRIX<complex<double>,NF,NF>();
+				fmatrixf[m][i][e][e] = 1.e-200;
 				for(flavour f=e; f<=mu; f++){
-				  //double D = D_unosc[m][i][f](r);
-				  //double V = Vphase(i,Etop);
-				  fmatrixf[m][i][f][f] = 1.e-200; //D / V;
-				  assert(abs(fmatrixf[m][i][f][f]) >= 0);
-				  assert(abs(fmatrixf[m][i][f][f]) <= 1);
+				  double D_V = p.Dens_unosc[m][i][f](r) / V;
+				  if(r>=0 and D_V>0)
+				    fmatrixf[m][i][f][f] = D_V;
+				  assert(abs(fmatrixf[m][i][f][f]) >= 0.);
+				  assert(abs(fmatrixf[m][i][f][f]) <= 1.);
 				}
 			}
 

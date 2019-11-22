@@ -97,7 +97,7 @@ int main(int argc, char *argv[]){
 
   State s(profile, profile.rstart);
   s.update_background(profile, s);
-  s.initialize(profile.Dens_unosc);
+  s.initialize(profile);
   s.update_potential(profile,s);
   const State s0 = s;
     
@@ -123,15 +123,22 @@ int main(int argc, char *argv[]){
       r_end = profile.lnrho.XMax();
       finish=true;
     }
+    if(s.r<0 and r_end>=0){
+      r_end = 0;
+      dr_block = dr0;
+      dr_osc   = dr0;
+      dr_int   = dr0;
+    }
 
     State sBlockStart = s;
     
     // oscillate
-    if(do_oscillate){
+    if(do_oscillate and s.r>=0){
       s.assert_noNaN(accuracy);
       s.r = sBlockStart.r;
       evolve_oscillations(s, s0, sBlockStart, r_end, dr_osc, profile, accuracy, increase);
     }
+    else s.update_potential(profile,s0);
 
     // interact with the matter
     double impact = 0;
