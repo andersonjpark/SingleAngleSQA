@@ -81,6 +81,7 @@ int main(int argc, char *argv[]){
   const double accuracy = get_parameter<double>(fin, "accuracy");
   const bool do_oscillate = get_parameter<bool>(fin, "do_oscillate");
   const bool do_interact = get_parameter<bool>(fin, "do_interact");
+  const bool do_interact_rotation = get_parameter<bool>(fin, "do_interact_rotation");
   const bool do_SR = get_parameter<bool>(fin, "do_SR");
   const bool do_GR = get_parameter<bool>(fin, "do_GR");
   const double target_impact = get_parameter<double>(fin, "target_impact");
@@ -145,7 +146,7 @@ int main(int argc, char *argv[]){
     if(do_interact){
       s.assert_noNaN(accuracy);
       s.r = sBlockStart.r;
-      evolve_interactions(s, s0, sBlockStart, r_end, dr_int, profile, accuracy, increase, impact);
+      evolve_interactions(s, s0, sBlockStart, r_end, dr_int, profile, accuracy, increase, do_interact_rotation, impact);
       s.assert_noNaN(accuracy);
     }
 

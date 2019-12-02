@@ -97,6 +97,7 @@ void evolve_interactions(State& s,
 		const Profile& profile,
 		const double accuracy,
 		const double increase,
+		const int do_interact_rotation,
 		double& impact){
 
 	// save old fmatrix
@@ -181,16 +182,20 @@ void evolve_interactions(State& s,
 	// reset to last dr so its not determined by block size
 	dr = old_dr;
 
-	// loop through getting rotation matrices and impact
+	// loop through getting impact
 	impact = 0;
-	for(int i=0; i<NE; i++){
-		for(state m=matter; m<=antimatter; m++){
-			// get the impact
-			MATRIX<complex<double>,NF,NF> df = s.fmatrixf[m][i] - old_fmatrixf[m][i];
-			for(flavour f1=e; f1<=mu; f1++)
-				for(flavour f2=e; f2<=mu; f2++)
-					impact = max(impact, fabs(df[f1][f2]));
+        #pragma omp parallel for reduction(max:impact) collapse(4)
+	for(int i=0; i<NE; i++)
+	  for(int m=matter; m<=antimatter; m++)
+	    for(int f1=e; f1<=mu; f1++)
+	      for(int f2=e; f2<=mu; f2++)
+		impact = max(impact, fabs(s.fmatrixf[m][i][f1][f2] - old_fmatrixf[m][i][f1][f2]));
 
+	// loop through getting rotation matrices
+	if(do_interact_rotation)
+          #pragma omp parallel for collapse(2)
+	  for(int i=0; i<NE; i++){
+		for(int m=matter; m<=antimatter; m++){
 			array<double,4> hold = pauli_decompose(old_fmatrixf[m][i]);
 			array<double,4> hnew = pauli_decompose(  s.fmatrixf[m][i]);
 
