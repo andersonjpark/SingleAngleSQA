@@ -118,6 +118,8 @@ public:
 		double VfVac_derivative_fac = -profile.Elab_Elabstart.Derivative(r) / Elab_Elabstart;
 
 		// Matter Potential
+		// potential ~ rho(1-p.v) is larger when p and v antiparallel (when Ecom>Elab)
+		// That is, the potential transforms oppositely as the neutrino energy.
 		array<MATRIX<complex<double>,NF,NF>,NM> VfMatter, dVfMatterdr;
 		double matter_potential=M_SQRT2*cgs::constants::GF/cgs::constants::Mp*rho*Ye*Ecom_Elab;
 		VfMatter[matter][e ][e ] = matter_potential;
@@ -194,9 +196,9 @@ public:
 				// fill in the un-oscillated diagonals
 				array<MATRIX<complex<double>,NF,NF>,NMOMENTS> unosc_moment;
 				for(flavour f=e; f<=mu; f++){
-					unosc_moment[0][f][f] += profile.Dens_unosc[m][ibkg][f](r);
-					unosc_moment[1][f][f] += profile.Flux_unosc[m][ibkg][f](r);
-					unosc_moment[2][f][f] += profile.Pres_unosc[m][ibkg][f](r);
+				  unosc_moment[0][f][f] += exp(profile.lnDens_unosc[m][ibkg][f](r));
+				  unosc_moment[1][f][f] += profile.fluxfac_unosc[m][ibkg][f](r) * unosc_moment[0][f][f];
+				  unosc_moment[2][f][f] += profile.eddfac_unosc[m][ibkg][f](r) * unosc_moment[0][f][f];
 				}
 
 				double total_overlap_fraction = 0; // should end up being 1
@@ -369,7 +371,7 @@ public:
 			        fmatrixf[m][i] = MATRIX<complex<double>,NF,NF>();
 				fmatrixf[m][i][e][e] = 1.e-200;
 				for(flavour f=e; f<=mu; f++){
-				  double D_V = p.Dens_unosc[m][i][f](r) / V;
+				  double D_V = exp(p.lnDens_unosc[m][i][f](r)) / V;
 				  if(r>=0 and D_V>0)
 				    fmatrixf[m][i][f][f] = D_V;
 				  assert(abs(fmatrixf[m][i][f][f]) >= 0.);

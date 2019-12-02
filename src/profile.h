@@ -10,9 +10,9 @@ class Profile{
   DISCONTINUOUS temperature; // MeV
   DISCONTINUOUS Ecom_Elab;
   DISCONTINUOUS Elab_Elabstart;
-  array<array<array<DISCONTINUOUS,NF>,NE>,NM> Dens_unosc;
-  array<array<array<DISCONTINUOUS,NF>,NE>,NM> Flux_unosc;
-  array<array<array<DISCONTINUOUS,NF>,NE>,NM> Pres_unosc;
+  array<array<array<DISCONTINUOUS,NF>,NE>,NM> lnDens_unosc;
+  array<array<array<DISCONTINUOUS,NF>,NE>,NM> fluxfac_unosc;
+  array<array<array<DISCONTINUOUS,NF>,NE>,NM> eddfac_unosc;
   array<double,NE> Ecom, Etopcom; // erg
   double rstart;
 
@@ -91,13 +91,14 @@ class Profile{
     			int s = m + 2*f; // species index. 0-e 1-ebar 2-x 3-xbar
 
     			for(size_t ir=0; ir<nr; ir++) data[ir] = Ndens[s][i][ir];
-    			Dens_unosc[m][i][f].SetData(x,data);
+    			lnDens_unosc[m][i][f].SetData(x,data);
+			lnDens_unosc[m][i][f] = lnDens_unosc[m][i][f].copy_logy();
 
-    			for(size_t ir=0; ir<nr; ir++) data[ir] = Fdens[s][i][ir];
-    			Flux_unosc[m][i][f].SetData(x,data);
+    			for(size_t ir=0; ir<nr; ir++) data[ir] = Fdens[s][i][ir]/Ndens[s][i][ir];
+    			fluxfac_unosc[m][i][f].SetData(x,data);
 
-    			for(size_t ir=0; ir<nr; ir++) data[ir] = Pdens[s][i][ir];
-    			Pres_unosc[m][i][f].SetData(x,data);
+    			for(size_t ir=0; ir<nr; ir++) data[ir] = Pdens[s][i][ir]/Ndens[s][i][ir];
+    			eddfac_unosc[m][i][f].SetData(x,data);
 
     		}
     	}
