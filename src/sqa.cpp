@@ -139,7 +139,11 @@ int main(int argc, char *argv[]){
       s.r = sBlockStart.r;
       evolve_oscillations(s, s0, sBlockStart, r_end, dr_osc, profile, accuracy, increase);
     }
-    else s.update_potential(profile,s0);
+    else{
+      s.r = r_end;
+      s.update_background(profile, s0);
+      s.update_potential(profile,s0);
+    }
 
     // interact with the matter
     double impact = 0;
@@ -148,6 +152,10 @@ int main(int argc, char *argv[]){
       s.r = sBlockStart.r;
       evolve_interactions(s, s0, sBlockStart, r_end, dr_int, profile, accuracy, increase, do_interact_rotation, impact);
       s.assert_noNaN(accuracy);
+    }
+    else{
+      s.r = r_end;
+      s.update_background(profile, s0);
     }
 
     // output data
