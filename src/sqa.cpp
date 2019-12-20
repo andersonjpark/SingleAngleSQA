@@ -97,7 +97,7 @@ int main(int argc, char *argv[]){
   // **************************************
 
   State s(profile, profile.rstart);
-  s.update_background(profile, s);
+  s.update_background(profile);
   s.initialize(profile);
   s.update_potential(profile,s);
   const State s0 = s;
@@ -141,7 +141,7 @@ int main(int argc, char *argv[]){
     }
     else{
       s.r = r_end;
-      s.update_background(profile, s0);
+      s.update_background(profile);
       s.update_potential(profile,s0);
     }
 
@@ -155,7 +155,7 @@ int main(int argc, char *argv[]){
     }
     else{
       s.r = r_end;
-      s.update_background(profile, s0);
+      s.update_background(profile);
     }
 
     // output data

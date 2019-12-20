@@ -81,28 +81,18 @@ public:
 		}
 	}
 
-	int find_bin(const double x) const{
-	        if(x<0) return -1;
-
-		// upper_bound returns first element greater than xval
-		// values mark bin tops, so this is what we want
-		int ind = std::upper_bound(Etop.begin(), Etop.end(), x) - Etop.begin();
-		assert(ind >= 0);
-		assert(ind <= NE);
-		return ind;
-	}
-
-	void update_background(const Profile& profile, const State& s0){
+	void update_background(const Profile& profile){
 
 		rho = exp(profile.lnrho(r));
 		T = profile.temperature(r);
 		Ye = profile.Ye(r);
 		Ecom_Elab = profile.Ecom_Elab(r);
 		Elab_Elabstart = profile.Elab_Elabstart(r);
+		double Elab_Ecomstart = Elab_Elabstart * profile.Elabstart_Ecomstart;
 
 		for(int i=0; i<NE; i++){
-			E[i]       = s0.E[i]    * Elab_Elabstart;
-			Etop[i]    = s0.Etop[i] * Elab_Elabstart;
+			E[i]       = profile.Ecom[i]    * Elab_Ecomstart;
+			Etop[i]    = profile.Etopcom[i] * Elab_Ecomstart;
 			Ecom[i]    = E[i]       * Ecom_Elab;
 			Etopcom[i] = Etop[i]    * Ecom_Elab;
 		}
@@ -162,7 +152,7 @@ public:
 			}
 		}
 
-		array<array<array<MATRIX<complex<double>,NF,NF>,NMOMENTS>,NE>,NM> MBackground = oscillated_moments(profile, s0.Etopcom);
+		array<array<array<MATRIX<complex<double>,NF,NF>,NMOMENTS>,NE>,NM> MBackground = oscillated_moments(profile);
 
 		// calculate the self-interaction potential
 		for(int m=matter; m<=antimatter; m++){
@@ -184,14 +174,14 @@ public:
 	// OSCILLATED MOMENTS //
 	//====================//
 	// oscillate moments, keeping the moments' comoving-frame energy grid
-	array<array<array<MATRIX<complex<double>,NF,NF>,NMOMENTS>,NE>,NM> oscillated_moments(const Profile& profile, const array<double,NE>& Etopbkgcom) const{
+	array<array<array<MATRIX<complex<double>,NF,NF>,NMOMENTS>,NE>,NM> oscillated_moments(const Profile& profile) const{
 
 		array<array<array<MATRIX<complex<double>,NF,NF>,NMOMENTS>,NE>,NM> MBackground;
 
 #pragma omp parallel for collapse(2)
 		for(int m=matter; m<=antimatter; m++){
 			for(int ibkg=0; ibkg<NE; ibkg++){
-				double V0 = Vphase(ibkg, Etopbkgcom);
+				double V0 = Vphase(ibkg, profile.Etopcom);
 
 				// fill in the un-oscillated diagonals
 				array<MATRIX<complex<double>,NF,NF>,NMOMENTS> unosc_moment;
@@ -206,9 +196,9 @@ public:
 					assert( abs(Trace(Sf[m][itraj]*Adjoint(Sf[m][itraj])) - (double)NF) < 1e-5);
 
 					// calculate fraction of bin ibkg that overlaps with bin itraj
-					double Elow1 = Ebottom(ibkg, Etopbkgcom);
+					double Elow1 = Ebottom(ibkg, profile.Etopcom);
 					double Elow2 = Ebottom(itraj, Etopcom);
-					double Ehi1 = Etopbkgcom[ibkg];
+					double Ehi1 = profile.Etopcom[ibkg];
 					double Ehi2 = Etopcom[itraj];
 					double V_overlap = Vphase_overlap(Elow1, Ehi1, Elow2, Ehi2);
 
@@ -233,7 +223,7 @@ public:
 				assert(total_overlap_fraction < 1.+1e-6);
 				assert(total_overlap_fraction >= 0);
 				if(total_overlap_fraction < 1.-1e-6){
-					assert(Etopbkgcom[ibkg] > Etopcom[NE-1]);
+					assert(profile.Etopcom[ibkg] > Etopcom[NE-1]);
 					for(int mom=0; mom<NMOMENTS; mom++)
 						MBackground[m][ibkg][mom] += Sf[m][NE-1]*unosc_moment[mom]*Adjoint(Sf[m][NE-1]) * (1.-total_overlap_fraction);
 				}

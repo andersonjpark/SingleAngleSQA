@@ -14,7 +14,7 @@ class Profile{
   array<array<array<DISCONTINUOUS,NF>,NE>,NM> fluxfac_unosc;
   array<array<array<DISCONTINUOUS,NF>,NE>,NM> eddfac_unosc;
   array<double,NE> Ecom, Etopcom; // erg
-  double rstart;
+  double rstart, Elabstart_Ecomstart;
 
   Profile(string inputfile, double rhostart, bool do_SR, bool do_GR){
     H5::H5File file(inputfile, H5F_ACC_RDONLY );
@@ -72,6 +72,7 @@ class Profile{
     // normalize the lab-frame neutrino energy relative to the start of the calculation
     assert(rstart >= lnrho.XMin());
     assert(rstart <= lnrho.XMax());
+    Elabstart_Ecomstart = 1./Ecom_Elab(rstart);
     double startval = Elab_Elabstart( rstart );
     for(size_t i=0; i<Elab_Elabstart.data.size(); i++)
       Elab_Elabstart.data[i] /= startval;

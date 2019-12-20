@@ -138,13 +138,13 @@ blocking_term(const array<MATRIX<double,NF,NF>,KMOMENTS>& Phi /*cm^3/s/sr*/,
 // Kinteract //
 //===========//
 array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>
-Kinteract(const State& s, const State& s0, const Profile& profile){
+Kinteract(const State& s, const Profile& profile){
 
 	// set up the array to be returned
 	array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> dfdr;
 
 	// get oscillated background density
-	array<array<array<MATRIX<complex<double>,NF,NF>,NMOMENTS>,NE>,NM> MBackground = s.oscillated_moments(profile, s0.Etopcom);
+	array<array<array<MATRIX<complex<double>,NF,NF>,NMOMENTS>,NE>,NM> MBackground = s.oscillated_moments(profile);
 
 #pragma omp parallel for collapse(2)
 	for(int m=matter; m<=antimatter; m++){
@@ -191,13 +191,13 @@ Kinteract(const State& s, const State& s0, const Profile& profile){
 
 			// scattering and pair annihilation
 			for(int j=0; j<NE; j++){
-				double Vj = Vphase(j, s0.Etopcom); // cm^-3
+				double Vj = Vphase(j, profile.Etopcom); // cm^-3
 
 				//====================//
 				// elastic scattering //
 				//====================//
-				double Voverlap = Vphase_overlap(Ebottom(i, s.Etopcom),  s.Etopcom[i],
-								 Ebottom(j,s0.Etopcom), s0.Etopcom[j]);
+				double Voverlap = Vphase_overlap(Ebottom(i,      s.Etopcom),       s.Etopcom[i],
+								 Ebottom(j,profile.Etopcom), profile.Etopcom[j]);
 				for(flavour f1=e; f1<=mu; f1++){
 				  for(flavour f2=e; f2<=mu; f2++){
 
@@ -213,8 +213,8 @@ Kinteract(const State& s, const State& s0, const Profile& profile){
 				//======================//
 				// inelastic scattering //
 				//======================//
-				Phi_e = eas.Phi_iscat(se, s.T, s.Ecom[i], s0.Ecom[j], Vj); // cm^3/s
-				Phi_x = eas.Phi_iscat(sx, s.T, s.Ecom[i], s0.Ecom[j], Vj); // cm^3/s
+				Phi_e = eas.Phi_iscat(se, s.T, s.Ecom[i], profile.Ecom[j], Vj); // cm^3/s
+				Phi_x = eas.Phi_iscat(sx, s.T, s.Ecom[i], profile.Ecom[j], Vj); // cm^3/s
 				for(int mom=0; mom<KMOMENTS; mom++){
 					PhiAvg[mom]   = avg_matrix(  Phi_e[mom], Phi_x[mom]);
 					PhiTilde[mom] = tilde_matrix(Phi_e[mom], Phi_x[mom]);
@@ -222,7 +222,7 @@ Kinteract(const State& s, const State& s0, const Profile& profile){
 				}
 				block = blocking_term(Phi, s.fmatrixf[m][i], MBackground[m][j]);
 				// target energy difference negative of neutrino energy difference
-				conv_to_in_rate = exp((s0.Ecom[j]-s.Ecom[i])/(s.T*1e6*cgs::units::eV));
+				conv_to_in_rate = exp((profile.Ecom[j]-s.Ecom[i])/(s.T*1e6*cgs::units::eV));
 				for(flavour f1=e; f1<=mu; f1++){
 					for(flavour f2=e; f2<=mu; f2++){
 
@@ -242,15 +242,15 @@ Kinteract(const State& s, const State& s0, const Profile& profile){
 				//==============//
 				// annihilation //
 				//==============//
-				Phi_e = eas.Phi_pair(se, s.Ecom[i], s0.Ecom[j]); // cm^3/s
-				Phi_x = eas.Phi_pair(sx, s.Ecom[i], s0.Ecom[j]); // cm^3/s
+				Phi_e = eas.Phi_pair(se, s.Ecom[i], profile.Ecom[j]); // cm^3/s
+				Phi_x = eas.Phi_pair(sx, s.Ecom[i], profile.Ecom[j]); // cm^3/s
 				for(int mom=0; mom<KMOMENTS; mom++){
 					PhiAvg[mom]   = avg_matrix(  Phi_e[mom], Phi_x[mom]);
 					PhiTilde[mom] = tilde_matrix(Phi_e[mom], Phi_x[mom]);
 					Phi[mom] = PhiAvg[mom] - PhiTilde[mom];
 				}
 				block = blocking_term(Phi, s.fmatrixf[m][i], MBackground[mbar][j]);
-				conv_to_in_rate = exp(-(s0.Ecom[j]+s.Ecom[i])/(s.T*1e6*cgs::units::eV));
+				conv_to_in_rate = exp(-(profile.Ecom[j]+s.Ecom[i])/(s.T*1e6*cgs::units::eV));
 				for(flavour f1=e; f1<=mu; f1++){
 					for(flavour f2=e; f2<=mu; f2++){
 						complex<double> in_rate = conv_to_in_rate * (
@@ -277,16 +277,18 @@ Kinteract(const State& s, const State& s0, const Profile& profile){
 					double k = s.Ecom[i];
 					double kernel = NAN;
 
-					double q1 = s0.Ecom[j];
+					double q1 = profile.Ecom[j];
 					for(int j3=0; j3<NE; j3++){
-						double q3 = s0.Ecom[j3];
-						double V3 = Vphase(j3, s0.Etop); // cm^-3
+						double q3 = profile.Ecom[j3];
+						double V3 = Vphase(j3, profile.Etopcom); // cm^-3
 
 						double q2 = q1+q3-k;
-						int j2 = s0.find_bin(q2);
+						int j2 = std::upper_bound(profile.Etopcom.begin(), profile.Etopcom.end(), q2) - profile.Etopcom.begin();
+						assert(j2 >= 0);
+						assert(j2 <= NE);
 
 						if(j2>=0 and j2<NE){
-							double V2 = Vphase(j2, s0.Etop); // cm^-3
+							double V2 = Vphase(j2, profile.Etopcom); // cm^-3
 							MATRIX<complex<double>,NF,NF> fj, fj2, fj3;
 
 							// SCATTERING
