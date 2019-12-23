@@ -68,6 +68,7 @@ class Profile{
 	else rstart = lnrho.x[i];
       }
     }
+    if(rstart==lnrho.XMin()) rstart = max(lnrho.XMin(),0.); // have reference point be at 0 if starting from boundary
 
     // normalize the lab-frame neutrino energy relative to the start of the calculation
     assert(rstart >= lnrho.XMin());
