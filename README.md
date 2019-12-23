@@ -11,9 +11,10 @@
 
 1. Get mstl ready:
 - On HPC@NC State: Check if you have access to /home/jpknelle/mstl/, if you do, then you can keep using the makefiles.
-- On /physics: check if you have access to /physics/jpknelle/mstl/, if you do, then you can keep using the makefile
+- On /physics: check if you have access to /nucastro/jpknelle/Code/mstl/, if you do, then you can keep using the makefile
 s.
 - Some where else: mstl need to be compiled again if it is used somewhere else. (To compile mstl, in mstl/lib, edit path in .txt and run libraries.sh)
+- if you have problems with mstl, contact Jim Kneller
 
 2. Get sqa ready: 
 - With icc, if you work on HPC or /physics, just compile with the makefiles
