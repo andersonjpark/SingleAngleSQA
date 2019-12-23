@@ -107,7 +107,7 @@ int main(int argc, char *argv[]){
   double dr_int   = dr0;
       
   // set up files
-  FilePointers fp = setup_HDF5_file(s0.E, s0.Etop);
+  FilePointers fp = setup_HDF5_file(profile.Ecom, profile.Etopcom);
   write_data_HDF5(fp, s, dr_osc, dr_int, dr_block, true);
 	
   // ***********************
