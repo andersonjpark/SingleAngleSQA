@@ -96,7 +96,7 @@ int main(int argc, char *argv[]){
   // quantities evaluated at inital point *
   // **************************************
 
-  State s(profile, profile.rstart);
+  State s(profile);
   s.update_background(profile);
   s.initialize(profile);
   s.update_potential(profile,s);

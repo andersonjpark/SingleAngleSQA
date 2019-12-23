@@ -41,11 +41,11 @@ public:
 	array<array<double,NM>,NE> dphi_dr_interact, dtheta_dr_interact;
 	array<array<double,NM>,NE> dphi_dr_osc,      dtheta_dr_osc;
 
-	State(const Profile& profile, const double rmin){
+	State(const Profile& profile){
 		rho=NAN;
 		T=NAN;
 		Ye=NAN;
-		r=rmin;
+		r=profile.lnrho.x[0];
 		Ecom_Elab=profile.Ecom_Elab(r);
 		Elab_Elabstart=NAN;
 
