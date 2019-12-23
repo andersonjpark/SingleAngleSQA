@@ -79,6 +79,9 @@ public:
 				Y[m][ig] = YIdentity;
 			}
 		}
+		update_background(profile);
+		initialize(profile);
+		update_potential(profile,*this);
 	}
 
 	void update_background(const Profile& profile){

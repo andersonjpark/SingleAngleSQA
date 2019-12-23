@@ -97,9 +97,6 @@ int main(int argc, char *argv[]){
   // **************************************
 
   State s(profile);
-  s.update_background(profile);
-  s.initialize(profile);
-  s.update_potential(profile,s);
   const State s0 = s;
     
   // *****************************************
