@@ -150,7 +150,7 @@ int main(int argc, char *argv[]){
     if(do_interact){
       s.assert_noNaN(accuracy);
       s.r = sBlockStart.r;
-      evolve_interactions(s, s0, sBlockStart, r_end, dr_int, profile, accuracy, increase, (do_interact_rotation && s.r>=0), impact);
+      evolve_interactions(s, sBlockStart, r_end, dr_int, profile, accuracy, increase, (do_interact_rotation && s.r>=0), impact);
       s.assert_noNaN(accuracy);
     }
     else{

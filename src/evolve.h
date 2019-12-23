@@ -90,7 +90,6 @@ void evolve_oscillations(State& s,
 
 
 void evolve_interactions(State& s,
-		const State& s0,
 		const State& sBlockStart,
 		const double r_end,
 		double& dr,
