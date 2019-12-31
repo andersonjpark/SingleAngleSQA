@@ -96,8 +96,8 @@ int main(int argc, char *argv[]){
   // quantities evaluated at inital point *
   // **************************************
 
-  State s(profile);
-  const State s0 = s;
+  State s(profile, profile.lnrho.x[0]);
+  State s0 = s;
     
   // *****************************************
   // initialize at beginning of every domain *
@@ -138,8 +138,8 @@ int main(int argc, char *argv[]){
     }
     else{
       s.r = r_end;
-      s.update_background(profile);
-      s.update_potential(profile,s0);
+      s = State(profile, s.r);
+      s0 = s;
     }
 
     // interact with the matter
