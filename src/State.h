@@ -41,7 +41,8 @@ public:
 	array<array<double,NM>,NE> dphi_dr_interact, dtheta_dr_interact;
 	array<array<double,NM>,NE> dphi_dr_osc,      dtheta_dr_osc;
 
-	State(const Profile& profile, double r){
+	State(const Profile& profile, double rin){
+	        r = rin;
 		rho=NAN;
 		T=NAN;
 		Ye=NAN;

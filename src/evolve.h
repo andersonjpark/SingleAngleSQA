@@ -201,10 +201,16 @@ void evolve_interactions(State& s,
 			// get the theta and phi contribution
 			double oldmag2   = hold[0]*hold[0] + hold[1]*hold[1] + hold[2]*hold[2];
 			double newmag2   = hnew[0]*hnew[0] + hnew[1]*hnew[1] + hnew[2]*hnew[2];
+			double oldmag = sqrt(oldmag2);
+			double newmag = sqrt(newmag2);
 			if(oldmag2==0 or newmag2==0){
 				continue;
 			}
-			s.dtheta_dr_interact[i][m] = (acos(hnew[2]/sqrt(newmag2)) - acos(hold[2]/sqrt(oldmag2))) / dr;
+			else for(unsigned i=0; i<3; i++){ // to prevent problems near float minval
+			    hold[i] /= oldmag;
+			    hnew[i] /= newmag;
+			}
+			s.dtheta_dr_interact[i][m] = (acos(hnew[2]) - acos(hold[2])) / dr;
 			s.dphi_dr_interact[i][m] = (atan2(hnew[1],hnew[0]) - atan2(hold[1],hold[0])) / dr;
 
 			// get the axis of rotation
@@ -217,7 +223,7 @@ void evolve_interactions(State& s,
 			lrot[2] =   hold[0]*hnew[1] - hold[1]*hnew[0] ;
 			double lmag2 = lrot[0]*lrot[0] + lrot[1]*lrot[1] + lrot[2]*lrot[2];
 			double lmag = sqrt(lmag2);
-			double sinalpha = sqrt(lmag2 / (oldmag2*newmag2));
+			double sinalpha = lmag;
 			if(lmag > 0)
 				for(unsigned i=0; i<3; i++) lrot[i] /= lmag;
 			else continue;
@@ -229,6 +235,7 @@ void evolve_interactions(State& s,
 			Rcoeff[3] = cos(alpha/2.);
 
 			MATRIX<complex<double>,NF,NF> R = pauli_reconstruct(Rcoeff);
+			assert( abs( Trace( R*Adjoint(R)) - (double)NF) < 1e-5);
 
 			// apply to Scumulative
 			s.Scumulative[m][i] = Adjoint(s.UU[m][i]) * R * s.UU[m][i] * s.Scumulative[m][i];

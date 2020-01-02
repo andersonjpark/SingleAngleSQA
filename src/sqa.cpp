@@ -86,6 +86,7 @@ int main(int argc, char *argv[]){
   const bool do_GR = get_parameter<bool>(fin, "do_GR");
   const double target_impact = get_parameter<double>(fin, "target_impact");
   const double increase = get_parameter<double>(fin, "increase");
+  assert(do_oscillate or do_interact);
   fin.close();
 
   Profile profile(input_directory, rhostart, do_SR, do_GR);
@@ -97,7 +98,7 @@ int main(int argc, char *argv[]){
   // **************************************
 
   State s(profile, profile.lnrho.x[0]);
-  State s0 = s;
+  State s0 = s; // ONLY used for oscillation stuff. s0.fmatrixf is meaningless
     
   // *****************************************
   // initialize at beginning of every domain *
@@ -131,15 +132,10 @@ int main(int argc, char *argv[]){
     State sBlockStart = s;
     
     // oscillate
-    if(do_oscillate and s.r>=0){
+    if(do_oscillate){
       s.assert_noNaN(accuracy);
       s.r = sBlockStart.r;
       evolve_oscillations(s, s0, sBlockStart, r_end, dr_osc, profile, accuracy, increase);
-    }
-    else{
-      s.r = r_end;
-      s = State(profile, s.r);
-      s0 = s;
     }
 
     // interact with the matter
@@ -147,12 +143,8 @@ int main(int argc, char *argv[]){
     if(do_interact){
       s.assert_noNaN(accuracy);
       s.r = sBlockStart.r;
-      evolve_interactions(s, sBlockStart, r_end, dr_int, profile, accuracy, increase, (do_interact_rotation && s.r>=0), impact);
+      evolve_interactions(s, sBlockStart, r_end, dr_int, profile, accuracy, increase, do_interact_rotation, impact);
       s.assert_noNaN(accuracy);
-    }
-    else{
-      s.r = r_end;
-      s.update_background(profile);
     }
 
     // output data
