@@ -151,6 +151,15 @@ int main(int argc, char *argv[]){
     bool do_header = (++iter)%100==0;
     write_data_HDF5(fp, s,dr_osc, dr_int, dr_block, do_header);
     
+    // make sure fmatrixf is Hermitian and Scumulative is unitary
+    #pragma omp parallel for collapse(2)
+    for(int i=0; i<NE; i++){
+      for(int m=matter; m<=antimatter; m++){
+	Hermitize(s.fmatrixf[m][i], accuracy);
+	unitarize(s.Scumulative[m][i], accuracy);
+      }
+    }
+    
     // timestepping
     if(impact > target_impact)
       cout << "WARNING: impact="<<impact<< endl;
