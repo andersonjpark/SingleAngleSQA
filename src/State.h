@@ -362,7 +362,7 @@ public:
 		        double V = Vphase(i,Etop);
 			for(state m=matter; m<=antimatter; m++){
 			        fmatrixf[m][i] = MATRIX<complex<double>,NF,NF>();
-				fmatrixf[m][i][e][e] = 1.e-200;
+				fmatrixf[m][i][e][e] = 1.e-100;
 				for(flavour f=e; f<=mu; f++){
 				  double D_V = exp(p.lnDens_unosc[m][i][f](r)) / V;
 				  if(r>=0 and D_V>0)
