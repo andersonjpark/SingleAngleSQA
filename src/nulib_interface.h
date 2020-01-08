@@ -42,7 +42,7 @@ inline bool hdf5_dataset_exists(const char* filename, const char* datasetname){
 // module variables set in fortran NuLib code
 extern int     __nulib_MOD_total_eos_variables;
 extern double* __nulib_MOD_energies;
-extern double __nulib_MOD_m_ref;
+extern double __nulib_MOD_m_ref, __eosmodule_MOD_eos_rhomin, __eosmodule_MOD_eos_yemin, __eosmodule_MOD_eos_tempmin;
 extern const bool __nulib_MOD_do_weak_mag_corrections,
 __nulib_MOD_do_ionion_correlation,
 __nulib_MOD_do_heavyscat_formfactor,
@@ -261,9 +261,9 @@ public:
 	void update(const double rho /* g/ccm */, const double T /*MeV*/, const double Ye){
 		// set the EOS variables
 		for(int i=0; i<__nulib_MOD_total_eos_variables; i++) eos_variables[i] = 0;
-		eos_variables[0] = rho;
-		eos_variables[1] = T;
-		eos_variables[2] = Ye;
+		eos_variables[0] = max(rho,__eosmodule_MOD_eos_rhomin);
+		eos_variables[1] = max(T,  __eosmodule_MOD_eos_tempmin);
+		eos_variables[2] = max(Ye, __eosmodule_MOD_eos_yemin);
 		set_eos_variables_(&eos_variables[0]);
 		double mue = eos_variables[10];
 		double muhat = eos_variables[13];
