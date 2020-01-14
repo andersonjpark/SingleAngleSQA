@@ -202,14 +202,10 @@ void write_data_HDF5(FilePointers& fp, const State& s, double dr_osc, double dr_
 
   // S
   H5Dset_extent(fp.dset_S, dims);
-  file_space = H5Dget_space(fp.dset_S);
-  H5Sselect_hyperslab(file_space, H5S_SELECT_SET, start, NULL, fp.chunk_dims, NULL);
   H5Dwrite(fp.dset_S, H5T_NATIVE_DOUBLE, mem_space, file_space, H5P_DEFAULT, &s.Sf);
 
   // U
   H5Dset_extent(fp.dset_U, dims);
-  file_space = H5Dget_space(fp.dset_U);
-  H5Sselect_hyperslab(file_space, H5S_SELECT_SET, start, NULL, fp.chunk_dims, NULL);
   H5Dwrite(fp.dset_U, H5T_NATIVE_DOUBLE, mem_space, file_space, H5P_DEFAULT, &s.UU);
 
   // VfSI
@@ -236,18 +232,12 @@ void write_data_HDF5(FilePointers& fp, const State& s, double dr_osc, double dr_
   H5Dwrite(fp.dset_dtdrO, H5T_NATIVE_DOUBLE, mem_space, file_space, H5P_DEFAULT, &s.dtheta_dr_osc);
   
   H5Dset_extent(fp.dset_dtdrI, dims);
-  file_space = H5Dget_space (fp.dset_dtdrI);
-  H5Sselect_hyperslab(file_space, H5S_SELECT_SET, start, NULL, fp.chunk_dims3, NULL);
   H5Dwrite(fp.dset_dtdrI, H5T_NATIVE_DOUBLE, mem_space, file_space, H5P_DEFAULT, &s.dtheta_dr_interact);
   
   H5Dset_extent(fp.dset_dpdrO, dims);
-  file_space = H5Dget_space (fp.dset_dpdrO);
-  H5Sselect_hyperslab(file_space, H5S_SELECT_SET, start, NULL, fp.chunk_dims3, NULL);
   H5Dwrite(fp.dset_dpdrO, H5T_NATIVE_DOUBLE, mem_space, file_space, H5P_DEFAULT, &s.dphi_dr_osc);
   
   H5Dset_extent(fp.dset_dpdrI, dims);
-  file_space = H5Dget_space (fp.dset_dpdrI);
-  H5Sselect_hyperslab(file_space, H5S_SELECT_SET, start, NULL, fp.chunk_dims3, NULL);
   H5Dwrite(fp.dset_dpdrI, H5T_NATIVE_DOUBLE, mem_space, file_space, H5P_DEFAULT, &s.dphi_dr_interact);
   
   // 1D stuff
@@ -262,50 +252,34 @@ void write_data_HDF5(FilePointers& fp, const State& s, double dr_osc, double dr_
 
   // dr_block
   H5Dset_extent(fp.dset_dr_block, dims);
-  file_space = H5Dget_space(fp.dset_dr_block);
-  H5Sselect_hyperslab(file_space, H5S_SELECT_SET, start, NULL, fp.chunk_dims, NULL);
   H5Dwrite(fp.dset_dr_block, H5T_NATIVE_DOUBLE, mem_space, file_space, H5P_DEFAULT, &dr_block);
 
   // dr_osc
   H5Dset_extent(fp.dset_dr_osc, dims);
-  file_space = H5Dget_space(fp.dset_dr_osc);
-  H5Sselect_hyperslab(file_space, H5S_SELECT_SET, start, NULL, fp.chunk_dims, NULL);
   H5Dwrite(fp.dset_dr_osc, H5T_NATIVE_DOUBLE, mem_space, file_space, H5P_DEFAULT, &dr_osc);
 
   // dr_int
   H5Dset_extent(fp.dset_dr_int, dims);
-  file_space = H5Dget_space(fp.dset_dr_int);
-  H5Sselect_hyperslab(file_space, H5S_SELECT_SET, start, NULL, fp.chunk_dims, NULL);
   H5Dwrite(fp.dset_dr_int, H5T_NATIVE_DOUBLE, mem_space, file_space, H5P_DEFAULT, &dr_int);
 
   // rho
   H5Dset_extent(fp.dset_rho, dims);
-  file_space = H5Dget_space(fp.dset_rho);
-  H5Sselect_hyperslab(file_space, H5S_SELECT_SET, start, NULL, fp.chunk_dims, NULL);
   H5Dwrite(fp.dset_rho, H5T_NATIVE_DOUBLE, mem_space, file_space, H5P_DEFAULT, &s.rho);
 
   // Ye
   H5Dset_extent(fp.dset_Ye, dims);
-  file_space = H5Dget_space(fp.dset_Ye);
-  H5Sselect_hyperslab(file_space, H5S_SELECT_SET, start, NULL, fp.chunk_dims, NULL);
   H5Dwrite(fp.dset_Ye, H5T_NATIVE_DOUBLE, mem_space, file_space, H5P_DEFAULT, &s.Ye);
 
   // T
   H5Dset_extent(fp.dset_T, dims);
-  file_space = H5Dget_space(fp.dset_T);
-  H5Sselect_hyperslab(file_space, H5S_SELECT_SET, start, NULL, fp.chunk_dims, NULL);
   H5Dwrite(fp.dset_T, H5T_NATIVE_DOUBLE, mem_space, file_space, H5P_DEFAULT, &s.T);
 
   // Elab_Elabstart
   H5Dset_extent(fp.dset_Elab_Elabstart, dims);
-  file_space = H5Dget_space(fp.dset_Elab_Elabstart);
-  H5Sselect_hyperslab(file_space, H5S_SELECT_SET, start, NULL, fp.chunk_dims, NULL);
   H5Dwrite(fp.dset_Elab_Elabstart, H5T_NATIVE_DOUBLE, mem_space, file_space, H5P_DEFAULT, &s.Elab_Elabstart);
 
   // Ecom_Elab
   H5Dset_extent(fp.dset_Ecom_Elab, dims);
-  file_space = H5Dget_space(fp.dset_Ecom_Elab);
-  H5Sselect_hyperslab(file_space, H5S_SELECT_SET, start, NULL, fp.chunk_dims, NULL);
   H5Dwrite(fp.dset_Ecom_Elab, H5T_NATIVE_DOUBLE, mem_space, file_space, H5P_DEFAULT, &s.Ecom_Elab);
 
   // free resources
