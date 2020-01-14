@@ -26,10 +26,10 @@ class FilePointers{
 //============//
 // setup_file //
 //============//
-FilePointers setup_HDF5_file(const array<double,NE>& E, const array<double,NE>& Etop){
+FilePointers setup_HDF5_file(const string& outputfilename, const array<double,NE>& E, const array<double,NE>& Etop){
   FilePointers fp;
   
-  fp.file = H5Fcreate("output.h5", H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+  fp.file = H5Fcreate(outputfilename.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
   hid_t file_space;
   hsize_t ndims;
   hid_t plist = H5Pcreate(H5P_DATASET_CREATE);
