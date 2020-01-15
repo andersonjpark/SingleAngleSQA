@@ -192,6 +192,7 @@ public:
 				  unosc_moment[0][f][f] += exp(profile.lnDens_unosc[m][ibkg][f](r));
 				  unosc_moment[1][f][f] += profile.fluxfac_unosc[m][ibkg][f](r) * unosc_moment[0][f][f];
 				  unosc_moment[2][f][f] += profile.eddfac_unosc[m][ibkg][f](r) * unosc_moment[0][f][f];
+				  assert(abs(unosc_moment[0][f][f])/V0 <= 1.);
 				}
 
 				double total_overlap_fraction = 0; // should end up being 1
