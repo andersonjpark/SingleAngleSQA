@@ -26,8 +26,7 @@ class FilePointers{
 //============//
 // setup_file //
 //============//
-FilePointers setup_HDF5_file(const string& outputfilename, const array<double,NE>& E, const array<double,NE>& Etop){
-  FilePointers fp;
+void setup_HDF5_file(const string& outputfilename, const array<double,NE>& E, const array<double,NE>& Etop, FilePointers& fp){
   
   fp.file = H5Fcreate(outputfilename.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
   hid_t file_space;
@@ -103,8 +102,77 @@ FilePointers setup_HDF5_file(const string& outputfilename, const array<double,NE
   H5Sclose(file_space);
   H5Pclose(plist);
   H5Fflush(fp.file,H5F_SCOPE_LOCAL);
+}
 
-  return fp;
+//=========//
+// recover //
+//=========//
+void recover(const string filename, State& s, double& dr_osc, double& dr_int, double& dr_block, FilePointers& fp){
+  hsize_t start[6] = {0, 0, 0, 0, 0, 0};
+  hsize_t dims[6];
+  hsize_t ndims;
+  hid_t file_space, mem_space;
+
+  fp.file = H5Fopen (filename.c_str(), H5F_ACC_RDWR, H5P_DEFAULT);
+  
+  // 6D stuff
+  ndims=6;
+  mem_space = H5Screate_simple(ndims, fp.chunk_dims, NULL);  
+
+  fp.dset_f = H5Dopen (fp.file, "fmatrixf", H5P_DEFAULT);
+  file_space = H5Dget_space (fp.dset_f);
+  H5Sselect_hyperslab (file_space, H5S_SELECT_SET, start, NULL, fp.chunk_dims, NULL);
+  H5Dread (fp.dset_f, H5T_NATIVE_DOUBLE, mem_space, file_space, H5P_DEFAULT, &s.fmatrixf);
+
+  fp.dset_S = H5Dopen (fp.file, "S", H5P_DEFAULT);
+  H5Dread (fp.dset_S, H5T_NATIVE_DOUBLE, mem_space, file_space, H5P_DEFAULT, &s.Sf);
+
+  H5Sget_simple_extent_dims(file_space, dims, NULL);
+  start[0] = dims[0]-1;
+  assert(dims[1]==NM);
+  assert(dims[2]==NE);
+  assert(dims[3]==NF);
+  assert(dims[4]==NF);
+  assert(dims[5]==2);
+
+  // 1D stuff
+  ndims=1;
+  mem_space = H5Screate_simple(ndims, fp.chunk_dims, NULL);
+  
+  // r
+  fp.dset_r = H5Dopen (fp.file, "r(cm)", H5P_DEFAULT);
+  file_space = H5Dget_space (fp.dset_r);
+  H5Sselect_hyperslab (file_space, H5S_SELECT_SET, start, NULL, fp.chunk_dims, NULL);
+  H5Dread (fp.dset_r, H5T_NATIVE_DOUBLE, mem_space, file_space, H5P_DEFAULT, &s.r);
+
+  // dr_osc
+  fp.dset_dr_osc = H5Dopen (fp.file, "dr_osc(cm)", H5P_DEFAULT);
+  H5Dread (fp.dset_dr_osc, H5T_NATIVE_DOUBLE, mem_space, file_space, H5P_DEFAULT, &dr_osc);
+  
+  // dr_int
+  fp.dset_dr_int = H5Dopen (fp.file, "dr_int(cm)", H5P_DEFAULT);
+  H5Dread (fp.dset_dr_int, H5T_NATIVE_DOUBLE, mem_space, file_space, H5P_DEFAULT, &dr_int);
+  
+  // dr_block
+  fp.dset_dr_block = H5Dopen (fp.file, "dr_block(cm)", H5P_DEFAULT);
+  H5Dread (fp.dset_dr_block, H5T_NATIVE_DOUBLE, mem_space, file_space, H5P_DEFAULT, &dr_block);
+
+  // clear resources
+  H5Sclose(file_space);
+  H5Sclose(mem_space);
+
+  // store location of the rest of the datasets that don't need recovering
+  fp.dset_U              = H5Dopen(fp.file, "U", H5P_DEFAULT);
+  fp.dset_VfSI           = H5Dopen(fp.file, "VfSI(erg)", H5P_DEFAULT);
+  fp.dset_rho            = H5Dopen(fp.file, "rho(g|ccm)", H5P_DEFAULT);
+  fp.dset_Ye             = H5Dopen(fp.file, "Ye", H5P_DEFAULT);
+  fp.dset_T              = H5Dopen(fp.file, "T(MeV)", H5P_DEFAULT);
+  fp.dset_Elab_Elabstart = H5Dopen(fp.file, "Elab_Elabstart", H5P_DEFAULT);
+  fp.dset_Ecom_Elab      = H5Dopen(fp.file, "Ecom_Elab", H5P_DEFAULT);
+  fp.dset_dtdrO          = H5Dopen(fp.file, "dtheta_dr_osc(rad|cm)", H5P_DEFAULT);
+  fp.dset_dtdrI          = H5Dopen(fp.file, "dtheta_dr_int(rad|cm)", H5P_DEFAULT);
+  fp.dset_dpdrO          = H5Dopen(fp.file, "dphi_dr_osc(rad|cm)", H5P_DEFAULT);
+  fp.dset_dpdrI          = H5Dopen(fp.file, "dphi_dr_int(rad|cm)", H5P_DEFAULT);
 }
 
 //============//

@@ -109,8 +109,17 @@ int main(int argc, char *argv[]){
       
   // set up files
   string outputfilename = "output.h5";
-  FilePointers fp = setup_HDF5_file(outputfilename, profile.Ecom, profile.Etopcom);
-  write_data_HDF5(fp, s, dr_osc, dr_int, dr_block, true);
+  ifstream tmp_ifstream(outputfilename);
+  FilePointers fp;
+  if(tmp_ifstream){
+    cout << "Recovering from " << outputfilename << endl;
+    recover(outputfilename, s, dr_osc, dr_int, dr_block, fp);
+  }
+  else{
+    cout << "Creating " << outputfilename << endl; 
+    setup_HDF5_file(outputfilename, profile.Ecom, profile.Etopcom, fp);
+    write_data_HDF5(fp, s, dr_osc, dr_int, dr_block, true);
+  }
 	
   // ***********************
   // start the loop over r *
