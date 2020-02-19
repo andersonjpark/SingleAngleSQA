@@ -41,7 +41,7 @@ public:
 	array<array<double,NM>,NE> dphi_dr_interact, dtheta_dr_interact;
 	array<array<double,NM>,NE> dphi_dr_osc,      dtheta_dr_osc;
 
-	State(const Profile& profile, double rin){
+	State(const Profile& profile, double rin, double initial_mixing){
 	        r = rin;
 		rho=NAN;
 		T=NAN;
@@ -80,13 +80,14 @@ public:
 			}
 		}
 		update_background(profile);
-		initialize(profile);
+		eas.update(rho, T, Ye);
+		initialize(profile, initial_mixing);
 		update_potential(profile,*this);
 	}
 
 	void update_background(const Profile& profile){
 
-		rho = exp(profile.lnrho(r));
+		rho = profile.rho(r);
 		T = profile.temperature(r);
 		Ye = profile.Ye(r);
 		Ecom_Elab = profile.Ecom_Elab(r);
@@ -122,14 +123,12 @@ public:
 		VfMatter[antimatter]=-Conjugate(VfMatter[matter]);
 
 		// derivative of matter potential
-		double dlogrhodr=profile.lnrho.Derivative(r);
+		double drhodr=profile.rho.Derivative(r);
 		double dYedr=profile.Ye.Derivative(r);
-		dVfMatterdr[matter] = VfMatter[matter] * (dlogrhodr + dYedr/Ye);
+		dVfMatterdr[matter] = VfMatter[matter] * (drhodr/rho + dYedr/Ye);
 		dVfMatterdr[antimatter]=-Conjugate(dVfMatterdr[matter]);
 
 		// SI potential
-		VfSI[matter] = MATRIX<complex<double>,NF,NF>();
-		VfSI[antimatter] = MATRIX<complex<double>,NF,NF>();
 #pragma omp parallel for collapse(2)
 		for(int m=matter; m<=antimatter; m++){
 			for(int i=0;i<=NE-1;i++){
@@ -155,9 +154,10 @@ public:
 			}
 		}
 
-		array<array<array<MATRIX<complex<double>,NF,NF>,NMOMENTS>,NE>,NM> MBackground = oscillated_moments(profile);
+		array<array<array<MATRIX<complex<double>,NF,NF>,NMOMENTS>,NE>,NM> MBackground = oscillated_moments(profile,s0);
 
 		// calculate the self-interaction potential
+		VfSI[matter] = MATRIX<complex<double>,NF,NF>();
 		for(int m=matter; m<=antimatter; m++){
 			for(int i0=0; i0<NE; i0++){
 				MATRIX<complex<double>,NF,NF> VfSIE = (MBackground[m][i0][0] - MBackground[m][i0][1]) * sqrt(2.)*cgs::constants::GF;
@@ -177,26 +177,29 @@ public:
 	// OSCILLATED MOMENTS //
 	//====================//
 	// oscillate moments, keeping the moments' comoving-frame energy grid
-	array<array<array<MATRIX<complex<double>,NF,NF>,NMOMENTS>,NE>,NM> oscillated_moments(const Profile& profile) const{
+	array<array<array<MATRIX<complex<double>,NF,NF>,NMOMENTS>,NE>,NM> oscillated_moments(const Profile& profile, const State& sBlockStart) const{
 
 		array<array<array<MATRIX<complex<double>,NF,NF>,NMOMENTS>,NE>,NM> MBackground;
 
 #pragma omp parallel for collapse(2)
 		for(int m=matter; m<=antimatter; m++){
 			for(int ibkg=0; ibkg<NE; ibkg++){
-				double V0 = Vphase(ibkg, profile.Etopcom);
+                                double V0 = Vphase(ibkg, profile.Etopcom);
 
-				// fill in the un-oscillated diagonals
-				array<MATRIX<complex<double>,NF,NF>,NMOMENTS> unosc_moment;
-				for(flavour f=e; f<=mu; f++){
-				  unosc_moment[0][f][f] += exp(profile.lnDens_unosc[m][ibkg][f](r));
-				  unosc_moment[1][f][f] += profile.fluxfac_unosc[m][ibkg][f](r) * unosc_moment[0][f][f];
-				  unosc_moment[2][f][f] += profile.eddfac_unosc[m][ibkg][f](r) * unosc_moment[0][f][f];
-				  assert(abs(unosc_moment[0][f][f])/V0 <= 1.);
-				}
+				//=======================//
+				if(not ASSUME_ISOTROPY){ //
+				//=======================//
+				  // fill in the un-oscillated diagonals
+				  array<MATRIX<complex<double>,NF,NF>,NMOMENTS> unosc_moment;
+				  for(flavour f=e; f<=mu; f++){
+				    unosc_moment[0][f][f] += profile.dens_unosc[m][ibkg][f](r);
+				    unosc_moment[1][f][f] += profile.fluxfac_unosc[m][ibkg][f](r) * unosc_moment[0][f][f];
+				    unosc_moment[2][f][f] += profile.eddfac_unosc[m][ibkg][f](r) * unosc_moment[0][f][f];
+				    assert(abs(unosc_moment[0][f][f])/V0 <= 1.);
+				  }
 
-				double total_overlap_fraction = 0; // should end up being 1
-				for(int itraj=0; itraj<NE; itraj++){
+				  double total_overlap_fraction = 0; // should end up being 1
+				  for(int itraj=0; itraj<NE; itraj++){
 					assert( abs(Trace(Sf[m][itraj]*Adjoint(Sf[m][itraj])) - (double)NF) < 1e-5);
 
 					// calculate fraction of bin ibkg that overlaps with bin itraj
@@ -212,33 +215,44 @@ public:
 					if(V_overlap>0){
 					  double overlap_fraction = V_overlap / V0;
 					  total_overlap_fraction += overlap_fraction;
-
-					  if(ASSUME_ISOTROPY){
-					    MBackground[m][ibkg][0] += fmatrixf[m][itraj] * V_overlap;
-					    MBackground[m][ibkg][1] += MBackground[m][ibkg][0] * 0;
-					    MBackground[m][ibkg][2] += MBackground[m][ibkg][0] * 1./3.;
-					  }
-					  else for(int mom=0; mom<NMOMENTS; mom++)
+					  for(int mom=0; mom<NMOMENTS; mom++)
 						 MBackground[m][ibkg][mom] += Sf[m][itraj]*unosc_moment[mom]*Adjoint(Sf[m][itraj]) * overlap_fraction;
 					}
+
+					// add in rest of moment using highest-bin Sf
+					assert(total_overlap_fraction < 1.+1e-6);
+					assert(total_overlap_fraction >= 0);
+					if(total_overlap_fraction < 1.-1e-6){
+					  assert(profile.Etopcom[ibkg] > Etopcom[NE-1]);
+					  for(int mom=0; mom<NMOMENTS; mom++)
+						 MBackground[m][ibkg][mom] += Sf[m][NE-1]*unosc_moment[mom]*Adjoint(Sf[m][NE-1]) * (1.-total_overlap_fraction);
+					}
+
+					// check that it's reasonable
+					for(int mom=0; mom<NMOMENTS; mom++){
+					  double Tr_unosc = abs(Trace(unosc_moment[mom]));
+					  double Tr_osc   = abs(Trace(MBackground[m][ibkg][mom]));
+					  if(Tr_unosc>0)
+					    assert( abs(Tr_osc-Tr_unosc)/Tr_unosc -1. < 1e-6);
+					}
+				  }
 				}
 
-				// add in rest of moment using highest-bin Sf
-				assert(total_overlap_fraction < 1.+1e-6);
-				assert(total_overlap_fraction >= 0);
-				if(total_overlap_fraction < 1.-1e-6){
-					assert(profile.Etopcom[ibkg] > Etopcom[NE-1]);
-					for(int mom=0; mom<NMOMENTS; mom++)
-						MBackground[m][ibkg][mom] += Sf[m][NE-1]*unosc_moment[mom]*Adjoint(Sf[m][NE-1]) * (1.-total_overlap_fraction);
+				//====//
+				else{ //
+				//====//
+				  // assumes that trajectory frame is the same as background frame (fluid velocity is 0)
+				  // fmatrixf is stored at last collection point. Need to apply SThisStep
+				  assert(Ecom_Elab == 1.);
+				  MATRIX<complex<double>,NF,NF> SfThisStep = UU[m][ibkg] * SThisStep[m][ibkg] * Adjoint(sBlockStart.UU[m][ibkg]);
+				  MATRIX<complex<double>,NF,NF> Moverlap = SfThisStep * fmatrixf[m][ibkg] * Adjoint(SfThisStep) * V0;
+				  MBackground[m][ibkg][0] = Moverlap;
+				  MBackground[m][ibkg][1] = Moverlap * 0;
+				  MBackground[m][ibkg][2] = Moverlap * 1./3.;
 				}
+
 
 				// check that it's reasonable
-				for(int mom=0; mom<NMOMENTS; mom++){
-				  double Tr_unosc = abs(Trace(unosc_moment[mom]));
-				  double Tr_osc   = abs(Trace(MBackground[m][ibkg][mom]));
-				  if(Tr_unosc>0)
-				    assert( abs(Tr_osc-Tr_unosc)/Tr_unosc -1. < 1e-6);
-				}
 				for(flavour f1=e; f1<=mu; f1++){
 				  for(flavour f2=e; f2<=mu; f2++){
 				    assert(abs(MBackground[m][ibkg][0][f1][f1])/V0 <= 1.);
@@ -252,7 +266,7 @@ public:
 		return MBackground;
 	}
 
-	void accumulate_S(double dr, const State& sReset, const State& s0){
+	void accumulate_S(double dr, const State& sBlockStart, const State& s0){
 #pragma omp parallel for collapse(2)
 		for(int m=matter;m<=antimatter;m++){
 			for(int i=0;i<=NE-1;i++){
@@ -264,18 +278,15 @@ public:
 				// convert fmatrix from flavor basis to (reset-point) mass basis
 				// evolve fmatrix from reset-point to current-point mass basis
 				// convert fmatrix from (current-point) mass basis to flavor basis
-				MATRIX<complex<double>,NF,NF> SfThisStep =
-						UU[m][i]
-							  * SThisStep[m][i]
-											 * Adjoint(sReset.UU[m][i]);
+				MATRIX<complex<double>,NF,NF> SfThisStep = UU[m][i] * SThisStep[m][i] * Adjoint(sBlockStart.UU[m][i]);
 				fmatrixf[m][i] = SfThisStep * fmatrixf[m][i] * Adjoint(SfThisStep);
 
 				// reset the evolution matrix to identity
 				Y[m][i] = YIdentity;
 
 				// get rate of change of fmatrix from oscillation
-				array<double,4> hold = pauli_decompose(sReset.fmatrixf[m][i]);
-				array<double,4> hnew = pauli_decompose(       fmatrixf[m][i]);
+				array<double,4> hold = pauli_decompose(sBlockStart.fmatrixf[m][i]);
+				array<double,4> hnew = pauli_decompose(            fmatrixf[m][i]);
 				double oldmag   = sqrt(hold[0]*hold[0] + hold[1]*hold[1] + hold[2]*hold[2]);
 				double newmag   = sqrt(hnew[0]*hnew[0] + hnew[1]*hnew[1] + hnew[2]*hnew[2]);
 				double costheta = 0;
@@ -317,7 +328,7 @@ public:
 	//============//
 	// Initialize //
 	//============//
-	void initialize(const Profile& p){
+	void initialize(const Profile& p, const double initial_mixing){
 		array<array<double,NF>,NE> kV = set_kV(E);
 		array<MATRIX<complex<double>,NF,NF>,NM> UV = Evaluate_UV();
 		array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> VfVac = Evaluate_VfVac(kV,UV);
@@ -340,7 +351,8 @@ public:
 			cout<<"\n\nNormal hierarchy" << endl;
 		else{
 			if(kV[0][1]<kV[0][0])
-				cout<<"\n\nInverted hierarchy" << endl;
+
+			        cout<<"\n\nInverted hierarchy" << endl;
 			else{
 				cout<<endl<<endl<<"Neither normal or Inverted"<<endl;
 				abort();
@@ -365,12 +377,29 @@ public:
 			        fmatrixf[m][i] = MATRIX<complex<double>,NF,NF>();
 				fmatrixf[m][i][e][e] = 1.e-100;
 				for(flavour f=e; f<=mu; f++){
-				  double D_V = exp(p.lnDens_unosc[m][i][f](r)) / V;
+				  // set the f
+				  double D_V;
+				  if(ASSUME_ISOTROPY){
+				    int nulib_species = (f==e ? m : 2);
+				    D_V = eas.fermidirac( nulib_species , E[i]/(T*1e6*cgs::units::eV));
+				  }
+				  else D_V = p.dens_unosc[m][i][f](r) / V;
+
 				  if(r>=0 and D_V>0)
 				    fmatrixf[m][i][f][f] = D_V;
 				  assert(abs(fmatrixf[m][i][f][f]) >= 0.);
 				  assert(abs(fmatrixf[m][i][f][f]) <= 1.);
 				}
+
+				// apply mixing
+				double Tr = abs(Trace(fmatrixf[m][i]));
+				double lmax = min(Tr/2., 1.-Tr/2.);
+				assert(lmax >= 0);
+				double z = abs(fmatrixf[m][i][e][e]-fmatrixf[m][i][mu][mu])/2.;
+				double xmax = sqrt(lmax*lmax - z*z);
+				assert(xmax==xmax);
+				fmatrixf[m][i][e][mu] = xmax*initial_mixing;
+				fmatrixf[m][i][mu][e] = xmax*initial_mixing;
 			}
 
 			cout << "GROUP " << i << " f = {";

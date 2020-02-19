@@ -5,12 +5,12 @@
 
 class Profile{
  public:
-  DISCONTINUOUS lnrho; // ln(g/ccm)
+  DISCONTINUOUS rho; // ln(g/ccm)
   DISCONTINUOUS Ye;
   DISCONTINUOUS temperature; // MeV
   DISCONTINUOUS Ecom_Elab;
   DISCONTINUOUS Elab_Elabstart;
-  array<array<array<DISCONTINUOUS,NF>,NE>,NM> lnDens_unosc;
+  array<array<array<DISCONTINUOUS,NF>,NE>,NM> dens_unosc;
   array<array<array<DISCONTINUOUS,NF>,NE>,NM> fluxfac_unosc;
   array<array<array<DISCONTINUOUS,NF>,NE>,NM> eddfac_unosc;
   array<double,NE> Ecom, Etopcom; // erg
@@ -52,27 +52,26 @@ class Profile{
     temperature.SetData(x, data);
 
     file.openDataSet("rho(g|ccm)").read(&data[0], H5::PredType::NATIVE_DOUBLE);
-    lnrho.SetData(x, data);
-    lnrho = lnrho.copy_logy();
+    rho.SetData(x, data);
     
     // get the starting radius
-    rstart = lnrho.XMin();
-    for(size_t i=0; i<lnrho.data.size(); i++){
-      if(lnrho.data[i] >= log(rhostart)){
-	cout << i << " " << lnrho.data[i] << " " << log(rhostart) << endl;
-	double dr = lnrho.x[i+1] - lnrho.x[i];
-	double dlogrho = lnrho.data[i+1] - lnrho.data[i];
-	if(abs(dlogrho)>0 and i<lnrho.x.size()-1){
-	  rstart = lnrho.x[i] + (log(rhostart)-lnrho.data[i]) * dr/dlogrho;
+    rstart = rho.XMin();
+    for(size_t i=0; i<rho.data.size(); i++){
+      if(rho.data[i] >= rhostart){
+	cout << i << " " << rho.data[i] << " " << rhostart << endl;
+	double dr = rho.x[i+1] - rho.x[i];
+	double drho = rho.data[i+1] - rho.data[i];
+	if(abs(drho)>0 and i<rho.x.size()-1){
+	  rstart = rho.x[i] + (rhostart-rho.data[i]) * dr/drho;
 	}
-	else rstart = lnrho.x[i];
+	else rstart = rho.x[i];
       }
     }
-    if(rstart==lnrho.XMin()) rstart = max(lnrho.XMin(),0.); // have reference point be at 0 if starting from boundary
+    if(rstart==rho.XMin()) rstart = max(rho.XMin(),0.); // have reference point be at 0 if starting from boundary
 
     // normalize the lab-frame neutrino energy relative to the start of the calculation
-    assert(rstart >= lnrho.XMin());
-    assert(rstart <= lnrho.XMax());
+    assert(rstart >= rho.XMin());
+    assert(rstart <= rho.XMax());
     Elabstart_Ecomstart = 1./Ecom_Elab(rstart);
     double startval = Elab_Elabstart( rstart );
     for(size_t i=0; i<Elab_Elabstart.data.size(); i++)
@@ -93,8 +92,7 @@ class Profile{
     			int s = m + 2*f; // species index. 0-e 1-ebar 2-x 3-xbar
 
     			for(size_t ir=0; ir<nr; ir++) data[ir] = Ndens[s][i][ir];
-    			lnDens_unosc[m][i][f].SetData(x,data);
-			lnDens_unosc[m][i][f] = lnDens_unosc[m][i][f].copy_logy();
+			dens_unosc[m][i][f].SetData(x,data);
 
     			for(size_t ir=0; ir<nr; ir++) data[ir] = Fdens[s][i][ir]/Ndens[s][i][ir];
     			fluxfac_unosc[m][i][f].SetData(x,data);

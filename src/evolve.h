@@ -132,7 +132,7 @@ void evolve_interactions(State& s,
 
 				s.update_background(profile);
 				eas.update(s.rho, s.T, s.Ye);
-				dfdr[k] = Kinteract(s,profile);
+				dfdr[k] = Kinteract(s,sBlockStart,profile);
 			}
 
 			// increment all quantities and update C and A arrays

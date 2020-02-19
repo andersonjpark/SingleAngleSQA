@@ -138,13 +138,13 @@ blocking_term(const array<MATRIX<double,NF,NF>,KMOMENTS>& Phi /*cm^3/s/sr*/,
 // Kinteract //
 //===========//
 array<array<MATRIX<complex<double>,NF,NF>,NE>,NM>
-Kinteract(const State& s, const Profile& profile){
+  Kinteract(const State& s, const State& sBlockStart, const Profile& profile){
 
 	// set up the array to be returned
 	array<array<MATRIX<complex<double>,NF,NF>,NE>,NM> dfdr;
 
 	// get oscillated background density
-	array<array<array<MATRIX<complex<double>,NF,NF>,NMOMENTS>,NE>,NM> MBackground = s.oscillated_moments(profile);
+	array<array<array<MATRIX<complex<double>,NF,NF>,NMOMENTS>,NE>,NM> MBackground = s.oscillated_moments(profile,sBlockStart);
 
 #pragma omp parallel for collapse(2)
 	for(int m=matter; m<=antimatter; m++){

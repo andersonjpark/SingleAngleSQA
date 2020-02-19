@@ -86,6 +86,7 @@ int main(int argc, char *argv[]){
   const bool do_GR = get_parameter<bool>(fin, "do_GR");
   const double target_impact = get_parameter<double>(fin, "target_impact");
   const double increase = get_parameter<double>(fin, "increase");
+  const double initial_mixing = get_parameter<double>(fin, "initial_mixing");
   assert(do_oscillate or do_interact);
   fin.close();
 
@@ -97,7 +98,7 @@ int main(int argc, char *argv[]){
   // quantities evaluated at inital point *
   // **************************************
 
-  State s(profile, profile.lnrho.x[0]);
+  State s(profile, profile.rho.x[0], initial_mixing);
   State s0 = s; // ONLY used for oscillation stuff. s0.fmatrixf is meaningless
     
   // *****************************************
@@ -128,8 +129,8 @@ int main(int argc, char *argv[]){
   size_t iter = 0;
   do{
     double r_end = s.r + dr_block * min(5., exponential_random());
-    if(r_end>profile.lnrho.XMax()){
-      r_end = profile.lnrho.XMax();
+    if(r_end>profile.rho.XMax()){
+      r_end = profile.rho.XMax();
       finish=true;
     }
     if(s.r<0 and r_end>=0){
