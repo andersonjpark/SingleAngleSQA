@@ -1,11 +1,11 @@
-NULIB_LOC = ./NuLib
-HDF5_LOC = /usr/local/hdf5-1.8.20_gnu7.3.0
+NULIB_LOC = /Users/jspark971/external/NuLib
+HDF5_LOC  = /Users/jspark971/external/hdf5-1.10.5/hdf5
 
 INCLUDE = -I${HDF5_LOC}/include
 
-LIBRARY = ${NULIB_LOC}/src/nulib.a -L${HDF5_LOC}/lib -Wl,-rpath,${HDF5_LOC} -lhdf5 -lhdf5_fortran -lhdf5_cpp -lgfortran
+LIBRARY = ${NULIB_LOC}/src/nulib.a -L${HDF5_LOC}/lib -lhdf5 -lhdf5_fortran -lhdf5_cpp -L/usr/local/Cellar/gcc/9.2.0_3/lib/gcc/9 -lgfortran -lomp -lstdc++
 
-COMP = g++ -fopenmp -g -std=gnu++11 -O0 -Wall
+COMP = g++ -Xpreprocessor -fopenmp -g -std=gnu++11 -O0 -Wall
 
 sqa.x: src/sqa.cpp src/*.h src/*.cpp
 	cp NuLib_make.inc NuLib/make.inc

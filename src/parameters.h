@@ -36,7 +36,7 @@ const int NY=6;
 const array<array<double,NY>,NS> YIdentity{array<double,NY>{M_PI/2., M_PI/2., 0., 1., 0., 0.},array<double,NY>{M_PI/2., M_PI/2., 0., 1., 0., 0.}};
 
 const double M_2PI = 2.*M_PI;
-const complex<double> I = 1i;
+const complex<double> I(0.0,1.0);
 // units, etc
 namespace cgs{
   namespace units{
