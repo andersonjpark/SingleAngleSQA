@@ -15,9 +15,9 @@ MODINC="-I ./"
 #it by yourself.
 #See README file for compiling HDF5
 
-HDF5_DIR=/usr/local/hdf5-1.8.20_gnu7.3.0
+HDF5_DIR=/Users/jspark971/external/hdf5-1.10.5/hdf5
 HDF5INCS=-I$(HDF5_DIR)/include
-HDF5LIBS=-L$(HDF5_DIR)/lib -lhdf5 -lhdf5_fortran -lhdf5 -lz -Wl,-rpath=$(HDF5_DIR)/lib
+HDF5LIBS=-L$(HDF5_DIR)/lib -lhdf5 -lhdf5_fortran -lhdf5 -lz 
 
 #additional flag needed to include other's work, like Hempel's EOS or Timmes' Helmholtz EOS
 NUCLEI_HEMPEL = 0
