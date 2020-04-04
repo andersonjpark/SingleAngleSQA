@@ -6,10 +6,10 @@
 //=======================//
 
 // assume isotropy
-const bool ASSUME_ISOTROPY = false;
+const bool ASSUME_ISOTROPY = true;
 
 // number of energy bins, min and max energy
-const int NE = 12;
+const int NE = 25;
 
 //=========================//
 // DON'T CHANGE BELOW HERE //
