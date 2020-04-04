@@ -1,9 +1,11 @@
-NULIB_LOC = /Users/jspark971/external/NuLib
-HDF5_LOC  = /Users/jspark971/external/hdf5-1.10.5/hdf5
+NULIB_LOC = /home/jspark971/Documents/research/isotripicSQA/SingleAngleSQA/NuLib
+
+
+HDF5_LOC  = /home/jspark971/external/hdf5-1.10.5/hdf5
 
 INCLUDE = -I${HDF5_LOC}/include
 
-LIBRARY = ${NULIB_LOC}/src/nulib.a -L${HDF5_LOC}/lib -lhdf5 -lhdf5_fortran -lhdf5_cpp -L/usr/local/Cellar/gcc/9.2.0_3/lib/gcc/9 -lgfortran -lomp -lstdc++
+LIBRARY = ${NULIB_LOC}/src/nulib.a -L${HDF5_LOC}/lib -Wl,-rpath,${HDF5_LOC}/lib -lhdf5 -lhdf5_fortran -lhdf5_cpp -L/usr/local/Cellar/gcc/9.2.0_3/lib/gcc/9 -lgfortran -lomp -lstdc++
 
 COMP = g++ -Xpreprocessor -fopenmp -g -std=gnu++11 -O0 -Wall
 
