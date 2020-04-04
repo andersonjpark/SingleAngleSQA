@@ -1,4 +1,5 @@
-F90=mpif90
+
+F90=gfortran
 F90FLAGS= -O2 -fopenmp -g
 
 #if you want to take advantage of openmp, set OPENMP=1
@@ -15,7 +16,7 @@ MODINC="-I ./"
 #it by yourself.
 #See README file for compiling HDF5
 
-HDF5_DIR=/Users/jspark971/external/hdf5-1.10.5/hdf5
+HDF5_DIR=/home/jspark971/external/hdf5-1.10.5/hdf5
 HDF5INCS=-I$(HDF5_DIR)/include
 HDF5LIBS=-L$(HDF5_DIR)/lib -lhdf5 -lhdf5_fortran -lhdf5 -lz 
 
