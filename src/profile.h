@@ -26,6 +26,8 @@ class Profile{
     const hsize_t ns = dims[0];
     const hsize_t ng = dims[1];
     const hsize_t nr = dims[2];
+    cout<<ng<<endl;
+    cout<<NE<<endl;
     assert(ng==NE);
     assert(ns==2*NF);
     vector<double> x(nr), data(nr);
