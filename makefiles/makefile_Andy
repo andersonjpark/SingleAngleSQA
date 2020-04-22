@@ -1,6 +1,4 @@
 NULIB_LOC = /home/jspark971/Documents/research/isotripicSQA/SingleAngleSQA/NuLib
-
-
 HDF5_LOC  = /home/jspark971/external/hdf5-1.10.5/hdf5
 
 INCLUDE = -I${HDF5_LOC}/include
