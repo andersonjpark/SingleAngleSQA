@@ -1,5 +1,4 @@
-
-F90=gfortran
+F90=mpif90
 F90FLAGS= -O2 -fopenmp -g
 
 #if you want to take advantage of openmp, set OPENMP=1
@@ -16,9 +15,9 @@ MODINC="-I ./"
 #it by yourself.
 #See README file for compiling HDF5
 
-HDF5_DIR=/home/jspark971/external/hdf5-1.10.5/hdf5
+HDF5_DIR=/usr/local/hdf5-1.12.0_gnu7.5.0
 HDF5INCS=-I$(HDF5_DIR)/include
-HDF5LIBS=-L$(HDF5_DIR)/lib -lhdf5 -lhdf5_fortran -lhdf5 -lz 
+HDF5LIBS=-L$(HDF5_DIR)/lib -lhdf5 -lhdf5_fortran -lhdf5 -lz -Wl,-rpath=$(HDF5_DIR)/lib
 
 #additional flag needed to include other's work, like Hempel's EOS or Timmes' Helmholtz EOS
 NUCLEI_HEMPEL = 0
