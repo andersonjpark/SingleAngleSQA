@@ -7,3 +7,5 @@ sqa.tar.gz
 .cproject
 .project
 .settings
+Makefile
+NuLib_make.inc
