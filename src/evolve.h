@@ -1,5 +1,7 @@
 #ifndef EVOLVE_H
 #define EVOLVE_H
+#include <cmath>
+#include <complex>
 
 void evolve_oscillations(State& s,
 		const State& s0,
@@ -152,7 +154,7 @@ void evolve_interactions(State& s,
 					    maxerror = 1.;
 					  }
 					  for(int f2=e; f2<=mu; f2++){
-					    maxerror = max(maxerror, fabs(ferror[f1][f2]));
+					    maxerror = max(maxerror, std::abs(ferror[f1][f2]));
 					  }
 					}
 				}
@@ -188,7 +190,7 @@ void evolve_interactions(State& s,
 	  for(int m=matter; m<=antimatter; m++)
 	    for(int f1=e; f1<=mu; f1++)
 	      for(int f2=e; f2<=mu; f2++)
-		impact = max(impact, fabs(s.fmatrixf[m][i][f1][f2] - old_fmatrixf[m][i][f1][f2]));
+		impact = max(impact, std::abs(s.fmatrixf[m][i][f1][f2] - old_fmatrixf[m][i][f1][f2]));
 
 	// loop through getting rotation matrices
 	if(do_interact_rotation)

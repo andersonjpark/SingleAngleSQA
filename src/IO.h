@@ -259,7 +259,7 @@ void write_data_HDF5(FilePointers& fp, const State& s, double dr_osc, double dr_
   file_space = H5Dget_space (fp.dset_f);
   hsize_t dims[ndims];
   H5Sget_simple_extent_dims(file_space, dims, NULL);
-  hsize_t start[ndims] = {dims[0], 0, 0, 0, 0, 0};
+  hsize_t start[6] = {dims[0], 0, 0, 0, 0, 0};
   dims[0]++;
 
   // fmatrixf

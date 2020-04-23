@@ -154,12 +154,12 @@ extern "C"{
 			const int* neutrino_species,
 			const int* pro_or_ann,
 			const int* which_l);
-	double bremsstrahlung_phi0_hannestad_(const double* nu_energy_x, /*E/kT*/
-			const double* nubar_energy_x, /*E/kT*/
-			const double* matter_temperature, /*MeV*/
-			const double* n_N, /*cm^-3*/
-			const int* neutrino_species,
-			const int* pro_ann);
+	double  bremsstrahlung_phi0_hannestad_ (const double* nu_energy_x, /*E/kT*/
+            const double* nubar_energy_x, /*E/kT*/
+            const double* matter_temperature, /*MeV*/
+            const double* n_N, /*cm^-3*/
+            const int* neutrino_species,
+            const int* pro_ann) asm ("bremsstrahlung_phi0_hannestad_");
 
 	// 1/cm, all arguments in MeV
 	double __nulib_MOD_nu4scat_kernel_single(double* k, double* q1, double* q2, double* q3); // cm^5
