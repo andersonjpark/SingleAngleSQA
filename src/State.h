@@ -115,18 +115,30 @@ public:
 		// potential ~ rho(1-p.v) is larger when p and v antiparallel (when Ecom>Elab)
 		// That is, the potential transforms oppositely as the neutrino energy.
 		array<MATRIX<complex<double>,NF,NF>,NM> VfMatter, dVfMatterdr;
-		double matter_potential=M_SQRT2*cgs::constants::GF/cgs::constants::Mp*rho*Ye*Ecom_Elab;
+		double matter_potential = M_SQRT2*cgs::constants::GF/cgs::constants::Mp*rho*Ye*Ecom_Elab;
 		VfMatter[matter][e ][e ] = matter_potential;
 		VfMatter[matter][mu][mu] = 0;
 		VfMatter[matter][e ][mu] = 0;
 		VfMatter[matter][mu][e ] = 0;
-		VfMatter[antimatter]=-Conjugate(VfMatter[matter]);
+		VfMatter[antimatter]= -Conjugate(VfMatter[matter]);
 
 		// derivative of matter potential
 		double drhodr=profile.rho.Derivative(r);
 		double dYedr=profile.Ye.Derivative(r);
 		dVfMatterdr[matter] = VfMatter[matter] * (drhodr/rho + dYedr/Ye);
-		dVfMatterdr[antimatter]=-Conjugate(dVfMatterdr[matter]);
+		dVfMatterdr[antimatter]= -Conjugate(dVfMatterdr[matter]);
+
+		// New potential (two loop contribution, 2nd order term)
+		array<MATRIX<complex<double>,NF,NF>,NE> VfNew, dVfNew;
+		for(int i=0; i<=NE-1; i++) {
+			double new_potential = 8.0*M_SQRT2*cgs::constants::GF*Ecom[i]*Edensity/3.0/cgs::constants::Mw/cgs:constants::Mw;
+			VfNew[i ][e ][e ] = new_potential;
+			VfNew[i ][mu][mu] = 0;
+			VfNew[i ][e ][mu] = 0;
+			VfNew[i ][mu][e ] = 0;
+		}
+
+		// derivative of new potential (think about it later)
 
 		// SI potential
 #pragma omp parallel for collapse(2)
@@ -135,7 +147,7 @@ public:
 
 				// stuff that used to be in K()
 				MATRIX<complex<double>,NF,NF> dVfVacdr = VfVac[m][i] * VfVac_derivative_fac;
-				VfMSW[m][i] = VfVac[m][i]+VfMatter[m];
+				VfMSW[m][i] = VfVac[m][i]+VfMatter[m] + VfNew[i];
 				dVfMSWdr[m][i] = dVfMatterdr[m] + dVfVacdr;
 				kk[m][i] = k(VfMSW[m][i]);
 				dkk[m][i] = deltak(VfMSW[m][i]);
