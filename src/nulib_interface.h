@@ -5,10 +5,15 @@
 #include <string>
 #include <cstdlib>
 #include <cmath>
+#include <gsl/gsl_sf_fermi_dirac.h>
+#include <gsl/gsl_sf_gamma.h>
+#include <iostream>
+#include <math.h>
 
 // physical constants
 const double clight = 2.99792458e10; // cm/s
 const double hplanck = 1.0545716e-27; // erg.s
+const double h = hplanck * 2*M_PI; // erg * s
 const double MeV_to_ergs = 1.60217646e-6;
 const int NEUTRINO_SCHEME = 2;
 const long int NS_NULIB = 4;
@@ -179,6 +184,7 @@ public:
 		eos_variables.resize(__nulib_MOD_total_eos_variables);
 		eta = 0;
 		munue_kT = 0;
+		E_density = 0;
 
 		int neutrino_scheme = 2; // e,ebar,x,xbar
 		int number_species = 6;
@@ -268,7 +274,19 @@ public:
 		double mue = eos_variables[10];
 		double muhat = eos_variables[13];
 		munue_kT = (mue-muhat) / T;
-		eta = mue / T;
+		eta = mue / T; // mue_kT
+
+		Edensity = E_density_gsl(mue, T);
+
+	}
+
+	double E_density_gsl(double mu /*MeV*/, double T /*MeV*/) {
+		const double j = 3;
+		double mu_erg = mu * MeV_to_ergs; // erg
+		double T_erg = T * MeV_to_ergs; // erg
+		double int_f = gsl_sf_gamma(j + 1) * gsl_sf_fermi_dirac_int(j, mu_erg/T_erg); // dimensionless
+		double E_den = 4*M_PI*int_f * pow(T_erg, j + 1) /(clight*clight*clight) / (h*h*h); // erg/cm^3
+		return E_den;
 	}
 
 	double abs(int s, double E /*erg*/) const{ // 1/cm
@@ -436,7 +454,7 @@ public:
 		for(int mom=0; mom<KMOMENTS; mom++)
 		    Phi[mom] *= 2.0*cgs::constants::GF*cgs::constants::GF * Terg*Terg * clight / (2.*M_PI) / pow(cgs::constants::hbarc,4);// from nulib.F90
 		assert(std::abs(Phi[1]) <= Phi[0]);
-		
+
 		assert(Phi[0]>=0);
 		assert(fabs(Phi[1])<=Phi[0]);
 		for(int i=0; i<KMOMENTS; i++){
