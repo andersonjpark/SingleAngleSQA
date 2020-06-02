@@ -13,6 +13,7 @@ public:
 	double Ecom_Elab, Elab_Elabstart;
 	double r;
 	double rho, T, Ye; // g/ccm, MeV
+	
 
 	// energy grid
 	array<double,NE> E, Etop, Ecom, Etopcom; // erg
@@ -131,7 +132,7 @@ public:
 		// New potential (two loop contribution, 2nd order term)
 		array<MATRIX<complex<double>,NF,NF>,NE> VfNew, dVfNew;
 		for(int i=0; i<=NE-1; i++) {
-			double new_potential = 8.0*M_SQRT2*cgs::constants::GF*Ecom[i]*Edensity/3.0/cgs::constants::Mw/cgs::constants::Mw;
+		  double new_potential = 8.0*M_SQRT2*cgs::constants::GF*Ecom[i]*eas.Edensity/3.0/cgs::constants::Mw/cgs::constants::Mw;
 			VfNew[i ][e ][e ] = new_potential;
 			VfNew[i ][mu][mu] = 0;
 			VfNew[i ][e ][mu] = 0;
