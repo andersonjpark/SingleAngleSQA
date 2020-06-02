@@ -51,7 +51,7 @@ namespace cgs{
     const double hbarc = hbar*c;
     const double GF = 1.1663787e-5/*GeV^-2*//(1e9*1e9*units::eV*units::eV) * hbarc*hbarc*hbarc; //erg cm^3
     const double Mp = 1.6726219e-24; // g
-    const double Mw = 100 * MeV_to_ergs; // ergs
+    const double Mw = 100e6 * eV; // ergs
   }
 }
 
