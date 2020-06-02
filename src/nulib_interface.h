@@ -176,7 +176,7 @@ class EAS{
 public:
 
 	vector<double> eos_variables;
-	double munue_kT, eta;
+	double munue_kT, eta, Edensity;
 
 	array<array<double,NE>,NS_NULIB> absorption_opacity, emissivities, scattering_opacity, delta;
 
