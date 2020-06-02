@@ -184,7 +184,7 @@ public:
 		eos_variables.resize(__nulib_MOD_total_eos_variables);
 		eta = 0;
 		munue_kT = 0;
-		E_density = 0;
+		Edensity = 0;
 
 		int neutrino_scheme = 2; // e,ebar,x,xbar
 		int number_species = 6;
@@ -264,6 +264,15 @@ public:
 		cout << endl;
 	}
 
+	double E_density_gsl(double mu /*MeV*/, double T /*MeV*/) {
+		const double j = 3;
+		double mu_erg = mu * MeV_to_ergs; // erg
+		double T_erg = T * MeV_to_ergs; // erg
+		double int_f = gsl_sf_gamma(j + 1) * gsl_sf_fermi_dirac_int(j, mu_erg/T_erg); // dimensionless
+		double E_den = 4*M_PI*int_f * pow(T_erg, j + 1) /(clight*clight*clight) / (h*h*h); // erg/cm^3
+		return E_den;
+	}
+
 	void update(const double rho /* g/ccm */, const double T /*MeV*/, const double Ye){
 		// set the EOS variables
 		for(int i=0; i<__nulib_MOD_total_eos_variables; i++) eos_variables[i] = 0;
@@ -280,14 +289,6 @@ public:
 
 	}
 
-	double E_density_gsl(double mu /*MeV*/, double T /*MeV*/) {
-		const double j = 3;
-		double mu_erg = mu * MeV_to_ergs; // erg
-		double T_erg = T * MeV_to_ergs; // erg
-		double int_f = gsl_sf_gamma(j + 1) * gsl_sf_fermi_dirac_int(j, mu_erg/T_erg); // dimensionless
-		double E_den = 4*M_PI*int_f * pow(T_erg, j + 1) /(clight*clight*clight) / (h*h*h); // erg/cm^3
-		return E_den;
-	}
 
 	double abs(int s, double E /*erg*/) const{ // 1/cm
 		double EMeV = E / (1e6*eV);
