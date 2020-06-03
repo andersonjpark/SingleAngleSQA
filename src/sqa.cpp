@@ -67,11 +67,11 @@ using std::array;
 //======//
 int main(int argc, char *argv[]){
   string inputfilename;
-    
+
   assert(argc==2);
   inputfilename=string(argv[1]);
   ifstream fin(inputfilename.c_str());
-    
+
   // load the nulib table
   const string input_directory = get_parameter<string>(fin,"input_directory");
   const string eosfilename = get_parameter<string>(fin, "eosfilename");
@@ -84,6 +84,7 @@ int main(int argc, char *argv[]){
   const bool do_interact_rotation = get_parameter<bool>(fin, "do_interact_rotation");
   const bool do_SR = get_parameter<bool>(fin, "do_SR");
   const bool do_GR = get_parameter<bool>(fin, "do_GR");
+  const bool do_two_loop_contribution = get_parameter<bool>(fin, "do_two_loop_contribution");
   const double target_impact = get_parameter<double>(fin, "target_impact");
   const double increase = get_parameter<double>(fin, "increase");
   const double initial_mixing = get_parameter<double>(fin, "initial_mixing");
@@ -100,14 +101,14 @@ int main(int argc, char *argv[]){
 
   State s(profile, profile.rho.x[0], initial_mixing);
   State s0 = s; // ONLY used for oscillation stuff. s0.fmatrixf is meaningless
-    
+
   // *****************************************
   // initialize at beginning of every domain *
   // *****************************************
   double dr_block = dr0;
   double dr_osc   = dr0;
   double dr_int   = dr0;
-      
+
   // set up files
   string outputfilename = "output.h5";
   ifstream tmp_ifstream(outputfilename);
@@ -117,11 +118,11 @@ int main(int argc, char *argv[]){
     recover(outputfilename, s, dr_osc, dr_int, dr_block, fp);
   }
   else{
-    cout << "Creating " << outputfilename << endl; 
+    cout << "Creating " << outputfilename << endl;
     setup_HDF5_file(outputfilename, profile.Ecom, profile.Etopcom, fp);
     write_data_HDF5(fp, s, dr_osc, dr_int, dr_block, true);
   }
-	
+
   // ***********************
   // start the loop over r *
   // ***********************
@@ -141,7 +142,7 @@ int main(int argc, char *argv[]){
     }
 
     State sBlockStart = s;
-    
+
     // oscillate
     if(do_oscillate){
       s.assert_noNaN(accuracy);
@@ -161,7 +162,7 @@ int main(int argc, char *argv[]){
     // output data
     bool do_header = (++iter)%100==0;
     write_data_HDF5(fp, s,dr_osc, dr_int, dr_block, do_header);
-    
+
     // make sure fmatrixf is Hermitian and Scumulative is unitary
     #pragma omp parallel for collapse(2)
     for(int i=0; i<NE; i++){
@@ -170,7 +171,7 @@ int main(int argc, char *argv[]){
 	unitarize(s.Scumulative[m][i], accuracy);
       }
     }
-    
+
     // timestepping
     if(impact > target_impact)
       cout << "WARNING: impact="<<impact<< endl;
@@ -183,9 +184,7 @@ int main(int argc, char *argv[]){
 
   } while(finish==false);
 
-  
+
   cout<<"\nFinished\n\a"; cout.flush();
   return 0;
 }
-
-
