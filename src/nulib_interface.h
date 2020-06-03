@@ -184,7 +184,7 @@ public:
 		eos_variables.resize(__nulib_MOD_total_eos_variables);
 		eta = 0;
 		munue_kT = 0;
-		Edensity = 0;
+		E_density_electron = 0;
 
 		int neutrino_scheme = 2; // e,ebar,x,xbar
 		int number_species = 6;
@@ -285,7 +285,7 @@ public:
 		munue_kT = (mue-muhat) / T;
 		eta = mue / T; // mue_kT
 
-		Edensity = E_density_gsl(mue, T);
+		E_density_electron = E_density_gsl(mue, T);
 
 	}
 
