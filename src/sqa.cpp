@@ -99,7 +99,7 @@ int main(int argc, char *argv[]){
   // quantities evaluated at inital point *
   // **************************************
 
-  State s(profile, profile.rho.x[0], initial_mixing);
+  State s(profile, profile.rho.x[0], initial_mixing, do_two_loop_contribution);
   State s0 = s; // ONLY used for oscillation stuff. s0.fmatrixf is meaningless
 
   // *****************************************
