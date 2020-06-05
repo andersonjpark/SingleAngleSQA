@@ -13,6 +13,8 @@ public:
 	double Ecom_Elab, Elab_Elabstart;
 	double r;
 	double rho, T, Ye; // g/ccm, MeV
+	bool do_two_loop_contribution;
+	double new_potential;
 
 
 	// energy grid
