@@ -14,7 +14,6 @@ public:
 	double r;
 	double rho, T, Ye; // g/ccm, MeV
 	bool do_two_loop_contribution;
-	double new_potential;
 
 
 	// energy grid
@@ -44,13 +43,14 @@ public:
 	array<array<double,NM>,NE> dphi_dr_interact, dtheta_dr_interact;
 	array<array<double,NM>,NE> dphi_dr_osc,      dtheta_dr_osc;
 
-	State(const Profile& profile, double rin, double initial_mixing){
-	        r = rin;
+	State(const Profile& profile, double rin, double initial_mixing, bool do_two_loop_contribution){
+	  r = rin;
 		rho=NAN;
 		T=NAN;
 		Ye=NAN;
 		Ecom_Elab=profile.Ecom_Elab(r);
 		Elab_Elabstart=NAN;
+		do_two_loop_contribution=do_two_loop_contribution;
 
 		// set energy bins to match the profile at rmin in the comoving frame
 		cout << endl;
@@ -105,11 +105,11 @@ public:
 		}
 	}
 
-	void new_potential_ONOFF(bool do_two_loop_contribution){
-		if (do_two_loop_contribution == 0) {
-			new_potential = 0;
-		}
-	}
+	// void new_potential_ONOFF(bool do_two_loop_contribution){
+	// 	if (do_two_loop_contribution == 0) {
+	// 		new_potential = 0;
+	// 	}
+	// }
 
 	void update_potential(const Profile& profile, const State& s0){
 		// vacuum potential
@@ -141,7 +141,9 @@ public:
 		array<MATRIX<complex<double>,NF,NF>,NE> VfNew, dVfNew;
 		for(int i=0; i<=NE-1; i++) {
 		  double new_potential = 8.0*M_SQRT2*cgs::constants::GF*Ecom[i]*eas.E_density_electron/3.0/cgs::constants::Mw/cgs::constants::Mw;
-			new_potential_ONOFF(do_two_loop_contribution);
+			if (do_two_loop_contribution == true){
+				new_potential = 0;
+			}
 			VfNew[i ][e ][e ] = new_potential;
 			VfNew[i ][mu][mu] = 0;
 			VfNew[i ][e ][mu] = 0;
