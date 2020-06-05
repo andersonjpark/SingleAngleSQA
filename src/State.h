@@ -83,7 +83,7 @@ public:
 		update_background(profile);
 		eas.update(rho, T, Ye);
 		initialize(profile, initial_mixing);
-		update_potential(profile,*this);
+		update_potential(profile,*this, do_two_loop_contribution);
 	}
 
 	void update_background(const Profile& profile){
@@ -103,7 +103,7 @@ public:
 		}
 	}
 
-	void update_potential(const Profile& profile, const State& s0){
+	void update_potential(const Profile& profile, const State& s0, const do_two_loop_contribution){
 		// vacuum potential
 		array<array<double,NF>,NE> kV = set_kV(E);
 		array<MATRIX<complex<double>,NF,NF>,NM> UV = Evaluate_UV();
