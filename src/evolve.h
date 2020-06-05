@@ -39,7 +39,7 @@ void evolve_oscillations(State& s,
 									s.Y[m][i][x][j] += BB[k][l] * dYdr[l][m][i][x][j] * dr;
 
 				s.update_background(profile);
-				s.update_potential(profile,s0,do_two_loop_contribution);
+				s.update_potential(profile,s0);
 				dYdr[k] = Koscillate(s);
 			}
 
@@ -63,7 +63,7 @@ void evolve_oscillations(State& s,
 				}
 			}
 			s.update_background(profile);
-			s.update_potential(profile,s0,do_two_loop_contribution);
+			s.update_potential(profile,s0);
 
 			// decide whether to accept step, if not adjust step size
 			if(maxerror>accuracy){
@@ -99,7 +99,6 @@ void evolve_interactions(State& s,
 		const double accuracy,
 		const double increase,
 		const int do_interact_rotation,
-		const bool do_two_loop_contribution,
 		double& impact){
 
 	// save old fmatrix
