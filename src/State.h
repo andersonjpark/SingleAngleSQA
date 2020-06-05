@@ -13,7 +13,6 @@ public:
 	double Ecom_Elab, Elab_Elabstart;
 	double r;
 	double rho, T, Ye; // g/ccm, MeV
-	bool do_two_loop_contribution;
 
 
 	// energy grid
@@ -104,7 +103,8 @@ public:
 		}
 	}
 
-	void update_potential(const Profile& profile, const State& s0){
+	void update_potential(const Profile& profile, const State& s0, const bool do_two_loop_contribution){
+
 		// vacuum potential
 		array<array<double,NF>,NE> kV = set_kV(E);
 		array<MATRIX<complex<double>,NF,NF>,NM> UV = Evaluate_UV();
