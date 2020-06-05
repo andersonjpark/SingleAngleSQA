@@ -99,6 +99,7 @@ void evolve_interactions(State& s,
 		const double accuracy,
 		const double increase,
 		const int do_interact_rotation,
+		const bool do_two_loop_contribution,
 		double& impact){
 
 	// save old fmatrix
