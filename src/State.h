@@ -103,6 +103,12 @@ public:
 		}
 	}
 
+	void new_potential_ONOFF(bool do_two_loop_contribution){
+		if (do_two_loop_contribution == 0) {
+			new_potential = 0;
+		}
+	}
+
 	void update_potential(const Profile& profile, const State& s0){
 		// vacuum potential
 		array<array<double,NF>,NE> kV = set_kV(E);
@@ -133,11 +139,6 @@ public:
 		array<MATRIX<complex<double>,NF,NF>,NE> VfNew, dVfNew;
 		for(int i=0; i<=NE-1; i++) {
 		  double new_potential = 8.0*M_SQRT2*cgs::constants::GF*Ecom[i]*eas.E_density_electron/3.0/cgs::constants::Mw/cgs::constants::Mw;
-			void new_potential_ONOFF(bool do_two_loop_contribution){
-				if (do_two_loop_contribution == 0) {
-					new_potential = 0;
-				}
-			}
 			new_potential_ONOFF(do_two_loop_contribution);
 			VfNew[i ][e ][e ] = new_potential;
 			VfNew[i ][mu][mu] = 0;
