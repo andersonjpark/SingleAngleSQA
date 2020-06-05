@@ -103,8 +103,8 @@ public:
 		}
 	}
 
-	void update_potential(const Profile& profile, const State& s0, const bool do_two_loop_contribution){
-
+	void update_potential(const Profile& profile, const State& s0){
+		const bool do_two_loop_contribution
 		// vacuum potential
 		array<array<double,NF>,NE> kV = set_kV(E);
 		array<MATRIX<complex<double>,NF,NF>,NM> UV = Evaluate_UV();
