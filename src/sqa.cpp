@@ -112,7 +112,7 @@ int main(int argc, char *argv[]){
   // set up files
   string outputfilename = "output.h5";
   if (do_two_loop_contribution){
-    outputfilename = "output_two_loop.h5"
+    outputfilename = "output_two_loop.h5";
   }
   ifstream tmp_ifstream(outputfilename);
   FilePointers fp;
