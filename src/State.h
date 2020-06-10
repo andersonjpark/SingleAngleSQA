@@ -105,12 +105,6 @@ public:
 		}
 	}
 
-	// void new_potential_ONOFF(bool do_two_loop_contribution){
-	// 	if (do_two_loop_contribution == 0) {
-	// 		new_potential = 0;
-	// 	}
-	// }
-
 	void update_potential(const Profile& profile, const State& s0){
 		// vacuum potential
 		array<array<double,NF>,NE> kV = set_kV(E);
@@ -129,13 +123,13 @@ public:
 		VfMatter[matter][mu][mu] = 0;
 		VfMatter[matter][e ][mu] = 0;
 		VfMatter[matter][mu][e ] = 0;
-		VfMatter[antimatter]= -Conjugate(VfMatter[matter]);
+		VfMatter[antimatter]=-Conjugate(VfMatter[matter]);
 
 		// derivative of matter potential
 		double drhodr=profile.rho.Derivative(r);
 		double dYedr=profile.Ye.Derivative(r);
 		dVfMatterdr[matter] = VfMatter[matter] * (drhodr/rho + dYedr/Ye);
-		dVfMatterdr[antimatter]= -Conjugate(dVfMatterdr[matter]);
+		dVfMatterdr[antimatter]=-Conjugate(dVfMatterdr[matter]);
 
 		// New potential (two loop contribution, 2nd order term)
 		array<MATRIX<complex<double>,NF,NF>,NE> VfNew, dVfNew;
