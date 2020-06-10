@@ -27,12 +27,12 @@ enum flavour { e, mu };
 flavour operator++(flavour &n,int){ flavour tmp=n; n=(flavour)( (int)n+1 ); return tmp;};
 
 // the problem is broken up into seperate 'solutions'
-const int NS=2; 
+const int NS=2;
 enum solution { msw, si};
 solution operator++(solution &n,int){ solution tmp=n; n=(solution)( (int)n+1 ); return tmp;};
 
 // number of parametrs needed to describe neutrino S matrix
-const int NY=6; 
+const int NY=6;
 const array<array<double,NY>,NS> YIdentity{array<double,NY>{M_PI/2., M_PI/2., 0., 1., 0., 0.},array<double,NY>{M_PI/2., M_PI/2., 0., 1., 0., 0.}};
 
 const double M_2PI = 2.*M_PI;
@@ -51,6 +51,7 @@ namespace cgs{
     const double hbarc = hbar*c;
     const double GF = 1.1663787e-5/*GeV^-2*//(1e9*1e9*units::eV*units::eV) * hbarc*hbarc*hbarc; //erg cm^3
     const double Mp = 1.6726219e-24; // g
+    const double Mw = 100e6 * cgs::units::eV; // ergs
   }
 }
 

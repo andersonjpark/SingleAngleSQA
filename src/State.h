@@ -13,6 +13,8 @@ public:
 	double Ecom_Elab, Elab_Elabstart;
 	double r;
 	double rho, T, Ye; // g/ccm, MeV
+	bool do_two_loop_contribution;
+
 
 	// energy grid
 	array<double,NE> E, Etop, Ecom, Etopcom; // erg
@@ -41,13 +43,14 @@ public:
 	array<array<double,NM>,NE> dphi_dr_interact, dtheta_dr_interact;
 	array<array<double,NM>,NE> dphi_dr_osc,      dtheta_dr_osc;
 
-	State(const Profile& profile, double rin, double initial_mixing){
-	        r = rin;
+	State(const Profile& profile, double rin, double initial_mixing, bool do_two_loop_contribution){
+	  r = rin;
 		rho=NAN;
 		T=NAN;
 		Ye=NAN;
 		Ecom_Elab=profile.Ecom_Elab(r);
 		Elab_Elabstart=NAN;
+		do_two_loop_contribution=do_two_loop_contribution;
 
 		// set energy bins to match the profile at rmin in the comoving frame
 		cout << endl;
@@ -115,7 +118,7 @@ public:
 		// potential ~ rho(1-p.v) is larger when p and v antiparallel (when Ecom>Elab)
 		// That is, the potential transforms oppositely as the neutrino energy.
 		array<MATRIX<complex<double>,NF,NF>,NM> VfMatter, dVfMatterdr;
-		double matter_potential=M_SQRT2*cgs::constants::GF/cgs::constants::Mp*rho*Ye*Ecom_Elab;
+		double matter_potential = M_SQRT2*cgs::constants::GF/cgs::constants::Mp*rho*Ye*Ecom_Elab;
 		VfMatter[matter][e ][e ] = matter_potential;
 		VfMatter[matter][mu][mu] = 0;
 		VfMatter[matter][e ][mu] = 0;
@@ -128,6 +131,21 @@ public:
 		dVfMatterdr[matter] = VfMatter[matter] * (drhodr/rho + dYedr/Ye);
 		dVfMatterdr[antimatter]=-Conjugate(dVfMatterdr[matter]);
 
+		// New potential (two loop contribution, 2nd order term)
+		array<MATRIX<complex<double>,NF,NF>,NE> VfNew, dVfNew;
+		for(int i=0; i<=NE-1; i++) {
+		  double new_potential = 8.0*M_SQRT2*cgs::constants::GF*Ecom[i]*eas.E_density_electron/3.0/cgs::constants::Mw/cgs::constants::Mw;
+			if (do_two_loop_contribution == false){
+				new_potential = 0;
+			}
+			VfNew[i ][e ][e ] = new_potential;
+			VfNew[i ][mu][mu] = 0;
+			VfNew[i ][e ][mu] = 0;
+			VfNew[i ][mu][e ] = 0;
+		}
+
+		// derivative of new potential (think about it later)
+
 		// SI potential
 #pragma omp parallel for collapse(2)
 		for(int m=matter; m<=antimatter; m++){
@@ -135,7 +153,7 @@ public:
 
 				// stuff that used to be in K()
 				MATRIX<complex<double>,NF,NF> dVfVacdr = VfVac[m][i] * VfVac_derivative_fac;
-				VfMSW[m][i] = VfVac[m][i]+VfMatter[m];
+				VfMSW[m][i] = VfVac[m][i]+VfMatter[m] + VfNew[i];
 				dVfMSWdr[m][i] = dVfMatterdr[m] + dVfVacdr;
 				kk[m][i] = k(VfMSW[m][i]);
 				dkk[m][i] = deltak(VfMSW[m][i]);
