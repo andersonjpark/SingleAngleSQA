@@ -18,6 +18,7 @@
 //
 */
 
+#include <cstring>
 #include <complex>
 using std::complex;
 using std::abs;
@@ -92,7 +93,9 @@ int main(int argc, char *argv[]){
   fin.close();
 
   Profile profile(input_directory, rhostart, do_SR, do_GR);
-  read_eos_table_((char*)eosfilename.c_str());
+  char fortran_compatible_filename[200];
+  std::strcpy(fortran_compatible_filename, eosfilename.c_str());
+  read_eos_table_(fortran_compatible_filename);
   cout << "m_ref = " << __nulib_MOD_m_ref << " (939=m_n for LS, 931=m_amu for Hempel)" << endl;
 
   // **************************************
