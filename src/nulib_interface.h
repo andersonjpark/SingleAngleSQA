@@ -143,28 +143,28 @@ extern "C"{
 			const double* eos_variables);
 
 	// cm^3/s
-	double nes_phi0_thompsonbruenn_(const double* nu_energy_in /*MeV*/,
+	double __nes_phi0_thompsonbruenn_(const double* nu_energy_in /*MeV*/,
 			const double* nu_energy_out /*MeV*/,
 			const double* matter_eta, /*mue/T*/
 			const double* matter_temperature, /*MeV*/
-			const int* neutrino_species);
-	double nes_phi1_thompsonbruenn_(const double* nu_energy_in /*MeV*/,
+			const int* neutrino_species) asm ("_nes_phi0_thompsonbruenn_");
+	double __nes_phi1_thompsonbruenn_(const double* nu_energy_in /*MeV*/,
 			const double* nu_energy_out /*MeV*/,
 			const double* matter_eta, /*mue/T*/
 			const double* matter_temperature, /*MeV*/
-			const int* neutrino_species);
-	double epannihil_phi_bruenn_(const double* nu_energy_x, /*E/kT*/
+			const int* neutrino_species) asm ("_nes_phi1_thompsonbruenn_");
+	double __epannihil_phi_bruenn_(const double* nu_energy_x, /*E/kT*/
 			const double* nubar_energy_x, /*E/kT*/
 			const double* matter_eta, /*mue/kT*/
 			const int* neutrino_species,
 			const int* pro_or_ann,
-			const int* which_l);
-	double  bremsstrahlung_phi0_hannestad_ (const double* nu_energy_x, /*E/kT*/
+			const int* which_l) asm ("_epannihil_phi_bruenn_");
+	double  __bremsstrahlung_phi0_hannestad_(const double* nu_energy_x, /*E/kT*/
             const double* nubar_energy_x, /*E/kT*/
             const double* matter_temperature, /*MeV*/
             const double* n_N, /*cm^-3*/
             const int* neutrino_species,
-            const int* pro_ann) asm ("bremsstrahlung_phi0_hannestad_");
+            const int* pro_ann) asm ("_bremsstrahlung_phi0_hannestad_");
 
 	// 1/cm, all arguments in MeV
 	double __nulib_MOD_nu4scat_kernel_single(double* k, double* q1, double* q2, double* q3); // cm^5
@@ -358,8 +358,8 @@ public:
 			const double Elo = min(EinMeV, EoutMeV);
 			const double Ehi = max(EinMeV, EoutMeV);
 			double conv_to_out_rate = (Eout>Ein ? exp((Ehi-Elo)/T) : 1.0);
-			Phi[0] += nes_phi0_thompsonbruenn_(&Ehi, &Elo, &eta, &T, &s_nulib) * conv_to_out_rate;
-			Phi[1] += nes_phi1_thompsonbruenn_(&Ehi, &Elo, &eta, &T, &s_nulib) * conv_to_out_rate;
+			Phi[0] += __nes_phi0_thompsonbruenn_(&Ehi, &Elo, &eta, &T, &s_nulib) * conv_to_out_rate;
+			Phi[1] += __nes_phi1_thompsonbruenn_(&Ehi, &Elo, &eta, &T, &s_nulib) * conv_to_out_rate;
 		}
 		else{
 			assert(!__nulib_MOD_add_anue_iscattering_electrons);
@@ -407,7 +407,7 @@ public:
 			assert(__nulib_MOD_add_nutau_kernel_epannihil);
 			assert(__nulib_MOD_add_anutau_kernel_epannihil);
 			for(int mom=0; mom<KMOMENTS; mom++)
-			  Phi[mom] += epannihil_phi_bruenn_(&X, &Xbar, &eta, &s_nulib, &pro_or_ann, &mom);
+			  Phi[mom] += __epannihil_phi_bruenn_(&X, &Xbar, &eta, &s_nulib, &pro_or_ann, &mom);
 		}
 		else{
 			assert(!__nulib_MOD_add_anue_kernel_epannihil);
@@ -429,19 +429,19 @@ public:
 			n_N = ndens * Xn;
 			assert(n_N>=0);
 			assert(n_N<=ndens);
-			Phi[0] += bremsstrahlung_phi0_hannestad_(&X, &Xbar, &TMeV, &n_N, &s_nulib, &pro_or_ann);
+			Phi[0] += __bremsstrahlung_phi0_hannestad_(&X, &Xbar, &TMeV, &n_N, &s_nulib, &pro_or_ann);
 
 			// proton-proton
 			n_N = ndens * Xp;
 			assert(n_N>=0);
 			assert(n_N<=ndens);
-			Phi[0] += bremsstrahlung_phi0_hannestad_(&X, &Xbar, &TMeV, &n_N, &s_nulib, &pro_or_ann);
+			Phi[0] += __bremsstrahlung_phi0_hannestad_(&X, &Xbar, &TMeV, &n_N, &s_nulib, &pro_or_ann);
 
 			// neutron-proton
 			n_N = ndens * sqrt(Xn*Xp);
 			assert(n_N>=0);
 			assert(n_N<=ndens);
-			Phi[0] += bremsstrahlung_phi0_hannestad_(&X, &Xbar, &TMeV, &n_N, &s_nulib, &pro_or_ann) * 28./3.;
+			Phi[0] += __bremsstrahlung_phi0_hannestad_(&X, &Xbar, &TMeV, &n_N, &s_nulib, &pro_or_ann) * 28./3.;
 		}
 		else{
 		        assert(!__nulib_MOD_add_anue_kernel_bremsstrahlung);
