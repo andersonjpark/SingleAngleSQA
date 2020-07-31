@@ -174,7 +174,16 @@ public:
 
 		array<array<array<MATRIX<complex<double>,NF,NF>,NMOMENTS>,NE>,NM> MBackground = oscillated_moments(profile,s0);
 
-		// calculate the self-interaction potential
+		// calculate the energy elctron neutrino.
+
+		MATRIX<complex<double>,NF,NF> electron_density_matrix = MATRIX<complex<double>,NF,NF>();
+		for (int m=matter; m<=antimatter; m++){
+			for (int i0=0; i0<NE; i0++){
+					electron_density_matrix += (MBackground[m][i0][0]) * Ecom[i0];
+			}
+		}
+
+			// calculate the self-interaction potential
 		VfSI[matter] = MATRIX<complex<double>,NF,NF>();
 		for(int m=matter; m<=antimatter; m++){
 			for(int i0=0; i0<NE; i0++){
@@ -187,7 +196,7 @@ public:
 		VfSI[matter] *= Ecom_Elab;
 
 		// set antimatter potential
-		VfSI[antimatter]=-Conjugate(VfSI[matter]);
+		VfSI[antimatter]= -Conjugate(VfSI[matter]);
 	}
 
 
