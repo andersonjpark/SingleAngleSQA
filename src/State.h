@@ -146,6 +146,8 @@ public:
 
 		// derivative of electron energy density (think about it later)
 
+		array<array<array<MATRIX<complex<double>,NF,NF>,NMOMENTS>,NE>,NM> MBackground = oscillated_moments(profile,s0);
+
 		// two-loop neutrino energy density
 		MATRIX<complex<double>,NF,NF> VfEdnu = MATRIX<complex<double>,NF,NF>();
 		for (int m=matter; m<=antimatter; m++){
@@ -182,8 +184,6 @@ public:
 				assert( abs( Trace(          Sf[m][i]*Adjoint(         Sf[m][i])) - (double)NF) < 1e-5);
 			}
 		}
-
-		array<array<array<MATRIX<complex<double>,NF,NF>,NMOMENTS>,NE>,NM> MBackground = oscillated_moments(profile,s0);
 
 		// calculate the self-interaction potential
 		VfSI[matter] = MATRIX<complex<double>,NF,NF>();
