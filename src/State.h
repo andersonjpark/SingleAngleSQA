@@ -131,20 +131,33 @@ public:
 		dVfMatterdr[matter] = VfMatter[matter] * (drhodr/rho + dYedr/Ye);
 		dVfMatterdr[antimatter]=-Conjugate(dVfMatterdr[matter]);
 
-		// New potential (two loop contribution, 2nd order term)
-		array<MATRIX<complex<double>,NF,NF>,NE> VfNew, dVfNew;
+		// Electron energy density (two loop contribution, 2nd order term)
+		array<MATRIX<complex<double>,NF,NF>,NE> VfEde, dVfEde;
 		for(int i=0; i<=NE-1; i++) {
 		  double new_potential = 8.0*M_SQRT2*cgs::constants::GF*Ecom[i]*eas.E_density_electron/3.0/cgs::constants::Mw/cgs::constants::Mw;
 			if (do_two_loop_contribution == false){
 				new_potential = 0;
 			}
-			VfNew[i ][e ][e ] = new_potential;
-			VfNew[i ][mu][mu] = 0;
-			VfNew[i ][e ][mu] = 0;
-			VfNew[i ][mu][e ] = 0;
+			VfEde[i ][e ][e ] = new_potential;
+			VfEde[i ][mu][mu] = 0;
+			VfEde[i ][e ][mu] = 0;
+			VfEde[i ][mu][e ] = 0;
 		}
 
-		// derivative of new potential (think about it later)
+		// derivative of electron energy density (think about it later)
+
+		array<array<array<MATRIX<complex<double>,NF,NF>,NMOMENTS>,NE>,NM> MBackground = oscillated_moments(profile,s0);
+
+		// two-loop neutrino energy density
+		MATRIX<complex<double>,NF,NF> VfEdnu = MATRIX<complex<double>,NF,NF>();
+		for (int m=matter; m<=antimatter; m++){
+			for (int i=0; i<NE; i++){
+					VfEdnu += (MBackground[m][i][0]) * Ecom[i];
+			}
+		}
+
+		// derivative of two-loop neutrino energy density
+		MATRIX<complex<double>,NF,NF> dVfEdnu = MATRIX<complex<double>,NF,NF>();
 
 		// SI potential
 #pragma omp parallel for collapse(2)
@@ -153,7 +166,7 @@ public:
 
 				// stuff that used to be in K()
 				MATRIX<complex<double>,NF,NF> dVfVacdr = VfVac[m][i] * VfVac_derivative_fac;
-				VfMSW[m][i] = VfVac[m][i]+VfMatter[m] + VfNew[i];
+				VfMSW[m][i] = VfVac[m][i]+VfMatter[m] + VfEde[i] + VfEdnu[m][i];
 				dVfMSWdr[m][i] = dVfMatterdr[m] + dVfVacdr;
 				kk[m][i] = k(VfMSW[m][i]);
 				dkk[m][i] = deltak(VfMSW[m][i]);
@@ -172,18 +185,7 @@ public:
 			}
 		}
 
-		array<array<array<MATRIX<complex<double>,NF,NF>,NMOMENTS>,NE>,NM> MBackground = oscillated_moments(profile,s0);
-
-		// calculate the energy elctron neutrino.
-
-		MATRIX<complex<double>,NF,NF> electron_density_matrix = MATRIX<complex<double>,NF,NF>();
-		for (int m=matter; m<=antimatter; m++){
-			for (int i0=0; i0<NE; i0++){
-					electron_density_matrix += (MBackground[m][i0][0]) * Ecom[i0];
-			}
-		}
-
-			// calculate the self-interaction potential
+		// calculate the self-interaction potential
 		VfSI[matter] = MATRIX<complex<double>,NF,NF>();
 		for(int m=matter; m<=antimatter; m++){
 			for(int i0=0; i0<NE; i0++){
