@@ -167,7 +167,7 @@ public:
 
 				// stuff that used to be in K()
 				MATRIX<complex<double>,NF,NF> dVfVacdr = VfVac[m][i] * VfVac_derivative_fac;
-				VfMSW[m][i] = VfVac[m][i]+VfMatter[m] + VfEde[i] + VfEdnu[m][i];
+				VfMSW[m][i] = VfVac[m][i]+VfMatter[m] + VfEde[i] //+ VfEdnu[m][i];
 				dVfMSWdr[m][i] = dVfMatterdr[m] + dVfVacdr;
 				kk[m][i] = k(VfMSW[m][i]);
 				dkk[m][i] = deltak(VfMSW[m][i]);
