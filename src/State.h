@@ -134,11 +134,11 @@ public:
 		//two-loop contribution given the Electron energy density  (2nd order term)
 		array<MATRIX<complex<double>,NF,NF>,NE> VfEde, dVfEde;
 		for(int i=0; i<=NE-1; i++) {
-		  double new_potential = 8.0*M_SQRT2*cgs::constants::GF*Ecom[i]*eas.E_density_electron/3.0/cgs::constants::Mw/cgs::constants::Mw;
+		  double two_loop_contribution_e = 8.0*M_SQRT2*cgs::constants::GF*Ecom[i]*eas.E_density_electron/3.0/cgs::constants::Mw/cgs::constants::Mw;
 			if (do_two_loop_contribution == false){
-				new_potential = 0;
+				two_loop_contribution_e = 0;
 			}
-			VfEde[i ][e ][e ] = new_potential;
+			VfEde[i ][e ][e ] = two_loop_contribution_e;
 			VfEde[i ][mu][mu] = 0;
 			VfEde[i ][e ][mu] = 0;
 			VfEde[i ][mu][e ] = 0;
@@ -152,8 +152,8 @@ public:
 		MATRIX<complex<double>,NF,NF> VfEdnu = MATRIX<complex<double>,NF,NF>();
 		for (int m=matter; m<=antimatter; m++){
 			for (int i=0; i<NE; i++){
-			  // VfEdnu += 8.0*M_SQRT2*cgs::constants::GF*(Ecom[i]*(MBackground[m][i][0]))/3.0/cgs::constants::Mw/cgs::constants::Mw;
-			  VfEdnu += Ecom[i]*(MBackground[m][i][0]);
+			  //VfEdnu += 8.0*M_SQRT2*cgs::constants::GF*((MBackground[m][i][0])*Ecom[i])/3.0/cgs::constants::Mw/cgs::constants::Mw;
+			  VfEdnu += (MBackground[m][i][0])*Ecom[i];
 			}
 		}
 
@@ -167,7 +167,7 @@ public:
 
 				// stuff that used to be in K()
 				MATRIX<complex<double>,NF,NF> dVfVacdr = VfVac[m][i] * VfVac_derivative_fac;
-				VfMSW[m][i] = VfVac[m][i]+VfMatter[m] + VfEde[i] //+ VfEdnu[m][i];
+				VfMSW[m][i] = VfVac[m][i]+VfMatter[m] + VfEde[i] + VfEdnu[m][i];
 				dVfMSWdr[m][i] = dVfMatterdr[m] + dVfVacdr;
 				kk[m][i] = k(VfMSW[m][i]);
 				dkk[m][i] = deltak(VfMSW[m][i]);
