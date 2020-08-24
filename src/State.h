@@ -152,7 +152,8 @@ public:
 		MATRIX<complex<double>,NF,NF> VfEdnu = MATRIX<complex<double>,NF,NF>();
 		for (int m=matter; m<=antimatter; m++){
 			for (int i=0; i<NE; i++){
-					VfEdnu += 8.0*M_SQRT2*cgs::constants::GF*(Ecom[i]*(MBackground[m][i][0]))/3.0/cgs::constants::Mw/cgs::constants::Mw;
+			  // VfEdnu += 8.0*M_SQRT2*cgs::constants::GF*(Ecom[i]*(MBackground[m][i][0]))/3.0/cgs::constants::Mw/cgs::constants::Mw;
+			  VfEdnu += Ecom[i]*(MBackground[m][i][0]);
 			}
 		}
 
