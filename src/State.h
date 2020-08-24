@@ -131,7 +131,7 @@ public:
 		dVfMatterdr[matter] = VfMatter[matter] * (drhodr/rho + dYedr/Ye);
 		dVfMatterdr[antimatter]=-Conjugate(dVfMatterdr[matter]);
 
-		// Electron energy density (two loop contribution, 2nd order term)
+		//two-loop contribution given the Electron energy density  (2nd order term)
 		array<MATRIX<complex<double>,NF,NF>,NE> VfEde, dVfEde;
 		for(int i=0; i<=NE-1; i++) {
 		  double new_potential = 8.0*M_SQRT2*cgs::constants::GF*Ecom[i]*eas.E_density_electron/3.0/cgs::constants::Mw/cgs::constants::Mw;
@@ -148,11 +148,11 @@ public:
 
 		array<array<array<MATRIX<complex<double>,NF,NF>,NMOMENTS>,NE>,NM> MBackground = oscillated_moments(profile,s0);
 
-		// two-loop neutrino energy density
+		// two-loop contribution given the neutrino energy density
 		MATRIX<complex<double>,NF,NF> VfEdnu = MATRIX<complex<double>,NF,NF>();
 		for (int m=matter; m<=antimatter; m++){
 			for (int i=0; i<NE; i++){
-					VfEdnu += (MBackground[m][i][0]) * Ecom[i];
+					VfEdnu += 8.0*M_SQRT2*cgs::constants::GF*(Ecom[i]*(MBackground[m][i][0]))/3.0/cgs::constants::Mw/cgs::constants::Mw;
 			}
 		}
 
