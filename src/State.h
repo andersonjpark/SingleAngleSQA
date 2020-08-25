@@ -146,20 +146,6 @@ public:
 
 		// derivative of electron energy density (think about it later)
 
-		array<array<array<MATRIX<complex<double>,NF,NF>,NMOMENTS>,NE>,NM> MBackground = oscillated_moments(profile,s0);
-
-		// two-loop contribution given the neutrino energy density
-		MATRIX<complex<double>,NF,NF> VfEdnu = MATRIX<complex<double>,NF,NF>();
-		for (int m=matter; m<=antimatter; m++){
-			for (int i=0; i<NE; i++){
-			  //VfEdnu += 8.0*M_SQRT2*cgs::constants::GF*((MBackground[m][i][0])*Ecom[i])/3.0/cgs::constants::Mw/cgs::constants::Mw;
-			  VfEdnu += (MBackground[m][i][0])*Ecom[i]; //total neutrino energy density
-			}
-		}
-
-		// derivative of two-loop neutrino energy density
-		MATRIX<complex<double>,NF,NF> dVfEdnu = MATRIX<complex<double>,NF,NF>();
-
 		// SI potential
 #pragma omp parallel for collapse(2)
 		for(int m=matter; m<=antimatter; m++){
@@ -185,6 +171,19 @@ public:
 				assert( abs( Trace(          Sf[m][i]*Adjoint(         Sf[m][i])) - (double)NF) < 1e-5);
 			}
 		}
+		array<array<array<MATRIX<complex<double>,NF,NF>,NMOMENTS>,NE>,NM> MBackground = oscillated_moments(profile,s0);
+
+		// two-loop contribution given the neutrino energy density
+		MATRIX<complex<double>,NF,NF> VfEdnu = MATRIX<complex<double>,NF,NF>();
+		for (int m=matter; m<=antimatter; m++){
+			for (int i=0; i<NE; i++){
+			  //VfEdnu += 8.0*M_SQRT2*cgs::constants::GF*((MBackground[m][i][0])*Ecom[i])/3.0/cgs::constants::Mw/cgs::constants::Mw;
+			  VfEdnu += (MBackground[m][i][0])*Ecom[i]; //total neutrino energy density
+			}
+		}
+
+		// derivative of two-loop neutrino energy density
+		MATRIX<complex<double>,NF,NF> dVfEdnu = MATRIX<complex<double>,NF,NF>();
 
 		// calculate the self-interaction potential
 		VfSI[matter] = MATRIX<complex<double>,NF,NF>();
