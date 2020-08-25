@@ -153,7 +153,7 @@ public:
 		for (int m=matter; m<=antimatter; m++){
 			for (int i=0; i<NE; i++){
 			  //VfEdnu += 8.0*M_SQRT2*cgs::constants::GF*((MBackground[m][i][0])*Ecom[i])/3.0/cgs::constants::Mw/cgs::constants::Mw;
-			  VfEdnu += (MBackground[m][i][0])*Ecom[i];
+			  VfEdnu += (MBackground[m][i][0])*Ecom[i]; //total neutrino energy density
 			}
 		}
 
@@ -167,7 +167,7 @@ public:
 
 				// stuff that used to be in K()
 				MATRIX<complex<double>,NF,NF> dVfVacdr = VfVac[m][i] * VfVac_derivative_fac;
-				VfMSW[m][i] = VfVac[m][i]+VfMatter[m] + VfEde[i] + VfEdnu[m][i];
+				VfMSW[m][i] = VfVac[m][i]+VfMatter[m]+VfEde[i];
 				dVfMSWdr[m][i] = dVfMatterdr[m] + dVfVacdr;
 				kk[m][i] = k(VfMSW[m][i]);
 				dkk[m][i] = deltak(VfMSW[m][i]);
