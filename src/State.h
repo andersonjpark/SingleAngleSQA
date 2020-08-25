@@ -194,10 +194,10 @@ public:
 				MATRIX<complex<double>,NF,NF> VfSIE = (MBackground[m][i0][0] - MBackground[m][i0][1]) * sqrt(2.)*cgs::constants::GF;
 				MATRIX<complex<double>,NF,NF> VfEdnu = (MBackground[m][i0][0]*Ecom[i0])*8.0*M_SQRT2*cgs::constants::GF/3.0/cgs::constants::Mw/cgs::constants::Mw;
 				if (do_two_loop_contribution == false) {
-					VfEdnu = 0;
+				  VfEdnu *= 0;
 				}
 				VfSI[matter] += (m==matter ? VfSIE : -Conjugate(VfSIE));
-				VfSI[matter] += (m==matter ? VfEdnu : -Conjugate(VfEdnu))
+				VfSI[matter] += (m==matter ? VfEdnu : -Conjugate(VfEdnu));
 			}
 		}
 
