@@ -133,15 +133,18 @@ public:
 
 		//two-loop contribution given the Electron energy density  (2nd order term)
 		array<MATRIX<complex<double>,NF,NF>,NE> VfEde, dVfEde;
-		if (do_two_loop_contribution == true){
-			for(int i=0; i<=NE-1; i++) {
-				double two_loop_contribution_e = 8.0*M_SQRT2*cgs::constants::GF*Ecom[i]*eas.E_density_electron/3.0/cgs::constants::Mw/cgs::constants::Mw;
-				VfEde[i ][e ][e ] = two_loop_contribution_e;
-				VfEde[i ][mu][mu] = 0;
-				VfEde[i ][e ][mu] = 0;
-				VfEde[i ][mu][e ] = 0;
+
+		for(int i=0; i<=NE-1; i++) {
+			double two_loop_contribution_e = 8.0*M_SQRT2*cgs::constants::GF*Ecom[i]*eas.E_density_electron/3.0/cgs::constants::Mw/cgs::constants::Mw;
+			if (do_two_loop_contribution == false){
+				two_loop_contribution_e = 0:
 			}
+			VfEde[i ][e ][e ] = two_loop_contribution_e;
+			VfEde[i ][mu][mu] = 0;
+			VfEde[i ][e ][mu] = 0;
+			VfEde[i ][mu][e ] = 0;
 		}
+
 		// derivative of electron energy density (think about it later)
 
 		// SI potential
@@ -179,12 +182,12 @@ public:
 
 		// calculate the self-interaction potential
 		VfSI[matter] = MATRIX<complex<double>,NF,NF>();
-		MATRIX<complex<double>,NF,NF> VfEdnu = MATRIX<complex<double>,NF,NF>();
 		for(int m=matter; m<=antimatter; m++){
 			for(int i0=0; i0<NE; i0++){
 				MATRIX<complex<double>,NF,NF> VfSIE = (MBackground[m][i0][0] - MBackground[m][i0][1]) * sqrt(2.)*cgs::constants::GF;
-				if (do_two_loop_contribution == true) {
-				  VfEdnu = (MBackground[m][i0][0]*Ecom[i0])*8.0*M_SQRT2*cgs::constants::GF/3.0/cgs::constants::Mw/cgs::constants::Mw;;
+				MATRIX<complex<double>,NF,NF> VfEdnu = (MBackground[m][i0][0]*Ecom[i0])*8.0*M_SQRT2*cgs::constants::GF/3.0/cgs::constants::Mw/cgs::constants::Mw;
+				if (do_two_loop_contribution == false) {
+				  VfEdnu *= 0;
 				}
 				VfSI[matter] += (m==matter ? VfSIE : -Conjugate(VfSIE));
 				VfSI[matter] += (m==matter ? VfEdnu : -Conjugate(VfEdnu));
