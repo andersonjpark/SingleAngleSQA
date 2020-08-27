@@ -137,7 +137,7 @@ public:
 		for(int i=0; i<=NE-1; i++) {
 			double two_loop_contribution_e = 8.0*M_SQRT2*cgs::constants::GF*Ecom[i]*eas.E_density_electron/3.0/cgs::constants::Mw/cgs::constants::Mw;
 			if (do_two_loop_contribution == false){
-				two_loop_contribution_e = 0:
+			        two_loop_contribution_e = 0:
 			}
 			VfEde[i ][e ][e ] = two_loop_contribution_e;
 			VfEde[i ][mu][mu] = 0;
