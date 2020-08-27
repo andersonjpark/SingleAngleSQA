@@ -135,9 +135,9 @@ public:
 		array<MATRIX<complex<double>,NF,NF>,NE> VfEde, dVfEde;
 
 		for(int i=0; i<=NE-1; i++) {
-			double two_loop_contribution_e = 8.0*M_SQRT2*cgs::constants::GF*Ecom[i]*eas.E_density_electron/3.0/cgs::constants::Mw/cgs::constants::Mw;
-			if (do_two_loop_contribution == false){
-			        two_loop_contribution_e = 0:
+			double two_loop_contribution_e = 0;
+			if (do_two_loop_contribution){
+				two_loop_contribution_e = 8.0*M_SQRT2*cgs::constants::GF*Ecom[i]*eas.E_density_electron/3.0/cgs::constants::Mw/cgs::constants::Mw;
 			}
 			VfEde[i ][e ][e ] = two_loop_contribution_e;
 			VfEde[i ][mu][mu] = 0;
@@ -185,20 +185,19 @@ public:
 		for(int m=matter; m<=antimatter; m++){
 			for(int i0=0; i0<NE; i0++){
 				MATRIX<complex<double>,NF,NF> VfSIE = (MBackground[m][i0][0] - MBackground[m][i0][1]) * sqrt(2.)*cgs::constants::GF;
-				MATRIX<complex<double>,NF,NF> VfEdnu = (MBackground[m][i0][0]*Ecom[i0])*8.0*M_SQRT2*cgs::constants::GF/3.0/cgs::constants::Mw/cgs::constants::Mw;
-				if (do_two_loop_contribution == false) {
-				  VfEdnu *= 0;
+				MATRIX<complex<double>,NF,NF> VfEdnu = MATRIX<complex<double>,NF,NF>();
+				if (do_two_loop_contribution) {
+				  VfEdnu = (MBackground[m][i0][0]*Ecom[i0])*8.0*M_SQRT2*cgs::constants::GF/3.0/cgs::constants::Mw/cgs::constants::Mw;
 				}
 				VfSI[matter] += (m==matter ? VfSIE : -Conjugate(VfSIE));
 				VfSI[matter] += (m==matter ? VfEdnu : -Conjugate(VfEdnu));
 			}
 		}
-
 		// convert comoving-frame potential to lab-frame potential
 		VfSI[matter] *= Ecom_Elab;
 
 		// set antimatter potential
-		VfSI[antimatter]= -Conjugate(VfSI[matter]);
+		VfSI[antimatter]=-Conjugate(VfSI[matter]);
 	}
 
 
