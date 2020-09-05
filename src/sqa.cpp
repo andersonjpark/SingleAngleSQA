@@ -84,7 +84,8 @@ int main(int argc, char *argv[]){
   const bool do_interact_rotation = get_parameter<bool>(fin, "do_interact_rotation");
   const bool do_SR = get_parameter<bool>(fin, "do_SR");
   const bool do_GR = get_parameter<bool>(fin, "do_GR");
-  const bool do_two_loop_contribution = get_parameter<bool>(fin, "do_two_loop_contribution");
+  const bool do_two_loop_matter = get_parameter<bool>(fin, "do_two_loop_matter");
+  const bool do_two_loop_nu = get_parameter<bool>(fin, "do_two_loop_nu");
   const double target_impact = get_parameter<double>(fin, "target_impact");
   const double increase = get_parameter<double>(fin, "increase");
   const double initial_mixing = get_parameter<double>(fin, "initial_mixing");
@@ -99,7 +100,7 @@ int main(int argc, char *argv[]){
   // quantities evaluated at inital point *
   // **************************************
 
-  State s(profile, profile.rho.x[0], initial_mixing, do_two_loop_contribution);
+  State s(profile, profile.rho.x[0], initial_mixing, do_two_loop_matter, do_two_loop_nu);
   State s0 = s; // ONLY used for oscillation stuff. s0.fmatrixf is meaningless
 
   // *****************************************
