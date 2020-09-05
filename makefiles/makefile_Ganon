@@ -3,7 +3,7 @@ HDF5_LOC = /usr/local/hdf5-1.12.0_gnu7.5.0
 
 INCLUDE = -I${HDF5_LOC}/include
 
-LIBRARY = ${NULIB_LOC}/src/nulib.a -L${HDF5_LOC}/lib -Wl,-rpath,${HDF5_LOC}/lib -lhdf5 -lhdf5_fortran -lhdf5_cpp -lgfortran
+LIBRARY = ${NULIB_LOC}/src/nulib.a -L${HDF5_LOC}/lib -Wl,-rpath,${HDF5_LOC}/lib -lhdf5 -lhdf5_fortran -lhdf5_cpp -lgfortran -lgsl -lblas
 
 COMP = g++ -g -std=gnu++11 -O0 -Wall #-fopenmp
 
