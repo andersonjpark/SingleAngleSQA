@@ -146,17 +146,17 @@ void unitarize(MATRIX<complex<double>,2,2>& M, const double accuracy){
   
   // aa* + bb* = 1
   assert( abs(a2 + b2 - 1.) < accuracy);
-  M[e][mu] *= sqrt( max(0., 1.-a2) / b2 );
+  if(b2>0) M[e][mu] *= sqrt( max(0., 1.-a2) / b2 );
   b2 = real(M[e ][mu] * conj(M[e ][mu]) );
   
   // aa* = dd*
   assert( abs(a2-d2) < accuracy );
-  M[mu][mu] *= sqrt(a2/d2);
+  if(d2>0) M[mu][mu] *= sqrt(a2/d2);
   d2 = real(M[mu][mu] * conj(M[mu][mu]) );
 
   // bb* = cc*
   assert( abs(b2-c2) < accuracy );
-  M[mu][e] *= sqrt(b2/c2);
+  if(c2>0) M[mu][e] *= sqrt(b2/c2);
   c2 = real(M[mu][e ] * conj(M[mu][e ]) );
   
   // det(M) = e^Iphi
