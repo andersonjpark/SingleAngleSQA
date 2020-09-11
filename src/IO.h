@@ -121,12 +121,6 @@ void recover(const string filename, State& s, double& dr_osc, double& dr_int, do
 
   fp.dset_f = H5Dopen (fp.file, "fmatrixf", H5P_DEFAULT);
   file_space = H5Dget_space (fp.dset_f);
-  H5Sselect_hyperslab (file_space, H5S_SELECT_SET, start, NULL, fp.chunk_dims, NULL);
-  H5Dread (fp.dset_f, H5T_NATIVE_DOUBLE, mem_space, file_space, H5P_DEFAULT, &s.fmatrixf);
-
-  fp.dset_S = H5Dopen (fp.file, "S", H5P_DEFAULT);
-  H5Dread (fp.dset_S, H5T_NATIVE_DOUBLE, mem_space, file_space, H5P_DEFAULT, &s.Sf);
-
   H5Sget_simple_extent_dims(file_space, dims, NULL);
   start[0] = dims[0]-1;
   assert(dims[1]==NM);
@@ -134,6 +128,12 @@ void recover(const string filename, State& s, double& dr_osc, double& dr_int, do
   assert(dims[3]==NF);
   assert(dims[4]==NF);
   assert(dims[5]==2);
+  H5Sselect_hyperslab (file_space, H5S_SELECT_SET, start, NULL, fp.chunk_dims, NULL);
+  H5Dread (fp.dset_f, H5T_NATIVE_DOUBLE, mem_space, file_space, H5P_DEFAULT, &s.fmatrixf);
+
+  fp.dset_S = H5Dopen (fp.file, "S", H5P_DEFAULT);
+  H5Dread (fp.dset_S, H5T_NATIVE_DOUBLE, mem_space, file_space, H5P_DEFAULT, &s.Sf);
+
 
   // 1D stuff
   ndims=1;
